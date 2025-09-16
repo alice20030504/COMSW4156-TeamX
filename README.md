@@ -7,7 +7,6 @@ Shared repository for COMSW4156 TeamX's project.   This repo will contain our so
 - Alice (GitHub: @alice20030504)  
 - [Teammate names and GitHub IDs to be Added]  
 
-## Getting Started
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/alice20030504/COMSW4156-TeamX.git
+## License
+This project is licensed under the *MIT License*.  
+See the [LICENSE](LICENSE) file for details.
