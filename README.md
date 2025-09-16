@@ -7,7 +7,7 @@ Shared repository for Columbia University's COMSW4156 TeamX's project, in the fa
 - Shurong Zhang Alice (GitHub: @alice20030504)
 - Luojie Wang Roger (GitHub: @2025FALLCOMSW4156)
 - Shenghang luo Peter (GitHub: @shenghangluo)
-- [Teammate names and GitHub IDs to be Added]  
+- Chang Ma Mercury (GitHub: @MercuryCod)
 
 ## License
 This project is licensed under the *MIT License*.  
