@@ -1,11 +1,12 @@
 # COMSW4156-TeamX
 
 ## Overview
-Shared repository for COMSW4156 TeamX's project.   This repo will contain our source code, documentation, meeting notes, and project deliverables.  
+Shared repository for Columbia University's COMSW4156 TeamX's project, in the fall of 2025.   This repo will contain our source code, documentation, meeting notes, and project deliverables.  
 
 ## Team Members
-- Alice (GitHub: @alice20030504)
-- Roger (GitHub: @2025FALLCOMSW4156)
+- Shurong Zhang Alice (GitHub: @alice20030504)
+- Luojie Wang Roger (GitHub: @2025FALLCOMSW4156)
+- Shenghang luo Peter (GitHub: @shenghangluo)
 - [Teammate names and GitHub IDs to be Added]  
 
 ## License
