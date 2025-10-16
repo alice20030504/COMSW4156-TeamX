@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.teamx.fitness.controller.HomeControllerTest
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 7.950 s -- in com.teamx.fitness.controller.HomeControllerTest
