@@ -9,6 +9,9 @@ Shared repository for Columbia University's COMSW4156 TeamX's project, in the fa
 - Shenghang luo Peter (GitHub: @shenghangluo)
 - Chang Ma Mercury (GitHub: @MercuryCod)
 
-## License
-This project is licensed under the *MIT License*.  
-See the [LICENSE](LICENSE) file for details.
+## Project: Personal Fitness Management Service
+
+**Course**: COMSW4156 Advanced Software Engineering
+**Team**: TeamX
+**Semester**: Fall 2025
+
