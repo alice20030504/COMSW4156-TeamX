@@ -61,6 +61,8 @@
 <error line="116" column="9" severity="warning" message="&apos;if&apos; construct must use &apos;{}&apos;s." source="com.puppycrawl.tools.checkstyle.checks.blocks.NeedBracesCheck"/>
 <error line="116" column="19" severity="warning" message="&apos;30&apos; is a magic number." source="com.puppycrawl.tools.checkstyle.checks.coding.MagicNumberCheck"/>
 </file>
+<file name="/Users/mercury/Developer/coursework/4156_Advanced_SWE/COMSW4156-TeamX/src/main/java/com/teamx/fitness/controller/HomeController.java">
+</file>
 <file name="/Users/mercury/Developer/coursework/4156_Advanced_SWE/COMSW4156-TeamX/src/main/java/com/teamx/fitness/model/ApiLog.java">
 <error line="3" column="27" severity="warning" message="Using the &apos;.*&apos; form of import should be avoided - jakarta.persistence.*." source="com.puppycrawl.tools.checkstyle.checks.imports.AvoidStarImportCheck"/>
 <error line="14" column="5" severity="warning" message="Missing a Javadoc comment." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocVariableCheck"/>
