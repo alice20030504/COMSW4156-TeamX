@@ -24,6 +24,24 @@ public class ApiLog {
   @Column(nullable = false)
   private LocalDateTime timestamp;
 
+  @Column(name = "request_payload", columnDefinition = "TEXT")
+  private String requestPayload;
+
+  @Column(name = "response_status")
+  private Integer responseStatus;
+
+  @Column(name = "response_time")
+  private Long responseTime;
+
+  @Column(name = "ip_address")
+  private String ipAddress;
+
+  @Column(name = "user_agent")
+  private String userAgent;
+
+  @Column(name = "error_message")
+  private String errorMessage;
+
   @PrePersist
   protected void onCreate() {
     if (timestamp == null) {
@@ -45,4 +63,22 @@ public class ApiLog {
 
   public LocalDateTime getTimestamp() { return timestamp; }
   public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
+
+  public String getRequestPayload() { return requestPayload; }
+  public void setRequestPayload(String requestPayload) { this.requestPayload = requestPayload; }
+
+  public Integer getResponseStatus() { return responseStatus; }
+  public void setResponseStatus(Integer responseStatus) { this.responseStatus = responseStatus; }
+
+  public Long getResponseTime() { return responseTime; }
+  public void setResponseTime(Long responseTime) { this.responseTime = responseTime; }
+
+  public String getIpAddress() { return ipAddress; }
+  public void setIpAddress(String ipAddress) { this.ipAddress = ipAddress; }
+
+  public String getUserAgent() { return userAgent; }
+  public void setUserAgent(String userAgent) { this.userAgent = userAgent; }
+
+  public String getErrorMessage() { return errorMessage; }
+  public void setErrorMessage(String errorMessage) { this.errorMessage = errorMessage; }
 }
