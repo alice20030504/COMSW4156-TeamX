@@ -25,12 +25,17 @@ public class PersonSimple {
   @Column(nullable = false)
   private Double height;
 
+  @NotNull(message = "Birth date is required")
+  @Column(name = "birth_date", nullable = false)
+  private LocalDate birthDate;
+
   public PersonSimple() {}
 
-  public PersonSimple(String name, Double weight, Double height) {
+  public PersonSimple(String name, Double weight, Double height, LocalDate birthDate) {
     this.name = name;
     this.weight = weight;
     this.height = height;
+    this.birthDate = birthDate;
   }
 
   public Long getId() {
@@ -63,5 +68,13 @@ public class PersonSimple {
 
   public void setHeight(Double height) {
     this.height = height;
+  }
+
+  public LocalDate getBirthDate() {
+    return birthDate;
+  }
+
+  public void setBirthDate(LocalDate birthDate) {
+    this.birthDate = birthDate;
   }
 }
