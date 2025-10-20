@@ -1,7 +1,9 @@
 # Architecture Documentation
 
-**Version**: 2.0
+**Version**: 2.1
 **Last Updated**: 2025-10-20
+
+> **Version 2.1 Changes**: Simplified architecture by consolidating authentication components into a unified `security/` package. Reduced from 9 packages to 6 packages while maintaining full functionality.
 
 ---
 
@@ -16,7 +18,8 @@ COMSW4156-TeamX/
 │   │   │   │
 │   │   │   ├── config/                              # Configuration Layer
 │   │   │   │   ├── OpenApiConfig.java              # Swagger/API documentation config
-│   │   │   │   └── WebMvcConfig.java               # Web MVC and interceptor config
+│   │   │   │   ├── WebMvcConfig.java               # Web MVC and interceptor config
+│   │   │   │   └── GlobalExceptionHandler.java     # Error response formatting
 │   │   │   │
 │   │   │   ├── controller/                          # Presentation Layer (REST API)
 │   │   │   │   ├── HomeController.java             # Root URL handler
@@ -33,18 +36,9 @@ COMSW4156-TeamX/
 │   │   │   │   ├── PersonSimple.java               # Person entity (JPA)
 │   │   │   │   └── ApiLog.java                     # API logging entity (JPA)
 │   │   │   │
-│   │   │   ├── interceptor/                         # Cross-Cutting Concerns
-│   │   │   │   └── ClientIdInterceptor.java        # Request authentication/validation
-│   │   │   │
-│   │   │   ├── context/                             # Request Context
-│   │   │   │   └── ClientContext.java              # Thread-local client ID storage
-│   │   │   │
-│   │   │   ├── exception/                           # Exception Handling
-│   │   │   │   ├── ClientUnauthorizedException.java
-│   │   │   │   └── GlobalExceptionHandler.java     # Centralized exception mapping
-│   │   │   │
-│   │   │   └── util/                                # Utilities
-│   │   │       └── ClientValidator.java            # Client ID format validation
+│   │   │   └── security/                            # Security & Authentication
+│   │   │       ├── ClientContext.java              # Client ID validation & thread-local storage
+│   │   │       └── ClientIdInterceptor.java        # Request authentication interceptor
 │   │   │
 │   │   └── resources/
 │   │       ├── application.yml                      # Development configuration
@@ -82,9 +76,9 @@ The application follows a **3-tier + cross-cutting concerns** architecture patte
                        │
                        ▼
 ┌─────────────────────────────────────────────────────────────┐
-│               INTERCEPTOR LAYER                              │
+│               SECURITY LAYER                                 │
 │  ClientIdInterceptor: Extract & validate client ID          │
-│  ClientContext: Store client ID in thread-local             │
+│  ClientContext: Validate format & store in thread-local     │
 └──────────────────────┬──────────────────────────────────────┘
                        │
                        ▼
@@ -150,6 +144,7 @@ The application follows a **3-tier + cross-cutting concerns** architecture patte
 ### Configuration (`config/`)
 - **OpenApiConfig**: Swagger/OpenAPI documentation, security scheme definition
 - **WebMvcConfig**: Register interceptors, configure Spring MVC behavior
+- **GlobalExceptionHandler**: Formats ResponseStatusException as consistent JSON error responses
 
 ### Controllers (`controller/`)
 - **HomeController**: Redirect root URL to Swagger UI
@@ -177,28 +172,20 @@ The application follows a **3-tier + cross-cutting concerns** architecture patte
 - **PersonSimple**: Person entity with client association
 - **ApiLog**: Audit log entity for API requests
 
-### Interceptor (`interceptor/`)
+### Security (`security/`)
 - **ClientIdInterceptor**:
   - Extracts `X-Client-ID` header from requests
-  - Validates client ID format (mobile-* or research-*)
+  - Validates client ID format using ClientContext
   - Stores client ID in thread-local context
-  - Rejects invalid/missing client IDs with 400
+  - Rejects invalid/missing client IDs with 400 Bad Request
+  - Auto-cleans context after request completion
 
-### Context (`context/`)
 - **ClientContext**:
+  - Consolidated client ID validation and storage
   - Thread-local storage for current request's client ID
-  - Provides type-safe access to client ID throughout request lifecycle
-  - Auto-cleaned after request completion
-
-### Exception Handling (`exception/`)
-- **ClientUnauthorizedException**: Custom exception for 403 Forbidden
-- **GlobalExceptionHandler**: Centralized exception → HTTP response mapping
-
-### Utilities (`util/`)
-- **ClientValidator**:
-  - Validates client ID format
+  - Validates client ID format (mobile-* or research-*)
   - Determines client type (mobile vs research)
-  - Pattern matching: `mobile-*` or `research-*`
+  - Provides static utility methods for client type checks
 
 ---
 
@@ -320,7 +307,7 @@ The application follows a **3-tier + cross-cutting concerns** architecture patte
 4. Add client-filtered query methods
 
 ### Adding New Client Types
-1. Update `ClientValidator` with new prefix pattern
+1. Update `ClientContext.isValidClientId()` with new prefix pattern
 2. Add access control logic in affected controllers
 3. Update integration tests
 
