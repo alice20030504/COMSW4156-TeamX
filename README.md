@@ -31,6 +31,8 @@ The Personal Fitness Management Service is a RESTful API built with Spring Boot 
 
 - ✅ **Fitness Calculations**: BMI, BMR, TDEE, age calculations
 - ✅ **Research Analytics**: Aggregated workout patterns, population health metrics
+- ✅ **Client Isolation**: Multi-client data separation with per-client authentication
+- ✅ **Access Control**: Client-type based authorization (mobile vs research)
 - ✅ **Interactive API Documentation**: Swagger UI for testing and exploration
 - ✅ **Database Integration**: H2 (development) and PostgreSQL (production) support
 - ✅ **API Logging**: Comprehensive request/response logging
@@ -86,6 +88,119 @@ The application will start on **http://localhost:8080**
 
 ---
 
+## Client Authentication and Data Isolation
+
+### Overview
+
+The service implements a header-based client authentication system that ensures:
+1. **Data Isolation**: Each client can only access their own data
+2. **Client Type Differentiation**: Mobile apps and research tools have different access levels
+3. **Access Control**: Research endpoints are restricted to research-tool clients only
+
+### Authentication Method
+
+All API requests (except `/`, `/swagger-ui`, and `/actuator`) require the `X-Client-ID` header.
+
+**Header Format**:
+```
+X-Client-ID: <client-type>-<identifier>
+```
+
+**Valid Client ID Patterns**:
+- **Mobile Clients**: `mobile-*` (e.g., `mobile-app1`, `mobile-app2`, `mobile-beta`)
+- **Research Clients**: `research-*` (e.g., `research-tool1`, `research-analytics`)
+
+### Example Requests
+
+**Mobile Client Request**:
+```bash
+curl -H "X-Client-ID: mobile-app1" \
+  http://localhost:8080/api/persons
+```
+
+**Research Client Request**:
+```bash
+curl -H "X-Client-ID: research-tool1" \
+  http://localhost:8080/api/research/demographics
+```
+
+**Invalid Request (missing header)**:
+```bash
+curl http://localhost:8080/api/persons
+# Response: 400 Bad Request
+# {"error":"Bad Request","message":"X-Client-ID header is required","status":400}
+```
+
+### Data Isolation
+
+Each client's data is completely isolated:
+
+1. **Separate Data Spaces**:
+   - `mobile-app1` can only see data created by `mobile-app1`
+   - `mobile-app2` can only see data created by `mobile-app2`
+   - Data posted by one client is invisible to all other clients
+
+2. **Protected Operations**:
+   - GET: Returns only the client's own data
+   - POST: Automatically associates new data with the requesting client
+   - PUT: Only allows updating the client's own data (404 for others)
+   - DELETE: Only allows deleting the client's own data (404 for others)
+
+3. **Example Scenario**:
+   ```bash
+   # Client 1 creates a person
+   curl -X POST -H "X-Client-ID: mobile-app1" \
+     -H "Content-Type: application/json" \
+     -d '{"name":"Alice","weight":65,"height":170,"birthDate":"1990-05-15"}' \
+     http://localhost:8080/api/persons
+
+   # Client 1 can see Alice
+   curl -H "X-Client-ID: mobile-app1" http://localhost:8080/api/persons
+   # Returns: [{"id":1,"name":"Alice",...,"clientId":"mobile-app1"}]
+
+   # Client 2 cannot see Alice
+   curl -H "X-Client-ID: mobile-app2" http://localhost:8080/api/persons
+   # Returns: []
+   ```
+
+### Access Control by Client Type
+
+| Endpoint | Mobile Clients | Research Clients |
+|----------|----------------|------------------|
+| `/api/persons` | ✅ Full Access | ✅ Full Access |
+| `/api/persons/bmi` | ✅ Allowed | ✅ Allowed |
+| `/api/persons/calories` | ✅ Allowed | ✅ Allowed |
+| `/api/research/*` | ❌ 403 Forbidden | ✅ Allowed |
+
+**Mobile Client Accessing Research Endpoint**:
+```bash
+curl -H "X-Client-ID: mobile-app1" \
+  http://localhost:8080/api/research/demographics
+# Response: 403 Forbidden
+# {"error":"Forbidden","message":"Mobile clients are not authorized to access research endpoints..."}
+```
+
+### Testing Client Isolation
+
+The project includes comprehensive integration tests demonstrating:
+- Data isolation between multiple mobile clients
+- Cross-client access prevention
+- Research endpoint access control
+- Invalid client ID rejection
+
+**Run Tests**:
+```bash
+# All client isolation tests
+mvn test -Dtest=ClientIsolationIntegrationTest
+
+# Research access control tests
+mvn test -Dtest=ResearchEndpointAccessControlTest
+```
+
+**Test Coverage**: 21 integration tests covering all client isolation scenarios
+
+---
+
 ## API Documentation
 
 ### API Entry Points
@@ -94,14 +209,21 @@ The service provides 9 RESTful API endpoints organized into two controllers:
 
 #### Person Controller (`/api/persons`)
 
-Fitness calculation endpoints:
+Person management and fitness calculation endpoints:
 
-| Endpoint | Method | Description | Parameters | Response |
-|----------|--------|-------------|------------|----------|
-| `/api/persons/bmi` | GET | Calculate BMI | weight (Double), height (Double) | JSON with BMI and category |
-| `/api/persons/age` | GET | Calculate age | birthDate (String, YYYY-MM-DD) | JSON with age |
-| `/api/persons/calories` | GET | Calculate daily calorie needs | weight, height, age, gender, weeklyTrainingFreq | JSON with BMR and TDEE |
-| `/api/persons/health` | GET | Service health check | None | JSON with service status |
+| Endpoint | Method | Description | Parameters | Response | Auth |
+|----------|--------|-------------|------------|----------|------|
+| `/api/persons` | GET | Get all persons for client | None | JSON array of persons | Required |
+| `/api/persons/{id}` | GET | Get person by ID | id (Long) | JSON person object | Required |
+| `/api/persons` | POST | Create new person | JSON person object | Created person | Required |
+| `/api/persons/{id}` | PUT | Update person | id (Long), JSON person | Updated person | Required |
+| `/api/persons/{id}` | DELETE | Delete person | id (Long) | 204 No Content | Required |
+| `/api/persons/bmi` | GET | Calculate BMI | weight, height | JSON with BMI and category | Required |
+| `/api/persons/age` | GET | Calculate age | birthDate (YYYY-MM-DD) | JSON with age | Required |
+| `/api/persons/calories` | GET | Calculate daily calorie needs | weight, height, age, gender, weeklyTrainingFreq | JSON with BMR and TDEE | Required |
+| `/api/persons/health` | GET | Service health check | None | JSON with service status | Required |
+
+**Note**: All endpoints require the `X-Client-ID` header. Data operations (GET, POST, PUT, DELETE) are isolated per client.
 
 #### Research Controller (`/api/research`)
 
