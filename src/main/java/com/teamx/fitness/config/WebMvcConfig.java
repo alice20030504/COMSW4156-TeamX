@@ -1,6 +1,6 @@
 package com.teamx.fitness.config;
 
-import com.teamx.fitness.interceptor.ClientIdInterceptor;
+import com.teamx.fitness.security.ClientIdInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;

@@ -1,9 +1,41 @@
-package com.teamx.fitness.util;
+package com.teamx.fitness.security;
 
-public class ClientValidator {
+/**
+ * Thread-local storage for client authentication context.
+ * Stores and validates client IDs for the current request thread.
+ */
+public class ClientContext {
 
   public static final String MOBILE_PREFIX = "mobile-";
   public static final String RESEARCH_PREFIX = "research-";
+
+  private static final ThreadLocal<String> clientIdHolder = new ThreadLocal<>();
+
+  /**
+   * Sets the client ID for the current thread.
+   *
+   * @param clientId the client ID to set
+   */
+  public static void setClientId(String clientId) {
+    clientIdHolder.set(clientId);
+  }
+
+  /**
+   * Gets the client ID for the current thread.
+   *
+   * @return the client ID, or null if not set
+   */
+  public static String getClientId() {
+    return clientIdHolder.get();
+  }
+
+  /**
+   * Clears the client ID for the current thread.
+   * Should be called after request processing is complete.
+   */
+  public static void clear() {
+    clientIdHolder.remove();
+  }
 
   /**
    * Validates if a client ID is in the correct format.

@@ -1,8 +1,8 @@
 package com.teamx.fitness.controller;
 
-import com.teamx.fitness.context.ClientContext;
 import com.teamx.fitness.model.PersonSimple;
 import com.teamx.fitness.repository.PersonRepository;
+import com.teamx.fitness.security.ClientContext;
 import com.teamx.fitness.service.PersonService;
 import java.time.LocalDate;
 import java.util.HashMap;

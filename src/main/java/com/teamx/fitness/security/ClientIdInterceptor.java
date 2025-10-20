@@ -1,12 +1,14 @@
-package com.teamx.fitness.interceptor;
+package com.teamx.fitness.security;
 
-import com.teamx.fitness.context.ClientContext;
-import com.teamx.fitness.util.ClientValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+/**
+ * Interceptor for validating client authentication via X-Client-ID header.
+ * Extracts and validates the client ID, storing it in thread-local context.
+ */
 @Component
 public class ClientIdInterceptor implements HandlerInterceptor {
 
@@ -37,7 +39,7 @@ public class ClientIdInterceptor implements HandlerInterceptor {
       return false;
     }
 
-    if (!ClientValidator.isValidClientId(clientId)) {
+    if (!ClientContext.isValidClientId(clientId)) {
       response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       response.setContentType("application/json");
       response

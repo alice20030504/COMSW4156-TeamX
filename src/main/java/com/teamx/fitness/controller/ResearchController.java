@@ -1,14 +1,12 @@
 package com.teamx.fitness.controller;
 
-import com.teamx.fitness.context.ClientContext;
-import com.teamx.fitness.exception.ClientUnauthorizedException;
-import com.teamx.fitness.util.ClientValidator;
-import java.util.ArrayList;
+import com.teamx.fitness.security.ClientContext;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * REST controller for research/analyzer endpoints.
@@ -24,12 +22,13 @@ public class ResearchController {
    * Validates that the current client is authorized to access research endpoints.
    * Mobile clients are not allowed to access research data.
    *
-   * @throws ClientUnauthorizedException if the client is not authorized
+   * @throws ResponseStatusException with 403 Forbidden if the client is not authorized
    */
   private void validateResearchAccess() {
     String clientId = ClientContext.getClientId();
-    if (ClientValidator.isMobileClient(clientId)) {
-      throw new ClientUnauthorizedException(
+    if (ClientContext.isMobileClient(clientId)) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN,
           "Mobile clients are not authorized to access research endpoints. Research endpoints are"
               + " restricted to research-tool clients only.");
     }
