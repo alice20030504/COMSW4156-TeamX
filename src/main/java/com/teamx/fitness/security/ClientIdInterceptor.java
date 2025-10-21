@@ -1,3 +1,14 @@
+/**
+ * <p>Part of the Fitness Management Service.</p>
+ *
+ * <p>This interceptor validates client authentication through the {@code X-Client-ID} header
+ * before processing API requests, ensuring client-specific data isolation.</p>
+ *
+ * <p>Applies to all API endpoints except Swagger UI and health check paths.</p>
+ *
+ * @checkstyle 2025-10-21 by alice
+ * @version 1.0
+ */
 package com.teamx.fitness.security;
 
 import jakarta.servlet.http.HttpServletRequest;

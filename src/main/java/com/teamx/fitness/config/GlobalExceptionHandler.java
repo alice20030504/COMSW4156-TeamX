@@ -14,6 +14,9 @@ import org.springframework.web.server.ResponseStatusException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+  /** Prefix length to trim status code string representation. */
+  private static final int STATUS_CODE_PREFIX_LENGTH = 4;
+
   /**
    * Handles ResponseStatusException and formats it as JSON.
    *
@@ -26,7 +29,7 @@ public class GlobalExceptionHandler {
     Map<String, Object> errorResponse = new HashMap<>();
 
     // Format error as "Forbidden" instead of "FORBIDDEN"
-    String errorName = ex.getStatusCode().toString().substring(4); // Remove "XXX " prefix
+    String errorName = ex.getStatusCode().toString().substring(STATUS_CODE_PREFIX_LENGTH);
     errorName = errorName.charAt(0) + errorName.substring(1).toLowerCase();
 
     errorResponse.put("status", ex.getStatusCode().value());

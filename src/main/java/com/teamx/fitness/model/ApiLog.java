@@ -1,3 +1,13 @@
+/**
+ * <p>Part of the Fitness Management Service.</p>
+ *
+ * <p>Entity class for logging API requests including method, endpoint,
+ * timestamp, and response status for auditing and debugging purposes.</p>
+ *
+ * @checkstyle 2025-10-21 by alice
+ * @version 1.0
+ */
+
 package com.teamx.fitness.model;
 
 import jakarta.persistence.Entity;

@@ -6,10 +6,17 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+/**
+ * Web MVC configuration for CORS and request interceptors.
+ */
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
-  @Autowired private ClientIdInterceptor clientIdInterceptor;
+  /**
+   * Client ID interceptor for validating client tokens.
+   */
+  @Autowired
+  private ClientIdInterceptor clientIdInterceptor;
 
   @Override
   public void addInterceptors(InterceptorRegistry registry) {

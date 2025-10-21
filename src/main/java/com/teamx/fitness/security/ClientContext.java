@@ -1,3 +1,15 @@
+/**
+ * <p>Part of the Fitness Management Service.</p>
+ *
+ * <p>This utility class manages thread-local storage for client authentication context,
+ * allowing each request thread to store and retrieve its own {@code clientId} safely.</p>
+ *
+ * <p>Used by interceptors to validate client identity for each API request.</p>
+ *
+ * @checkstyle 2025-10-21 by alice
+ * @version 1.0
+ */
+
 package com.teamx.fitness.security;
 
 /**

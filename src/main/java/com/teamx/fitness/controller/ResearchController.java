@@ -5,7 +5,11 @@ import java.util.HashMap;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
@@ -18,6 +22,97 @@ import org.springframework.web.server.ResponseStatusException;
 @CrossOrigin(origins = "*")
 public class ResearchController {
 
+    // --- Constants for aggregated statistics ---
+    /** Sample size for demographic statistics. */
+    private static final int SAMPLE_SIZE = 156;
+    /** Average BMI value used for demo data. */
+    private static final double AVG_BMI = 24.5;
+    /** Average weight in kilograms. */
+    private static final double AVG_WEIGHT = 72.3;
+    /** Average height in centimeters. */
+    private static final double AVG_HEIGHT = 171.2;
+    /** Average body fat percentage. */
+    private static final double AVG_BODY_FAT = 18.5;
+    /** Average weekly training frequency. */
+    private static final double AVG_WEEKLY_FREQ = 4.2;
+
+    // --- Nutrition constants ---
+    /** Average daily calories intake. */
+    private static final int AVG_CALORIES = 2450;
+    /** Average protein intake (grams). */
+    private static final int AVG_PROTEIN = 120;
+    /** Average carbohydrates intake (grams). */
+    private static final int AVG_CARBS = 280;
+    /** Average fat intake (grams). */
+    private static final int AVG_FAT = 85;
+
+
+    // --- Workout patterns ---
+    /** Average workouts per week. */
+    private static final double AVG_WORKOUTS = 3.8;
+    /** Average workout session duration in minutes. */
+    private static final int AVG_DURATION = 52;
+    /** Average calories burned per session. */
+    private static final int AVG_BURN = 420;
+    /** Percentage of aerobic exercises. */
+    private static final double EX_AEROBIC = 45.0;
+    /** Percentage of anaerobic exercises. */
+    private static final double EX_ANAEROBIC = 35.0;
+    /** Percentage of flexibility exercises. */
+    private static final double EX_FLEX = 15.0;
+    /** Percentage of mixed exercise types. */
+    private static final double EX_MIXED = 5.0;
+    /** Sample size for workout statistics. */
+    private static final int SAMPLE_SIZE_WORKOUT = 89;
+
+    // --- Nutrition trends ---
+    /** Carbohydrate percentage for bulk diet. */
+    private static final int BULK_CARBS = 45;
+    /** Protein percentage for bulk diet. */
+    private static final int BULK_PROTEIN = 30;
+    /** Fat percentage for bulk diet. */
+    private static final int BULK_FAT = 25;
+    /** Average daily calories for bulk diet. */
+    private static final int BULK_CAL = 3200;
+    /** Carbohydrate percentage for cut diet. */
+    private static final int CUT_CARBS = 35;
+    /** Protein percentage for cut diet. */
+    private static final int CUT_PROTEIN = 40;
+    /** Fat percentage for cut diet. */
+    private static final int CUT_FAT = 25;
+    /** Average daily calories for cut diet. */
+    private static final int CUT_CAL = 2000;
+    /** Carbohydrate percentage for default balanced diet. */
+    private static final int DEFAULT_CARBS = 40;
+    /** Protein percentage for default balanced diet. */
+    private static final int DEFAULT_PROTEIN = 30;
+    /** Fat percentage for default balanced diet. */
+    private static final int DEFAULT_FAT = 30;
+    /** Average daily calories for balanced diet. */
+    private static final int DEFAULT_CAL = 2500;
+    /** Sample size for nutrition trends. */
+    private static final int NUTRITION_SAMPLE_SIZE = 234;
+
+    // --- Population health ---
+    /** Percentage of population underweight. */
+    private static final double BMI_UNDER = 5.2;
+    /** Percentage of population with normal BMI. */
+    private static final double BMI_NORMAL = 48.3;
+    /** Percentage of population overweight. */
+    private static final double BMI_OVER = 32.1;
+    /** Percentage of population obese. */
+    private static final double BMI_OBESE = 14.4;
+    /** Overall goal achievement rate. */
+    private static final double ACHIEVE_OVERALL = 67.8;
+    /** Weight loss success rate. */
+    private static final double ACHIEVE_LOSS = 62.3;
+    /** Muscle gain success rate. */
+    private static final double ACHIEVE_GAIN = 71.5;
+    /** Maintenance adherence rate. */
+    private static final double ACHIEVE_MAINTAIN = 82.1;
+    /** Total population size in dataset. */
+    private static final int POPULATION_TOTAL = 1523;
+    
   /**
    * Validates that the current client is authorized to access research endpoints.
    * Mobile clients are not allowed to access research data.
@@ -58,23 +153,23 @@ public class ResearchController {
         cohort.put("ageRange", ageRange != null ? ageRange : "ALL");
         cohort.put("gender", gender != null ? gender : "ALL");
         cohort.put("objective", objective != null ? objective : "ALL");
-        cohort.put("sampleSize", 156); // Example sample size
+        cohort.put("sampleSize", SAMPLE_SIZE); // Example sample size
         cohort.put("meetsPrivacyThreshold", true); // Only return if sample size > 10
 
         // Aggregated physical metrics
         Map<String, Object> physicalMetrics = new HashMap<>();
-        physicalMetrics.put("averageBMI", 24.5);
-        physicalMetrics.put("averageWeight", 72.3);
-        physicalMetrics.put("averageHeight", 171.2);
-        physicalMetrics.put("averageBodyFat", 18.5);
-        physicalMetrics.put("averageWeeklyTrainingFreq", 4.2);
+        physicalMetrics.put("averageBMI", AVG_BMI);
+        physicalMetrics.put("averageWeight", AVG_WEIGHT);
+        physicalMetrics.put("averageHeight", AVG_HEIGHT);
+        physicalMetrics.put("averageBodyFat", AVG_BODY_FAT);
+        physicalMetrics.put("averageWeeklyTrainingFreq", AVG_WEEKLY_FREQ);
 
         // Nutritional metrics (aggregated)
         Map<String, Object> nutritionalMetrics = new HashMap<>();
-        nutritionalMetrics.put("averageDailyCalories", 2450);
-        nutritionalMetrics.put("averageDailyProtein", 120);
-        nutritionalMetrics.put("averageDailyCarbs", 280);
-        nutritionalMetrics.put("averageDailyFat", 85);
+        nutritionalMetrics.put("averageDailyCalories", AVG_CALORIES);
+        nutritionalMetrics.put("averageDailyProtein", AVG_PROTEIN);
+        nutritionalMetrics.put("averageDailyCarbs", AVG_CARBS);
+        nutritionalMetrics.put("averageDailyFat", AVG_FAT);
 
         response.put("cohort", cohort);
         response.put("physicalMetrics", physicalMetrics);
@@ -102,22 +197,22 @@ public class ResearchController {
 
         // Anonymized workout distribution
         Map<String, Object> patterns = new HashMap<>();
-        patterns.put("averageWorkoutsPerWeek", 3.8);
+        patterns.put("averageWorkoutsPerWeek", AVG_WORKOUTS);
         patterns.put("mostCommonExerciseType", "AEROBIC");
-        patterns.put("averageSessionDuration", 52); // minutes
-        patterns.put("averageCaloriesBurnedPerSession", 420);
+        patterns.put("averageSessionDuration", AVG_DURATION); // minutes
+        patterns.put("averageCaloriesBurnedPerSession", AVG_BURN);
 
         // Exercise type distribution (percentages)
         Map<String, Double> exerciseDistribution = new HashMap<>();
-        exerciseDistribution.put("AEROBIC", 45.0);
-        exerciseDistribution.put("ANAEROBIC", 35.0);
-        exerciseDistribution.put("FLEXIBILITY", 15.0);
-        exerciseDistribution.put("MIXED", 5.0);
+        exerciseDistribution.put("AEROBIC", EX_AEROBIC);
+        exerciseDistribution.put("ANAEROBIC", EX_ANAEROBIC);
+        exerciseDistribution.put("FLEXIBILITY", EX_FLEX);
+        exerciseDistribution.put("MIXED", EX_MIXED);
 
         response.put("ageRange", ageRange != null ? ageRange : "ALL");
         response.put("patterns", patterns);
         response.put("exerciseDistribution", exerciseDistribution);
-        response.put("sampleSize", 89);
+        response.put("sampleSize", SAMPLE_SIZE_WORKOUT);
         response.put("privacyProtected", true);
 
         return ResponseEntity.ok(response);
@@ -126,7 +221,6 @@ public class ResearchController {
     /**
      * Get nutrition trends by fitness objective.
      * Returns macro distribution patterns without individual data.
-     *
      * @param objective fitness objective (BULK, CUT, RECOVER)
      * @return aggregated nutrition trends
      */
@@ -134,32 +228,31 @@ public class ResearchController {
   public ResponseEntity<Map<String, Object>> getNutritionTrends(
       @RequestParam(required = false) String objective) {
 
-    validateResearchAccess();
-
-    Map<String, Object> response = new HashMap<>();
+        validateResearchAccess();
+        Map<String, Object> response = new HashMap<>();
 
         // Macro distribution by objective (percentages)
         Map<String, Object> macroDistribution = new HashMap<>();
         if ("BULK".equals(objective)) {
-            macroDistribution.put("carbs", 45);
-            macroDistribution.put("protein", 30);
-            macroDistribution.put("fat", 25);
-            macroDistribution.put("averageCalories", 3200);
+            macroDistribution.put("carbs", BULK_CARBS);
+            macroDistribution.put("protein", BULK_PROTEIN);
+            macroDistribution.put("fat", BULK_FAT);
+            macroDistribution.put("averageCalories", BULK_CAL);
         } else if ("CUT".equals(objective)) {
-            macroDistribution.put("carbs", 35);
-            macroDistribution.put("protein", 40);
-            macroDistribution.put("fat", 25);
-            macroDistribution.put("averageCalories", 2000);
+            macroDistribution.put("carbs", CUT_CARBS);
+            macroDistribution.put("protein", CUT_PROTEIN);
+            macroDistribution.put("fat", CUT_FAT);
+            macroDistribution.put("averageCalories", CUT_CAL);
         } else {
-            macroDistribution.put("carbs", 40);
-            macroDistribution.put("protein", 30);
-            macroDistribution.put("fat", 30);
-            macroDistribution.put("averageCalories", 2500);
+            macroDistribution.put("carbs", DEFAULT_CARBS);
+            macroDistribution.put("protein", DEFAULT_PROTEIN);
+            macroDistribution.put("fat", DEFAULT_FAT);
+            macroDistribution.put("averageCalories", DEFAULT_CAL);
         }
 
         response.put("objective", objective != null ? objective : "ALL");
         response.put("macroDistribution", macroDistribution);
-        response.put("sampleSize", 234);
+        response.put("sampleSize", NUTRITION_SAMPLE_SIZE);
         response.put("dataType", "AGGREGATED");
         response.put("containsPII", false);
 
@@ -169,6 +262,8 @@ public class ResearchController {
     /**
      * Get population health metrics.
      * Provides high-level health indicators without individual identification.
+     *
+     * @return JSON response containing population-level health metrics
      */
   @GetMapping("/population-health")
   public ResponseEntity<Map<String, Object>> getPopulationHealth() {
@@ -179,19 +274,19 @@ public class ResearchController {
 
         // BMI distribution (percentages)
         Map<String, Object> bmiDistribution = new HashMap<>();
-        bmiDistribution.put("underweight", 5.2);
-        bmiDistribution.put("normal", 48.3);
-        bmiDistribution.put("overweight", 32.1);
-        bmiDistribution.put("obese", 14.4);
+        bmiDistribution.put("underweight", BMI_UNDER);
+        bmiDistribution.put("normal", BMI_NORMAL);
+        bmiDistribution.put("overweight", BMI_OVER);
+        bmiDistribution.put("obese", BMI_OBESE);
 
         // Goal achievement rates
         Map<String, Object> goalMetrics = new HashMap<>();
-        goalMetrics.put("overallAchievementRate", 67.8);
-        goalMetrics.put("weightLossSuccessRate", 62.3);
-        goalMetrics.put("muscleGainSuccessRate", 71.5);
-        goalMetrics.put("maintenanceAdherence", 82.1);
+        goalMetrics.put("overallAchievementRate", ACHIEVE_OVERALL);
+        goalMetrics.put("weightLossSuccessRate", ACHIEVE_LOSS);
+        goalMetrics.put("muscleGainSuccessRate", ACHIEVE_GAIN);
+        goalMetrics.put("maintenanceAdherence", ACHIEVE_MAINTAIN);
 
-        response.put("totalPopulation", 1523);
+        response.put("totalPopulation", POPULATION_TOTAL);
         response.put("bmiDistribution", bmiDistribution);
         response.put("goalMetrics", goalMetrics);
         response.put("dataProtection", "All data is aggregated and anonymized");

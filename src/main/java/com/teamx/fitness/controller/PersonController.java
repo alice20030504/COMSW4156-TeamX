@@ -11,7 +11,16 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * REST controller for person-related endpoints.
@@ -22,9 +31,20 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = "*")
 public class PersonController {
 
+  /** Service layer for person-related calculations. */
   @Autowired private PersonService personService;
 
+  /** Repository for accessing person records. */
   @Autowired private PersonRepository personRepository;
+
+  /** Constant for lower BMI threshold. */
+  private static final double BMI_UNDERWEIGHT = 18.5;
+
+  /** Constant for normal BMI upper threshold. */
+  private static final double BMI_NORMAL = 25.0;
+
+  /** Constant for overweight BMI upper threshold. */
+  private static final double BMI_OVERWEIGHT = 30.0;
 
   /**
    * Get all persons for the authenticated client.
@@ -119,97 +139,106 @@ public class PersonController {
 
   /**
    * Calculate BMI for given weight and height.
-     *
-     * @param weight weight in kilograms
-     * @param height height in centimeters
-     * @return calculated BMI
-     */
-    @GetMapping("/bmi")
-    public ResponseEntity<Map<String, Object>> calculateBMI(
-            @RequestParam Double weight,
-            @RequestParam Double height) {
+   *
+   * @param weight weight in kilograms
+   * @param height height in centimeters
+   * @return calculated BMI
+   */
+  @GetMapping("/bmi")
+  public ResponseEntity<Map<String, Object>> calculateBMI(
+          @RequestParam Double weight,
+          @RequestParam Double height) {
 
-        Double bmi = personService.calculateBMI(weight, height);
+      Double bmi = personService.calculateBMI(weight, height);
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("weight", weight);
-        response.put("height", height);
-        response.put("bmi", bmi);
-        response.put("category", getBMICategory(bmi));
+      Map<String, Object> response = new HashMap<>();
+      response.put("weight", weight);
+      response.put("height", height);
+      response.put("bmi", bmi);
+      response.put("category", getBMICategory(bmi));
 
-        return ResponseEntity.ok(response);
+      return ResponseEntity.ok(response);
+  }
+
+  /**
+   * Calculate age from birth date.
+   *
+   * @param birthDate person's birth date
+   * @return calculated age
+   */
+  @GetMapping("/age")
+  public ResponseEntity<Map<String, Object>> calculateAge(
+          @RequestParam String birthDate) {
+
+      LocalDate date = LocalDate.parse(birthDate);
+      Integer age = personService.calculateAge(date);
+
+      Map<String, Object> response = new HashMap<>();
+      response.put("birthDate", birthDate);
+      response.put("age", age);
+
+      return ResponseEntity.ok(response);
+  }
+
+  /**
+   * Calculate daily calorie needs.
+   *
+   * @param weight weight in kilograms
+   * @param height height in centimeters
+   * @param age age in years
+   * @param gender gender (male/female)
+   * @param weeklyTrainingFreq weekly training frequency
+   * @return daily calorie needs (kcal/day)
+   */
+  @GetMapping("/calories")
+  public ResponseEntity<Map<String, Object>> calculateDailyCalories(
+          @RequestParam Double weight,
+          @RequestParam Double height,
+          @RequestParam Integer age,
+          @RequestParam String gender,
+          @RequestParam Integer weeklyTrainingFreq) {
+
+      boolean isMale = "male".equalsIgnoreCase(gender);
+      Double bmr = personService.calculateBMR(weight, height, age, isMale);
+      Double dailyCalories = personService.calculateDailyCalorieNeeds(bmr, weeklyTrainingFreq);
+
+      Map<String, Object> response = new HashMap<>();
+      response.put("bmr", bmr);
+      response.put("dailyCalories", dailyCalories);
+      response.put("weeklyTrainingFreq", weeklyTrainingFreq);
+
+      return ResponseEntity.ok(response);
+  }
+
+  /**
+  * Health check endpoint.
+  *
+  * @return JSON response indicating service status
+  */
+  @GetMapping("/health")
+  public ResponseEntity<Map<String, String>> healthCheck() {
+      Map<String, String> response = new HashMap<>();
+      response.put("status", "UP");
+      response.put("service", "Personal Fitness Management Service");
+      response.put("version", "1.0.0");
+      return ResponseEntity.ok(response);
+  }
+
+  /**
+   * Get BMI category based on BMI value.
+   */
+  private String getBMICategory(Double bmi) {
+    if (bmi == null) {
+        return "Unknown";
     }
-
-    /**
-     * Calculate age from birth date.
-     *
-     * @param birthDate person's birth date
-     * @return calculated age
-     */
-    @GetMapping("/age")
-    public ResponseEntity<Map<String, Object>> calculateAge(
-            @RequestParam String birthDate) {
-
-        LocalDate date = LocalDate.parse(birthDate);
-        Integer age = personService.calculateAge(date);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("birthDate", birthDate);
-        response.put("age", age);
-
-        return ResponseEntity.ok(response);
-    }
-
-    /**
-     * Calculate daily calorie needs.
-     *
-     * @param weight weight in kilograms
-     * @param height height in centimeters
-     * @param age age in years
-     * @param gender gender (male/female)
-     * @param weeklyTrainingFreq weekly training frequency
-     * @return daily calorie needs
-     */
-    @GetMapping("/calories")
-    public ResponseEntity<Map<String, Object>> calculateDailyCalories(
-            @RequestParam Double weight,
-            @RequestParam Double height,
-            @RequestParam Integer age,
-            @RequestParam String gender,
-            @RequestParam Integer weeklyTrainingFreq) {
-
-        boolean isMale = "male".equalsIgnoreCase(gender);
-        Double bmr = personService.calculateBMR(weight, height, age, isMale);
-        Double dailyCalories = personService.calculateDailyCalorieNeeds(bmr, weeklyTrainingFreq);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("bmr", bmr);
-        response.put("dailyCalories", dailyCalories);
-        response.put("weeklyTrainingFreq", weeklyTrainingFreq);
-
-        return ResponseEntity.ok(response);
-    }
-
-    /**
-     * Health check endpoint.
-     */
-    @GetMapping("/health")
-    public ResponseEntity<Map<String, String>> healthCheck() {
-        Map<String, String> response = new HashMap<>();
-        response.put("status", "UP");
-        response.put("service", "Personal Fitness Management Service");
-        response.put("version", "1.0.0");
-        return ResponseEntity.ok(response);
-    }
-
-    /**
-     * Get BMI category based on BMI value.
-     */
-    private String getBMICategory(Double bmi) {
-        if (bmi == null) return "Unknown";
-        if (bmi < 18.5) return "Underweight";
-        if (bmi < 25) return "Normal weight";
-        if (bmi < 30) return "Overweight";
+    if (bmi < BMI_UNDERWEIGHT) {
+        return "Underweight";
+    } else if (bmi < BMI_NORMAL) {
+        return "Normal weight";
+    } else if (bmi < BMI_OVERWEIGHT) {
+        return "Overweight";
+    } else {
         return "Obese";
     }
+  }
 }

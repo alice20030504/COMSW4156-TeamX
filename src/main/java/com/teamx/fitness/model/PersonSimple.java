@@ -1,3 +1,15 @@
+/**
+ * <p>Part of the Fitness Management Service.</p>
+ *
+ * <p>Entity class representing a simple person record containing
+ * personal attributes such as name, weight, height, and birth date.</p>
+ *
+ * <p>Used to demonstrate client-specific data access through {@code PersonRepository}.</p>
+ *
+ * @checkstyle 2025-10-21 by alice
+ * @version 1.0
+ */
+
 package com.teamx.fitness.model;
 
 import jakarta.persistence.Column;
