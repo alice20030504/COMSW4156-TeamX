@@ -1,12 +1,12 @@
 package com.teamx.fitness.controller;
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
+import com.teamx.fitness.security.ClientContext;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.List;
-import java.util.ArrayList;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * REST controller for research/analyzer endpoints.
@@ -18,8 +18,24 @@ import java.util.ArrayList;
 @CrossOrigin(origins = "*")
 public class ResearchController {
 
-    /**
-     * Get aggregated statistics by demographic cohort.
+  /**
+   * Validates that the current client is authorized to access research endpoints.
+   * Mobile clients are not allowed to access research data.
+   *
+   * @throws ResponseStatusException with 403 Forbidden if the client is not authorized
+   */
+  private void validateResearchAccess() {
+    String clientId = ClientContext.getClientId();
+    if (ClientContext.isMobileClient(clientId)) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN,
+          "Mobile clients are not authorized to access research endpoints. Research endpoints are"
+              + " restricted to research-tool clients only.");
+    }
+  }
+
+  /**
+   * Get aggregated statistics by demographic cohort.
      * Returns anonymized data with minimum cohort size enforcement.
      *
      * @param ageRange age range (e.g., "25-34", "35-44")
@@ -27,13 +43,15 @@ public class ResearchController {
      * @param objective fitness objective filter (optional)
      * @return aggregated statistics without PII
      */
-    @GetMapping("/demographics")
-    public ResponseEntity<Map<String, Object>> getDemographicStats(
-            @RequestParam(required = false) String ageRange,
-            @RequestParam(required = false) String gender,
-            @RequestParam(required = false) String objective) {
+  @GetMapping("/demographics")
+  public ResponseEntity<Map<String, Object>> getDemographicStats(
+      @RequestParam(required = false) String ageRange,
+      @RequestParam(required = false) String gender,
+      @RequestParam(required = false) String objective) {
 
-        Map<String, Object> response = new HashMap<>();
+    validateResearchAccess();
+
+    Map<String, Object> response = new HashMap<>();
 
         // Cohort information (NO NAMES OR PERSONAL IDS)
         Map<String, Object> cohort = new HashMap<>();
@@ -74,11 +92,13 @@ public class ResearchController {
      * @param ageRange age range filter
      * @return anonymized workout patterns
      */
-    @GetMapping("/workout-patterns")
-    public ResponseEntity<Map<String, Object>> getWorkoutPatterns(
-            @RequestParam(required = false) String ageRange) {
+  @GetMapping("/workout-patterns")
+  public ResponseEntity<Map<String, Object>> getWorkoutPatterns(
+      @RequestParam(required = false) String ageRange) {
 
-        Map<String, Object> response = new HashMap<>();
+    validateResearchAccess();
+
+    Map<String, Object> response = new HashMap<>();
 
         // Anonymized workout distribution
         Map<String, Object> patterns = new HashMap<>();
@@ -110,11 +130,13 @@ public class ResearchController {
      * @param objective fitness objective (BULK, CUT, RECOVER)
      * @return aggregated nutrition trends
      */
-    @GetMapping("/nutrition-trends")
-    public ResponseEntity<Map<String, Object>> getNutritionTrends(
-            @RequestParam(required = false) String objective) {
+  @GetMapping("/nutrition-trends")
+  public ResponseEntity<Map<String, Object>> getNutritionTrends(
+      @RequestParam(required = false) String objective) {
 
-        Map<String, Object> response = new HashMap<>();
+    validateResearchAccess();
+
+    Map<String, Object> response = new HashMap<>();
 
         // Macro distribution by objective (percentages)
         Map<String, Object> macroDistribution = new HashMap<>();
@@ -148,10 +170,12 @@ public class ResearchController {
      * Get population health metrics.
      * Provides high-level health indicators without individual identification.
      */
-    @GetMapping("/population-health")
-    public ResponseEntity<Map<String, Object>> getPopulationHealth() {
+  @GetMapping("/population-health")
+  public ResponseEntity<Map<String, Object>> getPopulationHealth() {
 
-        Map<String, Object> response = new HashMap<>();
+    validateResearchAccess();
+
+    Map<String, Object> response = new HashMap<>();
 
         // BMI distribution (percentages)
         Map<String, Object> bmiDistribution = new HashMap<>();

@@ -29,13 +29,18 @@ public class PersonSimple {
   @Column(name = "birth_date", nullable = false)
   private LocalDate birthDate;
 
+  @NotBlank(message = "Client ID is required")
+  @Column(name = "client_id", nullable = false)
+  private String clientId;
+
   public PersonSimple() {}
 
-  public PersonSimple(String name, Double weight, Double height, LocalDate birthDate) {
+  public PersonSimple(String name, Double weight, Double height, LocalDate birthDate, String clientId) {
     this.name = name;
     this.weight = weight;
     this.height = height;
     this.birthDate = birthDate;
+    this.clientId = clientId;
   }
 
   public Long getId() {
@@ -76,5 +81,13 @@ public class PersonSimple {
 
   public void setBirthDate(LocalDate birthDate) {
     this.birthDate = birthDate;
+  }
+
+  public String getClientId() {
+    return clientId;
+  }
+
+  public void setClientId(String clientId) {
+    this.clientId = clientId;
   }
 }

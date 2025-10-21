@@ -1,13 +1,17 @@
 package com.teamx.fitness.controller;
 
+import com.teamx.fitness.model.PersonSimple;
+import com.teamx.fitness.repository.PersonRepository;
+import com.teamx.fitness.security.ClientContext;
 import com.teamx.fitness.service.PersonService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * REST controller for person-related endpoints.
@@ -18,11 +22,103 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 public class PersonController {
 
-    @Autowired
-    private PersonService personService;
+  @Autowired private PersonService personService;
 
-    /**
-     * Calculate BMI for given weight and height.
+  @Autowired private PersonRepository personRepository;
+
+  /**
+   * Get all persons for the authenticated client.
+   * Demonstrates data isolation - each client only sees their own data.
+   *
+   * @return list of persons belonging to the client
+   */
+  @GetMapping
+  public ResponseEntity<List<PersonSimple>> getAllPersons() {
+    String clientId = ClientContext.getClientId();
+    List<PersonSimple> persons = personRepository.findByClientId(clientId);
+    return ResponseEntity.ok(persons);
+  }
+
+  /**
+   * Get a specific person by ID.
+   * Only returns the person if it belongs to the authenticated client.
+   *
+   * @param id the person ID
+   * @return the person if found and belongs to the client, 404 otherwise
+   */
+  @GetMapping("/{id}")
+  public ResponseEntity<PersonSimple> getPersonById(@PathVariable Long id) {
+    String clientId = ClientContext.getClientId();
+    return personRepository
+        .findByIdAndClientId(id, clientId)
+        .map(ResponseEntity::ok)
+        .orElse(ResponseEntity.notFound().build());
+  }
+
+  /**
+   * Create a new person for the authenticated client.
+   *
+   * @param person the person data
+   * @return the created person
+   */
+  @PostMapping
+  public ResponseEntity<PersonSimple> createPerson(@RequestBody PersonSimple person) {
+    String clientId = ClientContext.getClientId();
+    person.setClientId(clientId);
+    PersonSimple savedPerson = personRepository.save(person);
+    return ResponseEntity.status(HttpStatus.CREATED).body(savedPerson);
+  }
+
+  /**
+   * Update an existing person.
+   * Only allows updating if the person belongs to the authenticated client.
+   *
+   * @param id the person ID
+   * @param updatedPerson the updated person data
+   * @return the updated person if successful, 404 if not found or doesn't belong to client
+   */
+  @PutMapping("/{id}")
+  public ResponseEntity<PersonSimple> updatePerson(
+      @PathVariable Long id, @RequestBody PersonSimple updatedPerson) {
+    String clientId = ClientContext.getClientId();
+
+    return personRepository
+        .findByIdAndClientId(id, clientId)
+        .map(
+            existingPerson -> {
+              existingPerson.setName(updatedPerson.getName());
+              existingPerson.setWeight(updatedPerson.getWeight());
+              existingPerson.setHeight(updatedPerson.getHeight());
+              existingPerson.setBirthDate(updatedPerson.getBirthDate());
+              PersonSimple saved = personRepository.save(existingPerson);
+              return ResponseEntity.ok(saved);
+            })
+        .orElse(ResponseEntity.notFound().build());
+  }
+
+  /**
+   * Delete a person.
+   * Only allows deleting if the person belongs to the authenticated client.
+   *
+   * @param id the person ID
+   * @return 204 if successful, 404 if not found or doesn't belong to client
+   */
+  @DeleteMapping("/{id}")
+  public ResponseEntity<Void> deletePerson(@PathVariable Long id) {
+    String clientId = ClientContext.getClientId();
+
+    return personRepository
+        .findByIdAndClientId(id, clientId)
+        .map(
+            person -> {
+              personRepository.delete(person);
+              return ResponseEntity.noContent().<Void>build();
+            })
+        .orElse(ResponseEntity.notFound().build());
+  }
+
+  /**
+   * Calculate BMI for given weight and height.
      *
      * @param weight weight in kilograms
      * @param height height in centimeters

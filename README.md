@@ -31,6 +31,8 @@ The Personal Fitness Management Service is a RESTful API built with Spring Boot 
 
 - ✅ **Fitness Calculations**: BMI, BMR, TDEE, age calculations
 - ✅ **Research Analytics**: Aggregated workout patterns, population health metrics
+- ✅ **Client Isolation**: Multi-client data separation with per-client authentication
+- ✅ **Access Control**: Client-type based authorization (mobile vs research)
 - ✅ **Interactive API Documentation**: Swagger UI for testing and exploration
 - ✅ **Database Integration**: H2 (development) and PostgreSQL (production) support
 - ✅ **API Logging**: Comprehensive request/response logging
@@ -86,59 +88,145 @@ The application will start on **http://localhost:8080**
 
 ---
 
+## Client Authentication and Data Isolation
+
+### Overview
+
+The service implements a header-based client authentication system that ensures:
+1. **Data Isolation**: Each client can only access their own data
+2. **Client Type Differentiation**: Mobile apps and research tools have different access levels
+3. **Access Control**: Research endpoints are restricted to research-tool clients only
+
+### Authentication Method
+
+All API requests (except `/`, `/swagger-ui`, and `/actuator`) require the `X-Client-ID` header.
+
+**Header Format**:
+```
+X-Client-ID: <client-type>-<identifier>
+```
+
+**Valid Client ID Patterns**:
+- **Mobile Clients**: `mobile-*` (e.g., `mobile-app1`, `mobile-app2`, `mobile-beta`)
+- **Research Clients**: `research-*` (e.g., `research-tool1`, `research-analytics`)
+
+### Example Requests
+
+**Mobile Client Request**:
+```bash
+curl -H "X-Client-ID: mobile-app1" \
+  http://localhost:8080/api/persons
+```
+
+**Research Client Request**:
+```bash
+curl -H "X-Client-ID: research-tool1" \
+  http://localhost:8080/api/research/demographics
+```
+
+**Invalid Request (missing header)**:
+```bash
+curl http://localhost:8080/api/persons
+# Response: 400 Bad Request
+# {"error":"Bad Request","message":"X-Client-ID header is required","status":400}
+```
+
+### Data Isolation
+
+Each client's data is completely isolated:
+
+1. **Separate Data Spaces**:
+   - `mobile-app1` can only see data created by `mobile-app1`
+   - `mobile-app2` can only see data created by `mobile-app2`
+   - Data posted by one client is invisible to all other clients
+
+2. **Protected Operations**:
+   - GET: Returns only the client's own data
+   - POST: Automatically associates new data with the requesting client
+   - PUT: Only allows updating the client's own data (404 for others)
+   - DELETE: Only allows deleting the client's own data (404 for others)
+
+3. **Example Scenario**:
+   ```bash
+   # Client 1 creates a person
+   curl -X POST -H "X-Client-ID: mobile-app1" \
+     -H "Content-Type: application/json" \
+     -d '{"name":"Alice","weight":65,"height":170,"birthDate":"1990-05-15"}' \
+     http://localhost:8080/api/persons
+
+   # Client 1 can see Alice
+   curl -H "X-Client-ID: mobile-app1" http://localhost:8080/api/persons
+   # Returns: [{"id":1,"name":"Alice",...,"clientId":"mobile-app1"}]
+
+   # Client 2 cannot see Alice
+   curl -H "X-Client-ID: mobile-app2" http://localhost:8080/api/persons
+   # Returns: []
+   ```
+
+### Access Control by Client Type
+
+| Endpoint | Mobile Clients | Research Clients |
+|----------|----------------|------------------|
+| `/api/persons` | ✅ Full Access | ✅ Full Access |
+| `/api/persons/bmi` | ✅ Allowed | ✅ Allowed |
+| `/api/persons/calories` | ✅ Allowed | ✅ Allowed |
+| `/api/research/*` | ❌ 403 Forbidden | ✅ Allowed |
+
+**Mobile Client Accessing Research Endpoint**:
+```bash
+curl -H "X-Client-ID: mobile-app1" \
+  http://localhost:8080/api/research/demographics
+# Response: 403 Forbidden
+# {"error":"Forbidden","message":"Mobile clients are not authorized to access research endpoints..."}
+```
+
+### Testing Client Isolation
+
+The project includes comprehensive integration tests demonstrating:
+- Data isolation between multiple mobile clients
+- Cross-client access prevention
+- Research endpoint access control
+- Invalid client ID rejection
+
+**Run Tests**:
+```bash
+# All client isolation tests
+mvn test -Dtest=ClientIsolationIntegrationTest
+
+# Research access control tests
+mvn test -Dtest=ResearchEndpointAccessControlTest
+```
+
+**Test Coverage**: 21 integration tests covering all client isolation scenarios
+
+---
+
 ## API Documentation
 
-### API Entry Points
-
-The service provides 9 RESTful API endpoints organized into two controllers:
-
-#### Person Controller (`/api/persons`)
-
-Fitness calculation endpoints:
-
-| Endpoint | Method | Description | Parameters | Response |
-|----------|--------|-------------|------------|----------|
-| `/api/persons/bmi` | GET | Calculate BMI | weight (Double), height (Double) | JSON with BMI and category |
-| `/api/persons/age` | GET | Calculate age | birthDate (String, YYYY-MM-DD) | JSON with age |
-| `/api/persons/calories` | GET | Calculate daily calorie needs | weight, height, age, gender, weeklyTrainingFreq | JSON with BMR and TDEE |
-| `/api/persons/health` | GET | Service health check | None | JSON with service status |
-
-#### Research Controller (`/api/research`)
-
-Research and analytics endpoints (mock data for iteration 1):
-
-| Endpoint | Method | Description | Response |
-|----------|--------|-------------|----------|
-| `/api/research/workout-patterns` | GET | Aggregated workout data | JSON with patterns and statistics |
-| `/api/research/population-health` | GET | Population health metrics | JSON with demographics and health data |
-| `/api/research/nutrition-trends` | GET | Nutrition trends | JSON with macro and calorie distribution |
-| `/api/research/demographics` | GET | Demographic information | JSON with demographic data |
-
-#### Home Controller
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/` | GET | Redirects to Swagger UI |
-
-### Detailed API Documentation
-
-For complete API documentation including:
-- Input/output specifications
-- Example requests and responses
-- Error codes and handling
-- Usage examples (cURL, JavaScript, Python)
-
-**See**: [docs/API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md)
-
-### Interactive Testing
-
-**Swagger UI**: http://localhost:8080/swagger-ui.html (when application is running)
+**Complete API Documentation**: http://localhost:8080/swagger-ui.html (when running)
 
 The Swagger UI provides:
-- Complete API reference
-- Interactive "Try it out" functionality
-- Request/response schemas
-- Example values
+- Complete, always up-to-date API reference
+- Interactive "Try it out" functionality for all endpoints
+- Request/response schemas with examples
+- Authentication requirements (X-Client-ID header)
+- Error code documentation
+
+### Quick API Overview
+
+**Person Endpoints** (`/api/persons`)
+- CRUD operations for persons (client-isolated)
+- Fitness calculations: BMI, age, daily calorie needs
+- All require `X-Client-ID` header
+
+**Research Endpoints** (`/api/research`)
+- Aggregated analytics: demographics, workout patterns, nutrition trends
+- Research-tool clients only (mobile clients get 403)
+
+**Home** (`/`)
+- Redirects to Swagger UI
+
+For detailed endpoint specifications, parameters, and examples, use Swagger UI when the application is running.
 
 ---
 
@@ -285,71 +373,29 @@ mvn pmd:pmd  # Generate report
 
 ---
 
-## Project Structure
+## Project Structure and Architecture
 
-```
-COMSW4156-TeamX/
-├── .git/                           # Git version control
-├── .github/                        # GitHub configuration (CI/CD planned for iteration 2)
-├── docs/                           # Documentation
-│   ├── API_DOCUMENTATION.md        # Complete API reference
-│   ├── SETUP_AND_TESTING.md        # Setup and testing guide
-│   ├── FIRST_ITERATION_REPORT.md   # Iteration 1 status report
-│   ├── STYLE_CHECK_SUMMARY.md      # Style checking results
-│   └── AI_USAGE.md                 # AI tool usage documentation
-├── logs/                           # Application logs
-│   └── fitness-app.log             # Runtime logs
-├── src/
-│   ├── main/
-│   │   ├── java/com/teamx/fitness/
-│   │   │   ├── FitnessManagementApplication.java  # Main entry point
-│   │   │   ├── controller/         # REST API controllers
-│   │   │   │   ├── HomeController.java
-│   │   │   │   ├── PersonController.java
-│   │   │   │   └── ResearchController.java
-│   │   │   ├── service/            # Business logic layer
-│   │   │   │   └── PersonService.java
-│   │   │   └── model/              # JPA entities
-│   │   │       ├── PersonSimple.java
-│   │   │       └── ApiLog.java
-│   │   └── resources/
-│   │       ├── application.yml     # Main configuration
-│   │       ├── application-prod.yml # Production config
-│   │       └── data.sql            # Sample data initialization
-│   └── test/                       # Test files (to be implemented in iteration 2)
-│       └── java/com/teamx/fitness/
-├── target/                         # Build output (generated)
-│   ├── classes/                    # Compiled classes
-│   ├── site/                       # Generated reports
-│   │   ├── checkstyle.html         # Style check report
-│   │   └── jacoco/                 # Coverage reports
-│   └── *.jar                       # Packaged application
-├── checkstyle.xml                  # Checkstyle configuration
-├── pom.xml                         # Maven build configuration
-├── LICENSE                         # MIT License
-└── README.md                       # This file
-```
+**Complete documentation**: See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
-### Architecture
+### Quick Overview
 
-The application follows a standard 3-tier architecture:
+The project follows a layered architecture pattern:
 
-```
-┌─────────────────────┐
-│   Controllers       │  <- REST API endpoints, request/response handling
-│  (Presentation)     │
-└─────────┬───────────┘
-          │
-┌─────────▼───────────┐
-│    Services         │  <- Business logic, calculations, orchestration
-│  (Business Logic)   │
-└─────────┬───────────┘
-          │
-┌─────────▼───────────┐
-│     Models          │  <- Data entities, JPA mappings
-│   (Data Layer)      │
-└─────────────────────┘
-```
+**Layers:**
+- **Controllers** (`controller/`) - REST API endpoints with client isolation
+- **Services** (`service/`) - Business logic and calculations
+- **Repositories** (`repository/`) - Data access with client filtering
+- **Models** (`model/`) - JPA entities (PersonSimple, ApiLog)
+- **Cross-Cutting** - Interceptors, context, exception handling, utilities
+
+**Key Directories:**
+- `src/main/java/` - Application source code (layered architecture)
+- `src/test/java/` - Unit and integration tests
+- `src/main/resources/` - Configuration files (application.yml, data.sql)
+- `docs/` - Architecture, reports, and iteration documentation
+- `target/` - Build output and generated reports
+
+For detailed code hierarchy, component responsibilities, and design patterns, refer to [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ---
 
@@ -450,77 +496,47 @@ mvn dependency:tree
 
 ---
 
-## AI Tool Usage
+## Development Process
 
-### Tools Used
+### Tools and Assistance Used
 
-**Claude Code** (Anthropic Claude 3.7 Sonnet via CLI)
-- **Cost**: Free tier (no charges)
-- **Access**: https://claude.com/claude-code
-- **Usage**: Documentation generation, bug diagnosis, technical explanations
+Development involved both human team effort and AI assistance:
 
-### AI-Generated Code
+**AI Tools**: Claude Code (free tier) was used for:
+- Documentation generation and formatting
+- Bug diagnosis assistance
+- Technical explanation of frameworks
 
-The following code was generated or significantly assisted by AI:
-
-1. **Documentation** (85% AI-generated, 15% human-edited):
-   - `docs/API_DOCUMENTATION.md`
-   - `docs/SETUP_AND_TESTING.md`
-   - `docs/FIRST_ITERATION_REPORT.md`
-   - `docs/AI_USAGE.md`
-   - `docs/STYLE_CHECK_SUMMARY.md`
-   - `README.md` (this file)
-
-2. **Bug Fixes** (80% AI-suggested, 20% human-reviewed):
-   - Fix for `data.sql` initialization error
-   - `HomeController.java` (404 error resolution)
-
-### Human-Written Code
-
-All core application code was written by human team members:
-- All controllers (PersonController, ResearchController)
-- All services (PersonService)
-- All models (PersonSimple, ApiLog)
-- All configuration files (pom.xml, application.yml)
-- All business logic and algorithms
-
-### Complete AI Usage Documentation
-
-**See**: [docs/AI_USAGE.md](docs/AI_USAGE.md) for detailed documentation including:
-- Specific prompts used
-- Code samples generated
-- Human review process
-- Learning outcomes
-- Ethical considerations
+**Human Development**: All core code written by team members:
+- Controllers, services, repositories, models
+- Business logic and algorithms
+- Architecture and design decisions
+- Testing strategy and implementation
 
 ---
 
 ## Documentation
 
-### External Documentation
+### Documentation Structure (Single Source of Truth)
 
-| Document | Purpose | Location |
-|----------|---------|----------|
-| README.md | Main project documentation | This file |
-| API_DOCUMENTATION.md | Complete API reference | [docs/](docs/API_DOCUMENTATION.md) |
-| SETUP_AND_TESTING.md | Setup, build, run, test instructions | [docs/](docs/SETUP_AND_TESTING.md) |
-| FIRST_ITERATION_REPORT.md | Iteration 1 status and assessment | [docs/](docs/FIRST_ITERATION_REPORT.md) |
-| STYLE_CHECK_SUMMARY.md | Code style analysis and results | [docs/](docs/STYLE_CHECK_SUMMARY.md) |
-| AI_USAGE.md | AI tool usage documentation | [docs/](docs/AI_USAGE.md) |
+| Document | Purpose | Source of Truth |
+|----------|---------|----------------|
+| **README.md** | Project overview and quick start | This file |
+| **Swagger UI** | Complete API documentation | http://localhost:8080/swagger-ui.html (auto-generated) |
+| **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** | Code hierarchy and design patterns | Architecture doc |
+| **[docs/FIRST_ITERATION_REPORT.md](docs/FIRST_ITERATION_REPORT.md)** | Iteration status report | Report doc |
+| **[docs/STYLE_CHECK_SUMMARY.md](docs/STYLE_CHECK_SUMMARY.md)** | Checkstyle results | Report doc |
+| **[docs/TESTING_RESULTS.md](docs/TESTING_RESULTS.md)** | Test execution results | Report doc |
+| **Code Comments** | Implementation details | Inline Javadoc |
 
-### Internal Documentation
+### Where to Find Information
 
-All code includes comprehensive Javadoc:
-- Class-level documentation
-- Method-level documentation with parameters and return values
-- Inline comments where needed
-- Examples and usage notes
-
-### API Documentation
-
-**Swagger/OpenAPI**: Automatically generated from code annotations
-
-**Access**: http://localhost:8080/swagger-ui.html (when running)
+- **API Endpoints**: Swagger UI (runtime only)
+- **Architecture**: `docs/ARCHITECTURE.md`
+- **Setup & Running**: README sections above
+- **Testing**: `mvn test` commands in README
+- **Reports**: `docs/*.md` files
+- **Implementation Details**: Source code comments
 
 ---
 
