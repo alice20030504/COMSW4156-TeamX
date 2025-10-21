@@ -1,18 +1,28 @@
 package com.teamx.fitness.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.teamx.fitness.model.PersonSimple;
+import com.teamx.fitness.repository.PersonRepository;
 import com.teamx.fitness.service.PersonService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.hamcrest.Matchers.*;
 
@@ -51,8 +61,365 @@ class PersonControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @MockBean
     private PersonService personService;
+
+    @MockBean
+    private PersonRepository personRepository;
+
+    // ============================================
+    // CRUD Operations Tests
+    // ============================================
+
+    /**
+     * Tests GET /api/persons endpoint to retrieve all persons for a client.
+     *
+     * <p>This test verifies that the controller correctly retrieves all Person records
+     * associated with the authenticated client by delegating to PersonRepository's
+     * client-filtered query method. This is fundamental for data isolation, ensuring
+     * each client only sees their own data.</p>
+     *
+     * <p><strong>Data Isolation Significance:</strong> In a multi-tenant application,
+     * it's critical that getAllPersons() filters by client ID to prevent data leakage.
+     * This test validates that repository filtering works correctly at the controller level.</p>
+     *
+     * <p><strong>Expected Response:</strong> Returns 200 OK with a JSON array of all
+     * persons belonging to the client. Each person object should include complete
+     * data (name, weight, height, birthDate, clientId).</p>
+     *
+     * @throws Exception if MockMvc request fails
+     */
+    @Test
+    @DisplayName("getAllPersons - Returns all persons for the authenticated client")
+    void testGetAllPersons_ReturnsClientData() throws Exception {
+        // Given: Repository returns list of persons for client
+        PersonSimple person1 = new PersonSimple("Alice", 65.0, 170.0,
+            LocalDate.of(1990, 5, 15), "mobile-app1");
+        person1.setId(1L);
+        PersonSimple person2 = new PersonSimple("Bob", 80.0, 180.0,
+            LocalDate.of(1985, 3, 20), "mobile-app1");
+        person2.setId(2L);
+
+        when(personRepository.findByClientId("mobile-app1"))
+            .thenReturn(Arrays.asList(person1, person2));
+
+        // When: GET request to /api/persons with client header
+        // Then: Returns 200 OK with array of 2 persons
+        mockMvc.perform(get("/api/persons")
+                .header("X-Client-ID", "mobile-app1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].name", is("Alice")))
+                .andExpect(jsonPath("$[0].weight", is(65.0)))
+                .andExpect(jsonPath("$[1].name", is("Bob")))
+                .andExpect(jsonPath("$[1].weight", is(80.0)));
+
+        verify(personRepository).findByClientId("mobile-app1");
+    }
+
+    /**
+     * Tests GET /api/persons endpoint when client has no data.
+     *
+     * <p>This boundary test ensures the endpoint handles empty result sets gracefully,
+     * returning an empty array rather than null or throwing an error. This is common
+     * for new clients or after data deletion.</p>
+     *
+     * <p><strong>Empty State Handling:</strong> Returning empty arrays (not null) is a
+     * REST API best practice that prevents client-side null pointer exceptions and
+     * simplifies client code with consistent array processing.</p>
+     *
+     * @throws Exception if MockMvc request fails
+     */
+    @Test
+    @DisplayName("getAllPersons - Returns empty array when client has no data")
+    void testGetAllPersons_EmptyList() throws Exception {
+        // Given: Repository returns empty list for client with no data
+        when(personRepository.findByClientId("mobile-app2"))
+            .thenReturn(Collections.emptyList());
+
+        // When: GET request to /api/persons
+        // Then: Returns 200 OK with empty array
+        mockMvc.perform(get("/api/persons")
+                .header("X-Client-ID", "mobile-app2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    /**
+     * Tests GET /api/persons/{id} endpoint for successful retrieval.
+     *
+     * <p>This test verifies that the controller correctly retrieves a specific person
+     * by ID, but only if that person belongs to the authenticated client. This enforces
+     * data isolation at the individual record level, preventing unauthorized access
+     * to other clients' data.</p>
+     *
+     * <p><strong>Authorization Logic:</strong> The controller uses
+     * PersonRepository.findByIdAndClientId() which implements a dual-key lookup,
+     * ensuring both the ID exists AND belongs to the requesting client.</p>
+     *
+     * @throws Exception if MockMvc request fails
+     */
+    @Test
+    @DisplayName("getPersonById - Returns person when ID exists and belongs to client")
+    void testGetPersonById_Success() throws Exception {
+        // Given: Repository finds person with matching ID and client ID
+        PersonSimple person = new PersonSimple("Charlie", 75.0, 175.0,
+            LocalDate.of(1992, 7, 10), "mobile-app1");
+        person.setId(5L);
+
+        when(personRepository.findByIdAndClientId(5L, "mobile-app1"))
+            .thenReturn(Optional.of(person));
+
+        // When: GET request to /api/persons/5
+        // Then: Returns 200 OK with person details
+        mockMvc.perform(get("/api/persons/5")
+                .header("X-Client-ID", "mobile-app1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(5)))
+                .andExpect(jsonPath("$.name", is("Charlie")))
+                .andExpect(jsonPath("$.weight", is(75.0)))
+                .andExpect(jsonPath("$.height", is(175.0)))
+                .andExpect(jsonPath("$.clientId", is("mobile-app1")));
+    }
+
+    /**
+     * Tests GET /api/persons/{id} endpoint when person not found or belongs to different client.
+     *
+     * <p>This security-critical test verifies that attempting to access a non-existent
+     * person ID or another client's person ID returns 404 Not Found. This prevents
+     * information disclosure by giving identical responses for both scenarios,
+     * following the security principle of "fail closed" and "constant-time comparison".</p>
+     *
+     * <p><strong>Security Consideration:</strong> Returning 404 for both "not found" and
+     * "found but unauthorized" prevents attackers from enumerating valid IDs through
+     * differential response analysis. A 403 would confirm the ID exists but is forbidden.</p>
+     *
+     * @throws Exception if MockMvc request fails
+     */
+    @Test
+    @DisplayName("getPersonById - Returns 404 when ID not found or belongs to different client")
+    void testGetPersonById_NotFound() throws Exception {
+        // Given: Repository returns empty (person not found or belongs to different client)
+        when(personRepository.findByIdAndClientId(999L, "mobile-app1"))
+            .thenReturn(Optional.empty());
+
+        // When: GET request to /api/persons/999
+        // Then: Returns 404 Not Found (security by obscurity)
+        mockMvc.perform(get("/api/persons/999")
+                .header("X-Client-ID", "mobile-app1"))
+                .andExpect(status().isNotFound());
+    }
+
+    /**
+     * Tests POST /api/persons endpoint for creating a new person.
+     *
+     * <p>This test verifies that the controller correctly handles person creation by:
+     * <ol>
+     *   <li>Accepting JSON request body with person data</li>
+     *   <li>Automatically associating the person with the authenticated client ID</li>
+     *   <li>Delegating persistence to PersonRepository</li>
+     *   <li>Returning 201 Created with the saved person (including generated ID)</li>
+     * </ol>
+     * </p>
+     *
+     * <p><strong>Automatic Client Association:</strong> The controller sets the client ID
+     * automatically from the authentication context, preventing clients from creating
+     * data for other clients by manipulating the request body.</p>
+     *
+     * <p><strong>HTTP 201 Created:</strong> Following REST conventions, successful resource
+     * creation returns 201 (not 200) to indicate a new resource was created.</p>
+     *
+     * @throws Exception if MockMvc request fails
+     */
+    @Test
+    @DisplayName("createPerson - Creates new person and returns 201 Created")
+    void testCreatePerson_Success() throws Exception {
+        // Given: Client sends new person data without ID
+        PersonSimple newPerson = new PersonSimple();
+        newPerson.setName("David");
+        newPerson.setWeight(70.0);
+        newPerson.setHeight(180.0);
+        newPerson.setBirthDate(LocalDate.of(1995, 1, 1));
+
+        // Repository saves and returns person with generated ID
+        PersonSimple savedPerson = new PersonSimple("David", 70.0, 180.0,
+            LocalDate.of(1995, 1, 1), "mobile-app1");
+        savedPerson.setId(10L);
+
+        when(personRepository.save(any(PersonSimple.class))).thenReturn(savedPerson);
+
+        // When: POST request to /api/persons with JSON body
+        // Then: Returns 201 Created with saved person including ID and client ID
+        mockMvc.perform(post("/api/persons")
+                .header("X-Client-ID", "mobile-app1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(newPerson)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id", is(10)))
+                .andExpect(jsonPath("$.name", is("David")))
+                .andExpect(jsonPath("$.clientId", is("mobile-app1")));
+
+        verify(personRepository).save(any(PersonSimple.class));
+    }
+
+    /**
+     * Tests PUT /api/persons/{id} endpoint for updating an existing person.
+     *
+     * <p>This test verifies the complete update workflow:
+     * <ol>
+     *   <li>Controller finds existing person by ID and client ID</li>
+     *   <li>Updates mutable fields (name, weight, height, birthDate)</li>
+     *   <li>Preserves immutable fields (ID, clientId)</li>
+     *   <li>Saves updated person via repository</li>
+     *   <li>Returns 200 OK with updated person</li>
+     * </ol>
+     * </p>
+     *
+     * <p><strong>Selective Field Updates:</strong> The controller explicitly sets only
+     * updatable fields, protecting ID and clientId from modification. This prevents
+     * clients from hijacking other clients' data or creating ID conflicts.</p>
+     *
+     * @throws Exception if MockMvc request fails
+     */
+    @Test
+    @DisplayName("updatePerson - Updates existing person and returns 200 OK")
+    void testUpdatePerson_Success() throws Exception {
+        // Given: Existing person in database
+        PersonSimple existingPerson = new PersonSimple("Eve", 60.0, 165.0,
+            LocalDate.of(1988, 8, 8), "mobile-app1");
+        existingPerson.setId(15L);
+
+        // Client sends updated data
+        PersonSimple updateData = new PersonSimple();
+        updateData.setName("Eve Updated");
+        updateData.setWeight(62.0);
+        updateData.setHeight(166.0);
+        updateData.setBirthDate(LocalDate.of(1988, 8, 9));
+
+        // Repository operations
+        when(personRepository.findByIdAndClientId(15L, "mobile-app1"))
+            .thenReturn(Optional.of(existingPerson));
+        when(personRepository.save(any(PersonSimple.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When: PUT request to /api/persons/15 with updated JSON
+        // Then: Returns 200 OK with updated person
+        mockMvc.perform(put("/api/persons/15")
+                .header("X-Client-ID", "mobile-app1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateData)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(15)))
+                .andExpect(jsonPath("$.name", is("Eve Updated")))
+                .andExpect(jsonPath("$.weight", is(62.0)))
+                .andExpect(jsonPath("$.height", is(166.0)))
+                .andExpect(jsonPath("$.clientId", is("mobile-app1")));
+
+        verify(personRepository).save(any(PersonSimple.class));
+    }
+
+    /**
+     * Tests PUT /api/persons/{id} endpoint when person not found or belongs to different client.
+     *
+     * <p>This security test ensures that update attempts on non-existent or unauthorized
+     * person records fail safely with 404 Not Found, without making any database changes.
+     * This prevents unauthorized modification of other clients' data.</p>
+     *
+     * <p><strong>No-Op on Failure:</strong> When the person isn't found, the controller
+     * returns 404 immediately without calling repository.save(), preventing partial
+     * updates or race conditions.</p>
+     *
+     * @throws Exception if MockMvc request fails
+     */
+    @Test
+    @DisplayName("updatePerson - Returns 404 when person not found or belongs to different client")
+    void testUpdatePerson_NotFound() throws Exception {
+        // Given: Person does not exist or belongs to different client
+        PersonSimple updateData = new PersonSimple();
+        updateData.setName("Hacker");
+
+        when(personRepository.findByIdAndClientId(999L, "mobile-app1"))
+            .thenReturn(Optional.empty());
+
+        // When: PUT request to /api/persons/999
+        // Then: Returns 404 and does not call save()
+        mockMvc.perform(put("/api/persons/999")
+                .header("X-Client-ID", "mobile-app1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateData)))
+                .andExpect(status().isNotFound());
+
+        verify(personRepository, never()).save(any(PersonSimple.class));
+    }
+
+    /**
+     * Tests DELETE /api/persons/{id} endpoint for successful deletion.
+     *
+     * <p>This test verifies the delete workflow:
+     * <ol>
+     *   <li>Controller verifies person exists and belongs to client</li>
+     *   <li>Calls repository.delete() to remove the record</li>
+     *   <li>Returns 204 No Content (successful deletion with no body)</li>
+     * </ol>
+     * </p>
+     *
+     * <p><strong>HTTP 204 No Content:</strong> Following REST conventions, successful
+     * deletion returns 204 (not 200) with an empty response body, as there's nothing
+     * meaningful to return after deletion.</p>
+     *
+     * @throws Exception if MockMvc request fails
+     */
+    @Test
+    @DisplayName("deletePerson - Deletes person and returns 204 No Content")
+    void testDeletePerson_Success() throws Exception {
+        // Given: Person exists and belongs to client
+        PersonSimple person = new PersonSimple("Frank", 85.0, 185.0,
+            LocalDate.of(1980, 12, 31), "mobile-app1");
+        person.setId(20L);
+
+        when(personRepository.findByIdAndClientId(20L, "mobile-app1"))
+            .thenReturn(Optional.of(person));
+
+        // When: DELETE request to /api/persons/20
+        // Then: Returns 204 No Content
+        mockMvc.perform(delete("/api/persons/20")
+                .header("X-Client-ID", "mobile-app1"))
+                .andExpect(status().isNoContent());
+
+        verify(personRepository).delete(person);
+    }
+
+    /**
+     * Tests DELETE /api/persons/{id} endpoint when person not found or belongs to different client.
+     *
+     * <p>This security test ensures that delete attempts on non-existent or unauthorized
+     * records fail safely with 404 Not Found, without making any database changes. This
+     * prevents clients from deleting other clients' data.</p>
+     *
+     * <p><strong>Idempotency Consideration:</strong> While REST DELETE should ideally be
+     * idempotent (returning 204 even if already deleted), returning 404 here provides
+     * better security by not confirming whether an ID exists in the system.</p>
+     *
+     * @throws Exception if MockMvc request fails
+     */
+    @Test
+    @DisplayName("deletePerson - Returns 404 when person not found or belongs to different client")
+    void testDeletePerson_NotFound() throws Exception {
+        // Given: Person does not exist or belongs to different client
+        when(personRepository.findByIdAndClientId(999L, "mobile-app1"))
+            .thenReturn(Optional.empty());
+
+        // When: DELETE request to /api/persons/999
+        // Then: Returns 404 and does not call delete()
+        mockMvc.perform(delete("/api/persons/999")
+                .header("X-Client-ID", "mobile-app1"))
+                .andExpect(status().isNotFound());
+
+        verify(personRepository, never()).delete(any(PersonSimple.class));
+    }
 
     // ============================================
     // /api/persons/bmi Tests
@@ -90,6 +457,7 @@ class PersonControllerTest {
         // When: GET request to /api/persons/bmi with valid weight and height
         // Then: Returns 200 OK with complete response including BMI and category
         mockMvc.perform(get("/api/persons/bmi")
+                .header("X-Client-ID", "mobile-app1")
                 .param("weight", "70.0")
                 .param("height", "175.0"))
                 .andExpect(status().isOk())
@@ -121,6 +489,7 @@ class PersonControllerTest {
         // When: GET request with parameters resulting in low BMI
         // Then: Response includes "Underweight" category
         mockMvc.perform(get("/api/persons/bmi")
+                .header("X-Client-ID", "mobile-app1")
                 .param("weight", "55.0")
                 .param("height", "173.0"))
                 .andExpect(status().isOk())
@@ -149,6 +518,7 @@ class PersonControllerTest {
         // When: GET request with parameters resulting in elevated BMI
         // Then: Response includes "Overweight" category
         mockMvc.perform(get("/api/persons/bmi")
+                .header("X-Client-ID", "mobile-app1")
                 .param("weight", "85.0")
                 .param("height", "175.0"))
                 .andExpect(status().isOk())
@@ -177,6 +547,7 @@ class PersonControllerTest {
         // When: GET request with parameters resulting in high BMI
         // Then: Response includes "Obese" category
         mockMvc.perform(get("/api/persons/bmi")
+                .header("X-Client-ID", "mobile-app1")
                 .param("weight", "95.0")
                 .param("height", "170.0"))
                 .andExpect(status().isOk())
@@ -207,6 +578,7 @@ class PersonControllerTest {
         // When: GET request with parameters that can't be calculated
         // Then: Response includes null BMI and "Unknown" category
         mockMvc.perform(get("/api/persons/bmi")
+                .header("X-Client-ID", "mobile-app1")
                 .param("weight", "70.0")
                 .param("height", "0.0"))
                 .andExpect(status().isOk())
@@ -241,6 +613,7 @@ class PersonControllerTest {
         // When: GET request to /api/persons/age with valid ISO date
         // Then: Returns 200 OK with calculated age
         mockMvc.perform(get("/api/persons/age")
+                .header("X-Client-ID", "mobile-app1")
                 .param("birthDate", birthDate.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.birthDate").value(birthDate.toString()))
@@ -269,6 +642,7 @@ class PersonControllerTest {
         // When: GET request with today's date
         // Then: Returns age 0 correctly
         mockMvc.perform(get("/api/persons/age")
+                .header("X-Client-ID", "mobile-app1")
                 .param("birthDate", today.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.age").value(0));
@@ -303,6 +677,7 @@ class PersonControllerTest {
         // When: GET request with complete valid parameters for male user
         // Then: Returns 200 OK with BMR and daily calorie needs
         mockMvc.perform(get("/api/persons/calories")
+                .header("X-Client-ID", "mobile-app1")
                 .param("weight", "70.0")
                 .param("height", "175.0")
                 .param("age", "30")
@@ -337,6 +712,7 @@ class PersonControllerTest {
         // When: GET request with female gender parameter
         // Then: Returns 200 OK with gender-specific BMR calculation
         mockMvc.perform(get("/api/persons/calories")
+                .header("X-Client-ID", "mobile-app1")
                 .param("weight", "60.0")
                 .param("height", "165.0")
                 .param("age", "25")
@@ -371,6 +747,7 @@ class PersonControllerTest {
         // When: GET request with 0 weekly training frequency
         // Then: Returns calorie needs with sedentary multiplier (1.2x BMR)
         mockMvc.perform(get("/api/persons/calories")
+                .header("X-Client-ID", "mobile-app1")
                 .param("weight", "70.0")
                 .param("height", "175.0")
                 .param("age", "30")
@@ -403,6 +780,7 @@ class PersonControllerTest {
         // When: GET request with uppercase gender parameter
         // Then: Controller handles case-insensitive gender matching
         mockMvc.perform(get("/api/persons/calories")
+                .header("X-Client-ID", "mobile-app1")
                 .param("weight", "70.0")
                 .param("height", "175.0")
                 .param("age", "30")
@@ -445,7 +823,8 @@ class PersonControllerTest {
 
         // When: GET request to /api/persons/health
         // Then: Returns 200 OK with service status and metadata
-        mockMvc.perform(get("/api/persons/health"))
+        mockMvc.perform(get("/api/persons/health")
+                .header("X-Client-ID", "mobile-app1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("UP"))
                 .andExpect(jsonPath("$.service").value("Personal Fitness Management Service"))
