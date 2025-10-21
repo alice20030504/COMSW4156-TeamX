@@ -1,8 +1,0 @@
-GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
-Personal Fitness Management Service,com.teamx.fitness.service,PersonService,0,126,0,28,0,25,0,19,0,5
-Personal Fitness Management Service,com.teamx.fitness,FitnessManagementApplication,5,3,0,0,2,1,1,1,1,1
-Personal Fitness Management Service,com.teamx.fitness.model,PersonSimple,53,0,0,0,22,0,12,0,12,0
-Personal Fitness Management Service,com.teamx.fitness.model,ApiLog,87,0,2,0,26,0,25,0,24,0
-Personal Fitness Management Service,com.teamx.fitness.controller,PersonController,0,152,0,8,0,32,0,10,0,6
-Personal Fitness Management Service,com.teamx.fitness.controller,ResearchController,443,0,14,0,80,0,12,0,5,0
-Personal Fitness Management Service,com.teamx.fitness.controller,HomeController,0,8,0,0,0,2,0,2,0,2
