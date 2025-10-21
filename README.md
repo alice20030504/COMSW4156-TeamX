@@ -17,9 +17,8 @@
 7. [Team Members](#team-members)
 8. [Project Management](#project-management)
 9. [Third-Party Code](#third-party-code)
-10. [AI Tool Usage](#ai-tool-usage)
-11. [Documentation](#documentation)
-12. [License](#license)
+10. [Documentation](#documentation)
+11. [License](#license)
 
 ---
 
