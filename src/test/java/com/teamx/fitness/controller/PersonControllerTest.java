@@ -3,7 +3,21 @@ package com.teamx.fitness.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.teamx.fitness.model.PersonSimple;
 import com.teamx.fitness.repository.PersonRepository;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import com.teamx.fitness.model.PersonSimple;
+import com.teamx.fitness.repository.PersonRepository;
+import com.teamx.fitness.security.ClientContext;
 import com.teamx.fitness.service.PersonService;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,37 +39,22 @@ import static org.mockito.Mockito.never;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.hamcrest.Matchers.*;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 /**
- * Unit tests for PersonController REST endpoints.
- *
- * <p>This test class uses Spring's MockMvc framework to test the controller layer
- * in isolation from the service layer. The PersonService dependency is mocked using
- * Mockito's @MockBean annotation, ensuring tests focus solely on controller behavior,
- * HTTP request/response handling, parameter validation, and error scenarios.</p>
- *
- * <p><strong>Testing Strategy:</strong></p>
- * <ul>
- *   <li><strong>Valid Cases:</strong> Normal inputs with expected 200 OK responses and proper JSON structure</li>
- *   <li><strong>Boundary Cases:</strong> Edge values like zero, thresholds, extreme numbers</li>
- *   <li><strong>Invalid Cases:</strong> Missing parameters, null values, malformed inputs returning 400 Bad Request</li>
- * </ul>
- *
- * <p><strong>Why Test Controllers:</strong></p>
- * <ul>
- *   <li>Controllers are the entry point for all HTTP requests - critical for API reliability</li>
- *   <li>Proper parameter binding and validation prevents malformed requests from reaching services</li>
- *   <li>Response formatting affects all API consumers and must be consistent</li>
- *   <li>Error handling at the controller level provides clear feedback to clients</li>
- * </ul>
- *
- * <p><strong>Testing Pattern:</strong> Arrange-Act-Assert (Given-When-Then)</p>
- *
- * @see PersonController
- * @see PersonService
+ * Focused unit tests for {@link PersonController} covering core calculation and client-scoped
+ * behaviors with mocked collaborators.
  */
-@WebMvcTest(PersonController.class)
-@DisplayName("PersonController REST API Tests")
+@ExtendWith(MockitoExtension.class)
+@DisplayName("PersonController basic calculations")
 class PersonControllerTest {
 
     @Autowired
@@ -829,5 +828,186 @@ class PersonControllerTest {
                 .andExpect(jsonPath("$.status").value("UP"))
                 .andExpect(jsonPath("$.service").value("Personal Fitness Management Service"))
                 .andExpect(jsonPath("$.version").value("1.0.0"));
+  @Mock private PersonService personService;
+
+  @Mock private PersonRepository personRepository;
+
+  @InjectMocks private PersonController personController;
+
+  @AfterEach
+  void clearClientContext() {
+    ClientContext.clear();
+  }
+
+  /**
+   * Ensures the BMI endpoint returns consistent payloads across representative inputs.
+   */
+  @ParameterizedTest
+  @MethodSource("calculateBmiScenarios")
+  @DisplayName("calculateBMI handles valid, boundary, and invalid scenarios")
+  void calculateBMIHandlesScenarios(
+      String description,
+      Double weight,
+      Double height,
+      Double serviceResult,
+      String expectedCategory) {
+
+    when(personService.calculateBMI(weight, height)).thenReturn(serviceResult);
+
+    ResponseEntity<Map<String, Object>> response = personController.calculateBMI(weight, height);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode(), description);
+    Map<String, Object> body = response.getBody();
+    assertNotNull(body, description);
+    assertEquals(weight, body.get("weight"), description);
+    assertEquals(height, body.get("height"), description);
+    assertEquals(serviceResult, body.get("bmi"), description);
+    assertEquals(expectedCategory, body.get("category"), description);
+  }
+
+  private static Stream<Arguments> calculateBmiScenarios() {
+    return Stream.of(
+        Arguments.of("Valid: normal BMI", 70.0, 175.0, 22.86, "Normal weight"),
+        Arguments.of("Boundary: underweight classification", 50.0, 180.0, 15.43, "Underweight"),
+        Arguments.of("Boundary: overweight classification", 85.0, 178.0, 26.82, "Overweight"),
+        Arguments.of("Boundary: obese classification", 110.0, 170.0, 38.06, "Obese"),
+        Arguments.of("Invalid: service returns null BMI", 70.0, 0.0, null, "Unknown"));
+  }
+
+  /**
+   * Verifies the age endpoint parses dates and returns expected values for typical, boundary, and
+   * invalid service responses.
+   */
+  @ParameterizedTest
+  @MethodSource("calculateAgeScenarios")
+  @DisplayName("calculateAge returns age for provided birth dates")
+  void calculateAgeHandlesScenarios(String description, String birthDate, Integer expectedAge) {
+    LocalDate parsedDate = LocalDate.parse(birthDate);
+    when(personService.calculateAge(parsedDate)).thenReturn(expectedAge);
+
+    ResponseEntity<Map<String, Object>> response = personController.calculateAge(birthDate);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode(), description);
+    Map<String, Object> body = response.getBody();
+    assertNotNull(body, description);
+    assertEquals(birthDate, body.get("birthDate"), description);
+    if (expectedAge == null) {
+      assertNull(body.get("age"), description);
+    } else {
+      assertEquals(expectedAge, body.get("age"), description);
     }
+  }
+
+  private static Stream<Arguments> calculateAgeScenarios() {
+    return Stream.of(
+        Arguments.of(
+            "Valid: adult birth date", LocalDate.of(1995, 5, 15).toString(), 29),
+        Arguments.of("Boundary: born today", LocalDate.now().toString(), 0),
+        Arguments.of(
+            "Invalid: service returns null age", LocalDate.now().minusYears(40).toString(), null));
+  }
+
+  /**
+   * Confirms the calorie endpoint composes BMR and activity factors while honoring null guards.
+   */
+  @ParameterizedTest
+  @MethodSource("calculateDailyCalorieNeedsScenarios")
+  @DisplayName("calculateDailyCalorieNeeds composes BMR and activity factor")
+  void calculateDailyCalorieNeedsHandlesScenarios(
+      String description,
+      Double weight,
+      Double height,
+      Integer age,
+      String gender,
+      Integer weeklyTrainingFreq,
+      Double bmrResult,
+      Double caloriesResult) {
+
+    boolean isMale = "male".equalsIgnoreCase(gender);
+    when(personService.calculateBMR(weight, height, age, isMale)).thenReturn(bmrResult);
+    when(personService.calculateDailyCalorieNeeds(bmrResult, weeklyTrainingFreq))
+        .thenReturn(caloriesResult);
+
+    ResponseEntity<Map<String, Object>> response =
+        personController.calculateDailyCalories(weight, height, age, gender, weeklyTrainingFreq);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode(), description);
+    Map<String, Object> body = response.getBody();
+    assertNotNull(body, description);
+    assertEquals(bmrResult, body.get("bmr"), description);
+    assertEquals(caloriesResult, body.get("dailyCalories"), description);
+    assertEquals(weeklyTrainingFreq, body.get("weeklyTrainingFreq"), description);
+  }
+
+  private static Stream<Arguments> calculateDailyCalorieNeedsScenarios() {
+    return Stream.of(
+        Arguments.of(
+            "Valid: male moderate activity",
+            70.0,
+            175.0,
+            30,
+            "male",
+            3,
+            1680.0,
+            2604.0),
+        Arguments.of(
+            "Boundary: sedentary frequency",
+            70.0,
+            175.0,
+            30,
+            "male",
+            0,
+            1680.0,
+            2016.0),
+        Arguments.of(
+            "Boundary: uppercase gender handled as male",
+            70.0,
+            175.0,
+            30,
+            "MALE",
+            4,
+            1680.0,
+            2604.0),
+        Arguments.of(
+            "Invalid: missing BMR prevents calorie calculation",
+            70.0,
+            175.0,
+            30,
+            "female",
+            2,
+            null,
+            null));
+  }
+
+  @Test
+  @DisplayName("getAllPersons returns client-scoped records")
+  void getAllPersonsReturnsClientData() {
+    String clientId = "mobile-app1";
+    ClientContext.setClientId(clientId);
+
+    List<PersonSimple> expected =
+        List.of(
+            new PersonSimple(
+                "Alice", 65.0, 170.0, LocalDate.of(1990, 5, 15), clientId));
+    when(personRepository.findByClientId(clientId)).thenReturn(expected);
+
+    ResponseEntity<List<PersonSimple>> response = personController.getAllPersons();
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(expected, response.getBody());
+    verify(personRepository).findByClientId(clientId);
+  }
+
+  @Test
+  @DisplayName("healthCheck reports service availability metadata")
+  void healthCheckReturnsMetadata() {
+    ResponseEntity<Map<String, String>> response = personController.healthCheck();
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    Map<String, String> body = response.getBody();
+    assertNotNull(body);
+    assertEquals("UP", body.get("status"));
+    assertEquals("Personal Fitness Management Service", body.get("service"));
+    assertEquals("1.0.0", body.get("version"));
+  }
 }

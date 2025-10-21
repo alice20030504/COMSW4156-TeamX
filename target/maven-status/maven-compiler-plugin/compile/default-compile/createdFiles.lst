@@ -1,7 +1,0 @@
-com/teamx/fitness/FitnessManagementApplication.class
-com/teamx/fitness/controller/HomeController.class
-com/teamx/fitness/controller/ResearchController.class
-com/teamx/fitness/model/ApiLog.class
-com/teamx/fitness/model/PersonSimple.class
-com/teamx/fitness/controller/PersonController.class
-com/teamx/fitness/service/PersonService.class
