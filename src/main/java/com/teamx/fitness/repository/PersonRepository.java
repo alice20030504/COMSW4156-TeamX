@@ -1,3 +1,13 @@
+/**
+ * <p>Part of the Fitness Management Service.</p>
+ *
+ * <p>JPA repository interface for accessing {@code PersonSimple} entities.
+ * Provides query methods to find persons by client ID and perform isolation checks.</p>
+ *
+ * @checkstyle 2025-10-21 by alice
+ * @version 1.0
+ */
+
 package com.teamx.fitness.repository;
 
 import com.teamx.fitness.model.PersonSimple;
