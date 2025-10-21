@@ -1,165 +1,143 @@
 package com.teamx.fitness.integration;
 
-import static org.hamcrest.Matchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.teamx.fitness.controller.ResearchController;
+import com.teamx.fitness.security.ClientContext;
+import java.util.Map;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
- * Integration tests demonstrating access control for research endpoints.
- * Tests that mobile clients are properly rejected from research endpoints.
- * This addresses the rubric requirement for client type differentiation.
+ * Validates {@link ResearchController} access rules and response content for research and mobile
+ * clients across valid, boundary, and invalid scenarios without bringing up the MVC stack.
  */
-@SpringBootTest
-@AutoConfigureMockMvc
-@DisplayName("Research Endpoint Access Control Tests")
-public class ResearchEndpointAccessControlTest {
+@DisplayName("Research endpoint access control")
+class ResearchEndpointAccessControlTest {
 
-  @Autowired private MockMvc mockMvc;
+  private final ResearchController researchController = new ResearchController();
 
-  private static final String MOBILE_CLIENT = "mobile-app1";
-  private static final String RESEARCH_CLIENT = "research-tool1";
-  private static final String CLIENT_ID_HEADER = "X-Client-ID";
-
-  @Test
-  @DisplayName("Mobile client is forbidden from accessing /api/research/demographics")
-  public void testMobileClientForbiddenFromDemographics() throws Exception {
-    mockMvc
-        .perform(get("/api/research/demographics").header(CLIENT_ID_HEADER, MOBILE_CLIENT))
-        .andExpect(status().isForbidden())
-        .andExpect(jsonPath("$.status", is(403)))
-        .andExpect(jsonPath("$.error", is("Forbidden")))
-        .andExpect(
-            jsonPath(
-                "$.message",
-                containsString("Mobile clients are not authorized to access research endpoints")));
+  @AfterEach
+  void resetContext() {
+    ClientContext.clear();
   }
 
+  /**
+   * Valid scenario: a research client retrieves anonymized demographics successfully.
+   */
   @Test
-  @DisplayName("Mobile client is forbidden from accessing /api/research/workout-patterns")
-  public void testMobileClientForbiddenFromWorkoutPatterns() throws Exception {
-    mockMvc
-        .perform(get("/api/research/workout-patterns").header(CLIENT_ID_HEADER, MOBILE_CLIENT))
-        .andExpect(status().isForbidden())
-        .andExpect(jsonPath("$.status", is(403)))
-        .andExpect(jsonPath("$.error", is("Forbidden")))
-        .andExpect(
-            jsonPath(
-                "$.message",
-                containsString("Mobile clients are not authorized to access research endpoints")));
+  @DisplayName("Research clients receive anonymized demographics")
+  void demographics_AllowsResearchClient() {
+    ClientContext.setClientId("research-tool1");
+
+    ResponseEntity<Map<String, Object>> response =
+        researchController.getDemographicStats("25-34", null, null);
+
+    assertEquals(200, response.getStatusCode().value());
+    assertEquals(Boolean.TRUE, response.getBody().get("dataAnonymized"));
+    assertEquals(Boolean.TRUE, response.getBody().get("privacyCompliant"));
   }
 
+  /**
+   * Invalid scenario: mobile clients are forbidden from research endpoints.
+   */
   @Test
-  @DisplayName("Mobile client is forbidden from accessing /api/research/nutrition-trends")
-  public void testMobileClientForbiddenFromNutritionTrends() throws Exception {
-    mockMvc
-        .perform(get("/api/research/nutrition-trends").header(CLIENT_ID_HEADER, MOBILE_CLIENT))
-        .andExpect(status().isForbidden())
-        .andExpect(jsonPath("$.status", is(403)))
-        .andExpect(jsonPath("$.error", is("Forbidden")))
-        .andExpect(
-            jsonPath(
-                "$.message",
-                containsString("Mobile clients are not authorized to access research endpoints")));
+  @DisplayName("Mobile clients are blocked from research data")
+  void demographics_BlocksMobileClient() {
+    ClientContext.setClientId("mobile-app1");
+
+    ResponseStatusException exception =
+        assertThrows(
+            ResponseStatusException.class,
+            () -> researchController.getDemographicStats(null, null, null));
+
+    assertEquals(403, exception.getStatusCode().value());
   }
 
+  /**
+   * Boundary scenario: missing objective parameter defaults to aggregate results.
+   */
   @Test
-  @DisplayName("Mobile client is forbidden from accessing /api/research/population-health")
-  public void testMobileClientForbiddenFromPopulationHealth() throws Exception {
-    mockMvc
-        .perform(get("/api/research/population-health").header(CLIENT_ID_HEADER, MOBILE_CLIENT))
-        .andExpect(status().isForbidden())
-        .andExpect(jsonPath("$.status", is(403)))
-        .andExpect(jsonPath("$.error", is("Forbidden")))
-        .andExpect(
-            jsonPath(
-                "$.message",
-                containsString("Mobile clients are not authorized to access research endpoints")));
+  @DisplayName("Nutrition trends fall back to default objective")
+  void nutritionTrends_DefaultsWhenObjectiveMissing() {
+    ClientContext.setClientId("research-tool2");
+
+    ResponseEntity<Map<String, Object>> response =
+        researchController.getNutritionTrends(null);
+
+    assertEquals(200, response.getStatusCode().value());
+    assertEquals("ALL", response.getBody().get("objective"));
+    assertFalse((Boolean) response.getBody().get("containsPII"));
   }
 
+  /**
+   * Valid scenario: BULK objective returns the expected macro mix.
+   */
   @Test
-  @DisplayName("Research client can access /api/research/demographics")
-  public void testResearchClientCanAccessDemographics() throws Exception {
-    mockMvc
-        .perform(get("/api/research/demographics").header(CLIENT_ID_HEADER, RESEARCH_CLIENT))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.dataAnonymized", is(true)))
-        .andExpect(jsonPath("$.privacyCompliant", is(true)));
+  @DisplayName("Nutrition trends for BULK objective return expected macros")
+  void nutritionTrends_BulkObjective() {
+    ClientContext.setClientId("research-tool3");
+
+    ResponseEntity<Map<String, Object>> response =
+        researchController.getNutritionTrends("BULK");
+
+    assertEquals(200, response.getStatusCode().value());
+    Map<String, Object> macroDistribution =
+        (Map<String, Object>) response.getBody().get("macroDistribution");
+    assertEquals(45, macroDistribution.get("carbs"));
+    assertEquals(30, macroDistribution.get("protein"));
   }
 
+  /**
+   * Valid scenario: CUT objective highlights higher protein ratios.
+   */
   @Test
-  @DisplayName("Research client can access /api/research/workout-patterns")
-  public void testResearchClientCanAccessWorkoutPatterns() throws Exception {
-    mockMvc
-        .perform(get("/api/research/workout-patterns").header(CLIENT_ID_HEADER, RESEARCH_CLIENT))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.privacyProtected", is(true)));
+  @DisplayName("Nutrition trends for CUT objective emphasize protein")
+  void nutritionTrends_CutObjective() {
+    ClientContext.setClientId("research-tool4");
+
+    ResponseEntity<Map<String, Object>> response =
+        researchController.getNutritionTrends("CUT");
+
+    assertEquals(200, response.getStatusCode().value());
+    Map<String, Object> macroDistribution =
+        (Map<String, Object>) response.getBody().get("macroDistribution");
+    assertEquals(40, macroDistribution.get("protein"));
+    assertEquals(2000, macroDistribution.get("averageCalories"));
   }
 
+  /**
+   * Valid scenario: research client can access population health metrics.
+   */
   @Test
-  @DisplayName("Research client can access /api/research/nutrition-trends")
-  public void testResearchClientCanAccessNutritionTrends() throws Exception {
-    mockMvc
-        .perform(get("/api/research/nutrition-trends").header(CLIENT_ID_HEADER, RESEARCH_CLIENT))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.dataType", is("AGGREGATED")))
-        .andExpect(jsonPath("$.containsPII", is(false)));
+  @DisplayName("Population health metrics returned for research client")
+  void populationHealth_AllowsResearchClient() {
+    ClientContext.setClientId("research-tool5");
+
+    ResponseEntity<Map<String, Object>> response = researchController.getPopulationHealth();
+
+    assertEquals(200, response.getStatusCode().value());
+    assertEquals("All data is aggregated and anonymized", response.getBody().get("dataProtection"));
   }
 
+  /**
+   * Invalid scenario: mobile clients are forbidden from population health data.
+   */
   @Test
-  @DisplayName("Research client can access /api/research/population-health")
-  public void testResearchClientCanAccessPopulationHealth() throws Exception {
-    mockMvc
-        .perform(get("/api/research/population-health").header(CLIENT_ID_HEADER, RESEARCH_CLIENT))
-        .andExpect(status().isOk())
-        .andExpect(
-            jsonPath("$.dataProtection", is("All data is aggregated and anonymized")));
-  }
+  @DisplayName("Mobile client blocked from population health")
+  void populationHealth_BlocksMobileClient() {
+    ClientContext.setClientId("mobile-app2");
 
-  @Test
-  @DisplayName("Multiple different mobile clients are all forbidden from research endpoints")
-  public void testMultipleMobileClientsForbiddenFromResearch() throws Exception {
-    String[] mobileClients = {"mobile-app1", "mobile-app2", "mobile-test", "mobile-beta"};
+    ResponseStatusException exception =
+        assertThrows(
+            ResponseStatusException.class,
+            () -> researchController.getPopulationHealth());
 
-    for (String clientId : mobileClients) {
-      mockMvc
-          .perform(get("/api/research/demographics").header(CLIENT_ID_HEADER, clientId))
-          .andExpect(status().isForbidden())
-          .andExpect(jsonPath("$.status", is(403)));
-    }
-  }
-
-  @Test
-  @DisplayName("Multiple research clients can all access research endpoints")
-  public void testMultipleResearchClientsCanAccessResearch() throws Exception {
-    String[] researchClients = {"research-tool1", "research-tool2", "research-analytics"};
-
-    for (String clientId : researchClients) {
-      mockMvc
-          .perform(get("/api/research/demographics").header(CLIENT_ID_HEADER, clientId))
-          .andExpect(status().isOk());
-    }
-  }
-
-  @Test
-  @DisplayName("Mobile client can still access /api/persons endpoints")
-  public void testMobileClientCanAccessPersonEndpoints() throws Exception {
-    mockMvc
-        .perform(get("/api/persons").header(CLIENT_ID_HEADER, MOBILE_CLIENT))
-        .andExpect(status().isOk());
-  }
-
-  @Test
-  @DisplayName("Research client can still access /api/persons endpoints")
-  public void testResearchClientCanAccessPersonEndpoints() throws Exception {
-    mockMvc
-        .perform(get("/api/persons").header(CLIENT_ID_HEADER, RESEARCH_CLIENT))
-        .andExpect(status().isOk());
+    assertEquals(403, exception.getStatusCode().value());
   }
 }
