@@ -7,7 +7,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.teamx.fitness.model.PersonSimple;
-import com.teamx.fitness.repository.PersonRepository;
 import com.teamx.fitness.security.ClientContext;
 import com.teamx.fitness.service.PersonService;
 import java.time.LocalDate;
@@ -36,8 +35,6 @@ import org.springframework.http.ResponseEntity;
 class PersonControllerTest {
 
   @Mock private PersonService personService;
-
-  @Mock private PersonRepository personRepository;
 
   @InjectMocks private PersonController personController;
 
@@ -196,13 +193,13 @@ class PersonControllerTest {
         List.of(
             new PersonSimple(
                 "Alice", 65.0, 170.0, LocalDate.of(1990, 5, 15), clientId));
-    when(personRepository.findByClientId(clientId)).thenReturn(expected);
+    when(personService.getPersonsForClient(clientId)).thenReturn(expected);
 
     ResponseEntity<List<PersonSimple>> response = personController.getAllPersons();
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals(expected, response.getBody());
-    verify(personRepository).findByClientId(clientId);
+    verify(personService).getPersonsForClient(clientId);
   }
 
   @Test

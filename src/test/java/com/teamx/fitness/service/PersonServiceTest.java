@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import com.teamx.fitness.repository.PersonRepository;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.stream.Stream;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.Mockito;
 
 /**
  * Unit tests that exercise the key calculation methods exposed by {@link PersonService}.
@@ -20,10 +22,12 @@ import org.junit.jupiter.params.provider.MethodSource;
 class PersonServiceTest {
 
   private PersonService personService;
+  private PersonRepository personRepository;
 
   @BeforeEach
   void setUp() {
-    personService = new PersonService();
+    personRepository = Mockito.mock(PersonRepository.class);
+    personService = new PersonService(personRepository);
   }
 
   /**

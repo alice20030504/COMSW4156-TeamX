@@ -1,17 +1,14 @@
 package com.teamx.fitness.integration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.teamx.fitness.controller.PersonController;
 import com.teamx.fitness.model.PersonSimple;
-import com.teamx.fitness.repository.PersonRepository;
 import com.teamx.fitness.security.ClientContext;
 import com.teamx.fitness.service.PersonService;
 import java.time.LocalDate;
@@ -39,8 +36,6 @@ class ClientIsolationIntegrationTest {
   private static final String MOBILE_CLIENT_1 = "mobile-app1";
   private static final String MOBILE_CLIENT_2 = "mobile-app2";
 
-  @Mock private PersonRepository personRepository;
-
   @Mock private PersonService personService;
 
   @InjectMocks private PersonController personController;
@@ -61,7 +56,7 @@ class ClientIsolationIntegrationTest {
     stored.setId(1L);
 
     ClientContext.setClientId(MOBILE_CLIENT_1);
-    when(personRepository.findByIdAndClientId(1L, MOBILE_CLIENT_1)).thenReturn(Optional.of(stored));
+    when(personService.findPersonForClient(1L, MOBILE_CLIENT_1)).thenReturn(Optional.of(stored));
 
     ResponseEntity<PersonSimple> response = personController.getPersonById(1L);
 
@@ -77,7 +72,7 @@ class ClientIsolationIntegrationTest {
   @DisplayName("Different client receives 404 for protected record")
   void getPersonById_BlocksDifferentClient() {
     ClientContext.setClientId(MOBILE_CLIENT_2);
-    when(personRepository.findByIdAndClientId(1L, MOBILE_CLIENT_2)).thenReturn(Optional.empty());
+    when(personService.findPersonForClient(1L, MOBILE_CLIENT_2)).thenReturn(Optional.empty());
 
     ResponseEntity<PersonSimple> response = personController.getPersonById(1L);
 
@@ -97,13 +92,14 @@ class ClientIsolationIntegrationTest {
         new PersonSimple("Bob", 80.0, 180.0, LocalDate.of(1995, 3, 20), MOBILE_CLIENT_1);
     saved.setId(5L);
 
-    when(personRepository.save(any(PersonSimple.class))).thenReturn(saved);
+    when(personService.createPersonForClient(any(PersonSimple.class), eq(MOBILE_CLIENT_1)))
+        .thenReturn(saved);
 
     ResponseEntity<PersonSimple> response = personController.createPerson(payload);
 
     assertEquals(HttpStatus.CREATED, response.getStatusCode());
     assertEquals(MOBILE_CLIENT_1, response.getBody().getClientId());
-    verify(personRepository).save(any(PersonSimple.class));
+    verify(personService).createPersonForClient(any(PersonSimple.class), eq(MOBILE_CLIENT_1));
   }
 
   /**
@@ -120,13 +116,18 @@ class ClientIsolationIntegrationTest {
     PersonSimple update =
         new PersonSimple("Carol Updated", 72.0, 172.0, existing.getBirthDate(), null);
 
-    when(personRepository.findByIdAndClientId(9L, MOBILE_CLIENT_1)).thenReturn(Optional.of(existing));
-    when(personRepository.save(existing)).thenReturn(existing);
+    PersonSimple saved =
+        new PersonSimple("Carol Updated", 72.0, 172.0, existing.getBirthDate(), MOBILE_CLIENT_1);
+    saved.setId(9L);
+
+    when(personService.updatePersonForClient(9L, MOBILE_CLIENT_1, update))
+        .thenReturn(Optional.of(saved));
 
     ResponseEntity<PersonSimple> response = personController.updatePerson(9L, update);
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals("Carol Updated", response.getBody().getName());
+    verify(personService).updatePersonForClient(9L, MOBILE_CLIENT_1, update);
   }
 
   /**
@@ -136,7 +137,9 @@ class ClientIsolationIntegrationTest {
   @DisplayName("Update returns 404 when record belongs to another client")
   void updatePerson_RejectsOtherClient() {
     ClientContext.setClientId(MOBILE_CLIENT_2);
-    when(personRepository.findByIdAndClientId(9L, MOBILE_CLIENT_2)).thenReturn(Optional.empty());
+    when(personService.updatePersonForClient(
+            eq(9L), eq(MOBILE_CLIENT_2), any(PersonSimple.class)))
+        .thenReturn(Optional.empty());
 
     ResponseEntity<PersonSimple> response =
         personController.updatePerson(
@@ -144,7 +147,8 @@ class ClientIsolationIntegrationTest {
             new PersonSimple("Carol Updated", 72.0, 172.0, LocalDate.of(1992, 7, 10), null));
 
     assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    verify(personRepository, never()).save(any(PersonSimple.class));
+    verify(personService)
+        .updatePersonForClient(eq(9L), eq(MOBILE_CLIENT_2), any(PersonSimple.class));
   }
 
   /**
@@ -158,15 +162,12 @@ class ClientIsolationIntegrationTest {
         new PersonSimple("Dana", 68.0, 168.0, LocalDate.of(1991, 1, 1), MOBILE_CLIENT_1);
     existing.setId(4L);
 
-    when(personRepository.findByIdAndClientId(4L, MOBILE_CLIENT_1)).thenReturn(Optional.of(existing));
+    when(personService.deletePersonForClient(4L, MOBILE_CLIENT_1)).thenReturn(true);
 
     ResponseEntity<Void> response = personController.deletePerson(4L);
 
     assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-    verify(personRepository).delete(existing);
-
-    ClientContext.clear();
-    assertFalse(ClientContext.isMobileClient(ClientContext.getClientId()));
+    verify(personService).deletePersonForClient(4L, MOBILE_CLIENT_1);
   }
 
   /**
@@ -176,12 +177,12 @@ class ClientIsolationIntegrationTest {
   @DisplayName("Delete returns 404 for other client")
   void deletePerson_RejectsOtherClient() {
     ClientContext.setClientId(MOBILE_CLIENT_2);
-    when(personRepository.findByIdAndClientId(4L, MOBILE_CLIENT_2)).thenReturn(Optional.empty());
+    when(personService.deletePersonForClient(4L, MOBILE_CLIENT_2)).thenReturn(false);
 
     ResponseEntity<Void> response = personController.deletePerson(4L);
 
     assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    verify(personRepository, never()).delete(any(PersonSimple.class));
+    verify(personService).deletePersonForClient(4L, MOBILE_CLIENT_2);
   }
 
   /**
@@ -194,13 +195,13 @@ class ClientIsolationIntegrationTest {
     List<PersonSimple> records =
         List.of(
             new PersonSimple("Eve", 60.0, 165.0, LocalDate.of(1994, 9, 9), MOBILE_CLIENT_1));
-    when(personRepository.findByClientId(MOBILE_CLIENT_1)).thenReturn(records);
+    when(personService.getPersonsForClient(MOBILE_CLIENT_1)).thenReturn(records);
 
     ResponseEntity<List<PersonSimple>> response = personController.getAllPersons();
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals(records, response.getBody());
-    verify(personRepository).findByClientId(eq(MOBILE_CLIENT_1));
+    verify(personService).getPersonsForClient(eq(MOBILE_CLIENT_1));
     assertTrue(ClientContext.isMobileClient(ClientContext.getClientId()));
   }
 }

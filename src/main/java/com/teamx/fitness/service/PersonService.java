@@ -1,10 +1,13 @@
 package com.teamx.fitness.service;
 
 import com.teamx.fitness.model.PersonSimple;
-import org.springframework.stereotype.Service;
-
+import com.teamx.fitness.repository.PersonRepository;
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.List;
+import java.util.Optional;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service for managing person-related operations.
@@ -12,6 +15,87 @@ import java.time.Period;
  */
 @Service
 public class PersonService {
+
+    private final PersonRepository personRepository;
+
+    public PersonService(PersonRepository personRepository) {
+        this.personRepository = personRepository;
+    }
+
+    /**
+     * Fetch all persons belonging to a specific client.
+     *
+     * @param clientId the active client ID
+     * @return list scoped to that client
+     */
+    @Transactional(readOnly = true)
+    public List<PersonSimple> getPersonsForClient(String clientId) {
+        return personRepository.findByClientId(clientId);
+    }
+
+    /**
+     * Lookup a person by id scoped to the client.
+     *
+     * @param id person identifier
+     * @param clientId current client id
+     * @return optional scoped result
+     */
+    @Transactional(readOnly = true)
+    public Optional<PersonSimple> findPersonForClient(Long id, String clientId) {
+        return personRepository.findByIdAndClientId(id, clientId);
+    }
+
+    /**
+     * Persist a new person for the client.
+     *
+     * @param person the request payload
+     * @param clientId the active client id
+     * @return persisted entity
+     */
+    @Transactional
+    public PersonSimple createPersonForClient(PersonSimple person, String clientId) {
+        person.setClientId(clientId);
+        return personRepository.save(person);
+    }
+
+    /**
+     * Update an existing person if it belongs to the client.
+     *
+     * @param id identifier of person
+     * @param clientId current client
+     * @param updated incoming payload
+     * @return updated person or empty if not found
+     */
+    @Transactional
+    public Optional<PersonSimple> updatePersonForClient(Long id, String clientId, PersonSimple updated) {
+        return personRepository
+                .findByIdAndClientId(id, clientId)
+                .map(existing -> {
+                    existing.setName(updated.getName());
+                    existing.setWeight(updated.getWeight());
+                    existing.setHeight(updated.getHeight());
+                    existing.setBirthDate(updated.getBirthDate());
+                    return personRepository.save(existing);
+                });
+    }
+
+    /**
+     * Delete a person if it belongs to the client.
+     *
+     * @param id identifier
+     * @param clientId current client
+     * @return true if deleted
+     */
+    @Transactional
+    public boolean deletePersonForClient(Long id, String clientId) {
+        return personRepository
+                .findByIdAndClientId(id, clientId)
+                .map(entity -> {
+                    personRepository.delete(entity);
+                    return true;
+                })
+                .orElse(false);
+    }
 
     /**
      * Calculate BMI (Body Mass Index).

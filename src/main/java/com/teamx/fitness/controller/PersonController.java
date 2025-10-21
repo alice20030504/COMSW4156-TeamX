@@ -1,7 +1,6 @@
 package com.teamx.fitness.controller;
 
 import com.teamx.fitness.model.PersonSimple;
-import com.teamx.fitness.repository.PersonRepository;
 import com.teamx.fitness.security.ClientContext;
 import com.teamx.fitness.service.PersonService;
 import java.time.LocalDate;
@@ -24,8 +23,6 @@ public class PersonController {
 
   @Autowired private PersonService personService;
 
-  @Autowired private PersonRepository personRepository;
-
   /**
    * Get all persons for the authenticated client.
    * Demonstrates data isolation - each client only sees their own data.
@@ -35,7 +32,7 @@ public class PersonController {
   @GetMapping
   public ResponseEntity<List<PersonSimple>> getAllPersons() {
     String clientId = ClientContext.getClientId();
-    List<PersonSimple> persons = personRepository.findByClientId(clientId);
+    List<PersonSimple> persons = personService.getPersonsForClient(clientId);
     return ResponseEntity.ok(persons);
   }
 
@@ -49,8 +46,8 @@ public class PersonController {
   @GetMapping("/{id}")
   public ResponseEntity<PersonSimple> getPersonById(@PathVariable Long id) {
     String clientId = ClientContext.getClientId();
-    return personRepository
-        .findByIdAndClientId(id, clientId)
+    return personService
+        .findPersonForClient(id, clientId)
         .map(ResponseEntity::ok)
         .orElse(ResponseEntity.notFound().build());
   }
@@ -64,8 +61,7 @@ public class PersonController {
   @PostMapping
   public ResponseEntity<PersonSimple> createPerson(@RequestBody PersonSimple person) {
     String clientId = ClientContext.getClientId();
-    person.setClientId(clientId);
-    PersonSimple savedPerson = personRepository.save(person);
+    PersonSimple savedPerson = personService.createPersonForClient(person, clientId);
     return ResponseEntity.status(HttpStatus.CREATED).body(savedPerson);
   }
 
@@ -82,17 +78,9 @@ public class PersonController {
       @PathVariable Long id, @RequestBody PersonSimple updatedPerson) {
     String clientId = ClientContext.getClientId();
 
-    return personRepository
-        .findByIdAndClientId(id, clientId)
-        .map(
-            existingPerson -> {
-              existingPerson.setName(updatedPerson.getName());
-              existingPerson.setWeight(updatedPerson.getWeight());
-              existingPerson.setHeight(updatedPerson.getHeight());
-              existingPerson.setBirthDate(updatedPerson.getBirthDate());
-              PersonSimple saved = personRepository.save(existingPerson);
-              return ResponseEntity.ok(saved);
-            })
+    return personService
+        .updatePersonForClient(id, clientId, updatedPerson)
+        .map(ResponseEntity::ok)
         .orElse(ResponseEntity.notFound().build());
   }
 
@@ -107,14 +95,11 @@ public class PersonController {
   public ResponseEntity<Void> deletePerson(@PathVariable Long id) {
     String clientId = ClientContext.getClientId();
 
-    return personRepository
-        .findByIdAndClientId(id, clientId)
-        .map(
-            person -> {
-              personRepository.delete(person);
-              return ResponseEntity.noContent().<Void>build();
-            })
-        .orElse(ResponseEntity.notFound().build());
+    boolean deleted = personService.deletePersonForClient(id, clientId);
+    if (deleted) {
+      return ResponseEntity.noContent().build();
+    }
+    return ResponseEntity.notFound().build();
   }
 
   /**
