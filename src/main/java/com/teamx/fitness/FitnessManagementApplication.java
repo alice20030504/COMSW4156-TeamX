@@ -9,7 +9,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * for individual users and research analysts.
  */
 @SpringBootApplication
-public class FitnessManagementApplication {
+public final class FitnessManagementApplication {
+
+    private FitnessManagementApplication() { }
 
     /**
      * Main entry point for the Spring Boot application.

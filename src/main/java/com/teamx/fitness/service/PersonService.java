@@ -1,6 +1,5 @@
 package com.teamx.fitness.service;
 
-import com.teamx.fitness.model.PersonSimple;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -12,6 +11,50 @@ import java.time.Period;
  */
 @Service
 public class PersonService {
+    /** Male BMR base constant (Harris-Benedict). */
+    private static final double MALE_BMR_BASE = 88.362;
+
+    /** Male BMR weight factor (Harris-Benedict). */
+    private static final double MALE_BMR_WEIGHT = 13.397;
+
+    /** Male BMR height factor (Harris-Benedict). */
+    private static final double MALE_BMR_HEIGHT = 4.799;
+
+    /** Male BMR age factor (Harris-Benedict). */
+    private static final double MALE_BMR_AGE = 5.677;
+
+    /** Female BMR base constant (Harris-Benedict). */
+    private static final double FEMALE_BMR_BASE = 447.593;
+
+    /** Female BMR weight factor (Harris-Benedict). */
+    private static final double FEMALE_BMR_WEIGHT = 9.247;
+
+    /** Female BMR height factor (Harris-Benedict). */
+    private static final double FEMALE_BMR_HEIGHT = 3.098;
+
+    /** Female BMR age factor (Harris-Benedict). */
+    private static final double FEMALE_BMR_AGE = 4.330;
+
+    /** Activity factor for sedentary (0 training days). */
+    private static final double ACTIVITY_SEDENTARY = 1.2;
+
+    /** Activity factor for light activity (1-2 training days). */
+    private static final double ACTIVITY_LIGHT = 1.375;
+
+    /** Activity factor for moderate activity (3-4 training days). */
+    private static final double ACTIVITY_MODERATE = 1.55;
+
+    /** Activity factor for very active (5-6 training days). */
+    private static final double ACTIVITY_VERY = 1.725;
+
+    /** Activity factor for extra active (7+ training days). */
+    private static final double ACTIVITY_EXTRA = 1.9;
+
+    /** Maximum training days for moderate activity. */
+    private static final int MAX_MODERATE_TRAINING = 4;
+
+    /** Maximum training days for very active activity. */
+    private static final int MAX_VERY_ACTIVE_TRAINING = 6;
 
     /**
      * Calculate BMI (Body Mass Index).
@@ -59,9 +102,10 @@ public class PersonService {
         }
 
         if (isMale) {
-            return 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
+            return MALE_BMR_BASE + (MALE_BMR_WEIGHT * weight) + (MALE_BMR_HEIGHT * height) - (MALE_BMR_AGE * age);
         } else {
-            return 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
+            return FEMALE_BMR_BASE + (FEMALE_BMR_WEIGHT * weight) + (FEMALE_BMR_HEIGHT * height)
+                    - (FEMALE_BMR_AGE * age);
         }
     }
 
@@ -80,15 +124,15 @@ public class PersonService {
         // Activity factor based on weekly training frequency
         double activityFactor;
         if (weeklyTrainingFreq == 0) {
-            activityFactor = 1.2; // Sedentary
+            activityFactor = ACTIVITY_SEDENTARY; // Sedentary
         } else if (weeklyTrainingFreq <= 2) {
-            activityFactor = 1.375; // Light activity
-        } else if (weeklyTrainingFreq <= 4) {
-            activityFactor = 1.55; // Moderate activity
-        } else if (weeklyTrainingFreq <= 6) {
-            activityFactor = 1.725; // Very active
+            activityFactor = ACTIVITY_LIGHT; // Light activity
+        } else if (weeklyTrainingFreq <= MAX_MODERATE_TRAINING) {
+            activityFactor = ACTIVITY_MODERATE; // Moderate activity
+        } else if (weeklyTrainingFreq <= MAX_VERY_ACTIVE_TRAINING) {
+            activityFactor = ACTIVITY_VERY; // Very active
         } else {
-            activityFactor = 1.9; // Extra active
+            activityFactor = ACTIVITY_EXTRA; // Extra active
         }
 
         return bmr * activityFactor;
