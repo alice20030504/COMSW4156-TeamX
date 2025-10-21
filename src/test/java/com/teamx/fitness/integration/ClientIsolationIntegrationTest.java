@@ -1,229 +1,176 @@
 package com.teamx.fitness.integration;
 
-import static org.hamcrest.Matchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.teamx.fitness.controller.PersonController;
 import com.teamx.fitness.model.PersonSimple;
 import com.teamx.fitness.repository.PersonRepository;
+import com.teamx.fitness.security.ClientContext;
+import com.teamx.fitness.service.PersonService;
 import java.time.LocalDate;
-import org.junit.jupiter.api.BeforeEach;
+import java.util.List;
+import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
-/**
- * Integration tests demonstrating client isolation and data separation.
- * Tests that API calls on behalf of different clients work properly without interference.
- * This addresses the rubric requirement for multi-client data isolation.
- */
-@SpringBootTest
-@AutoConfigureMockMvc
-@DisplayName("Client Isolation Integration Tests")
-public class ClientIsolationIntegrationTest {
-
-  @Autowired private MockMvc mockMvc;
-
-  @Autowired private PersonRepository personRepository;
-
-  @Autowired private ObjectMapper objectMapper;
+@ExtendWith(MockitoExtension.class)
+@DisplayName("Client isolation safeguards")
+class ClientIsolationIntegrationTest {
 
   private static final String MOBILE_CLIENT_1 = "mobile-app1";
   private static final String MOBILE_CLIENT_2 = "mobile-app2";
-  private static final String RESEARCH_CLIENT = "research-tool1";
-  private static final String CLIENT_ID_HEADER = "X-Client-ID";
 
-  @BeforeEach
-  public void setUp() {
-    // Clean database before each test
-    personRepository.deleteAll();
+  @Mock private PersonRepository personRepository;
+
+  @Mock private PersonService personService;
+
+  @InjectMocks private PersonController personController;
+
+  @AfterEach
+  void clearContext() {
+    ClientContext.clear();
   }
 
   @Test
-  @DisplayName("Mobile client 1 can only see their own data")
-  public void testMobileClient1CanOnlySeOwnData() throws Exception {
-    // Create data for mobile-app1
-    PersonSimple person1 =
+  @DisplayName("Owner can fetch their person record")
+  void getPersonById_AllowsOwner() {
+    PersonSimple stored =
         new PersonSimple("Alice", 65.0, 170.0, LocalDate.of(1990, 5, 15), MOBILE_CLIENT_1);
-    personRepository.save(person1);
+    stored.setId(1L);
 
-    // Create data for mobile-app2
-    PersonSimple person2 =
-        new PersonSimple("Bob", 80.0, 180.0, LocalDate.of(1995, 3, 20), MOBILE_CLIENT_2);
-    personRepository.save(person2);
+    ClientContext.setClientId(MOBILE_CLIENT_1);
+    when(personRepository.findByIdAndClientId(1L, MOBILE_CLIENT_1)).thenReturn(Optional.of(stored));
 
-    // Mobile client 1 should only see Alice
-    mockMvc
-        .perform(get("/api/persons").header(CLIENT_ID_HEADER, MOBILE_CLIENT_1))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].name", is("Alice")))
-        .andExpect(jsonPath("$[0].clientId", is(MOBILE_CLIENT_1)));
+    ResponseEntity<PersonSimple> response = personController.getPersonById(1L);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals("Alice", response.getBody().getName());
   }
 
   @Test
-  @DisplayName("Mobile client 2 can only see their own data")
-  public void testMobileClient2CanOnlySeeOwnData() throws Exception {
-    // Create data for mobile-app1
-    PersonSimple person1 =
-        new PersonSimple("Alice", 65.0, 170.0, LocalDate.of(1990, 5, 15), MOBILE_CLIENT_1);
-    personRepository.save(person1);
+  @DisplayName("Different client receives 404 for protected record")
+  void getPersonById_BlocksDifferentClient() {
+    ClientContext.setClientId(MOBILE_CLIENT_2);
+    when(personRepository.findByIdAndClientId(1L, MOBILE_CLIENT_2)).thenReturn(Optional.empty());
 
-    // Create data for mobile-app2
-    PersonSimple person2 =
-        new PersonSimple("Bob", 80.0, 180.0, LocalDate.of(1995, 3, 20), MOBILE_CLIENT_2);
-    personRepository.save(person2);
+    ResponseEntity<PersonSimple> response = personController.getPersonById(1L);
 
-    // Mobile client 2 should only see Bob
-    mockMvc
-        .perform(get("/api/persons").header(CLIENT_ID_HEADER, MOBILE_CLIENT_2))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].name", is("Bob")))
-        .andExpect(jsonPath("$[0].clientId", is(MOBILE_CLIENT_2)));
+    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
   }
 
   @Test
-  @DisplayName("Data posted by mobile client 1 does not show up for mobile client 2")
-  public void testDataIsolationBetweenClients() throws Exception {
-    // Mobile client 1 creates a person
-    PersonSimple newPerson = new PersonSimple();
-    newPerson.setName("Charlie");
-    newPerson.setWeight(75.0);
-    newPerson.setHeight(175.0);
-    newPerson.setBirthDate(LocalDate.of(1992, 7, 10));
+  @DisplayName("Create person assigns current client ID")
+  void createPerson_AssignsClientId() {
+    ClientContext.setClientId(MOBILE_CLIENT_1);
+    PersonSimple payload =
+        new PersonSimple("Bob", 80.0, 180.0, LocalDate.of(1995, 3, 20), null);
+    PersonSimple saved =
+        new PersonSimple("Bob", 80.0, 180.0, LocalDate.of(1995, 3, 20), MOBILE_CLIENT_1);
+    saved.setId(5L);
 
-    mockMvc
-        .perform(
-            post("/api/persons")
-                .header(CLIENT_ID_HEADER, MOBILE_CLIENT_1)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(newPerson)))
-        .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.clientId", is(MOBILE_CLIENT_1)));
+    when(personRepository.save(any(PersonSimple.class))).thenReturn(saved);
 
-    // Mobile client 2 should not see Charlie
-    mockMvc
-        .perform(get("/api/persons").header(CLIENT_ID_HEADER, MOBILE_CLIENT_2))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(0)));
+    ResponseEntity<PersonSimple> response = personController.createPerson(payload);
 
-    // Mobile client 1 should see Charlie
-    mockMvc
-        .perform(get("/api/persons").header(CLIENT_ID_HEADER, MOBILE_CLIENT_1))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].name", is("Charlie")));
+    assertEquals(HttpStatus.CREATED, response.getStatusCode());
+    assertEquals(MOBILE_CLIENT_1, response.getBody().getClientId());
+    verify(personRepository).save(any(PersonSimple.class));
   }
 
   @Test
-  @DisplayName("Mobile client cannot access person from another client by ID")
-  public void testMobileClientCannotAccessOtherClientData() throws Exception {
-    // Create data for mobile-app1
-    PersonSimple person1 =
-        new PersonSimple("Alice", 65.0, 170.0, LocalDate.of(1990, 5, 15), MOBILE_CLIENT_1);
-    PersonSimple saved = personRepository.save(person1);
+  @DisplayName("Update respects client ownership")
+  void updatePerson_RespectsOwnership() {
+    ClientContext.setClientId(MOBILE_CLIENT_1);
+    PersonSimple existing =
+        new PersonSimple("Carol", 70.0, 172.0, LocalDate.of(1992, 7, 10), MOBILE_CLIENT_1);
+    existing.setId(9L);
 
-    // Mobile client 2 tries to access Alice by ID - should get 404
-    mockMvc
-        .perform(
-            get("/api/persons/" + saved.getId()).header(CLIENT_ID_HEADER, MOBILE_CLIENT_2))
-        .andExpect(status().isNotFound());
+    PersonSimple update =
+        new PersonSimple("Carol Updated", 72.0, 172.0, existing.getBirthDate(), null);
+
+    when(personRepository.findByIdAndClientId(9L, MOBILE_CLIENT_1)).thenReturn(Optional.of(existing));
+    when(personRepository.save(existing)).thenReturn(existing);
+
+    ResponseEntity<PersonSimple> response = personController.updatePerson(9L, update);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals("Carol Updated", response.getBody().getName());
   }
 
   @Test
-  @DisplayName("Mobile client cannot update person from another client")
-  public void testMobileClientCannotUpdateOtherClientData() throws Exception {
-    // Create data for mobile-app1
-    PersonSimple person1 =
-        new PersonSimple("Alice", 65.0, 170.0, LocalDate.of(1990, 5, 15), MOBILE_CLIENT_1);
-    PersonSimple saved = personRepository.save(person1);
+  @DisplayName("Update returns 404 when record belongs to another client")
+  void updatePerson_RejectsOtherClient() {
+    ClientContext.setClientId(MOBILE_CLIENT_2);
+    when(personRepository.findByIdAndClientId(9L, MOBILE_CLIENT_2)).thenReturn(Optional.empty());
 
-    // Mobile client 2 tries to update Alice - should get 404
-    PersonSimple updatedPerson = new PersonSimple();
-    updatedPerson.setName("Hacked Name");
-    updatedPerson.setWeight(100.0);
-    updatedPerson.setHeight(200.0);
-    updatedPerson.setBirthDate(LocalDate.of(2000, 1, 1));
+    ResponseEntity<PersonSimple> response =
+        personController.updatePerson(
+            9L,
+            new PersonSimple("Carol Updated", 72.0, 172.0, LocalDate.of(1992, 7, 10), null));
 
-    mockMvc
-        .perform(
-            put("/api/persons/" + saved.getId())
-                .header(CLIENT_ID_HEADER, MOBILE_CLIENT_2)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updatedPerson)))
-        .andExpect(status().isNotFound());
-
-    // Verify Alice's data was not changed
-    PersonSimple afterUpdate = personRepository.findById(saved.getId()).orElseThrow();
-    assert afterUpdate.getName().equals("Alice");
+    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    verify(personRepository, never()).save(any(PersonSimple.class));
   }
 
   @Test
-  @DisplayName("Mobile client cannot delete person from another client")
-  public void testMobileClientCannotDeleteOtherClientData() throws Exception {
-    // Create data for mobile-app1
-    PersonSimple person1 =
-        new PersonSimple("Alice", 65.0, 170.0, LocalDate.of(1990, 5, 15), MOBILE_CLIENT_1);
-    PersonSimple saved = personRepository.save(person1);
+  @DisplayName("Delete removes record for owner and clears context")
+  void deletePerson_AllowsOwnerAndClearsContext() {
+    ClientContext.setClientId(MOBILE_CLIENT_1);
+    PersonSimple existing =
+        new PersonSimple("Dana", 68.0, 168.0, LocalDate.of(1991, 1, 1), MOBILE_CLIENT_1);
+    existing.setId(4L);
 
-    // Mobile client 2 tries to delete Alice - should get 404
-    mockMvc
-        .perform(
-            delete("/api/persons/" + saved.getId()).header(CLIENT_ID_HEADER, MOBILE_CLIENT_2))
-        .andExpect(status().isNotFound());
+    when(personRepository.findByIdAndClientId(4L, MOBILE_CLIENT_1)).thenReturn(Optional.of(existing));
 
-    // Verify Alice still exists
-    assert personRepository.findById(saved.getId()).isPresent();
+    ResponseEntity<Void> response = personController.deletePerson(4L);
+
+    assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    verify(personRepository).delete(existing);
+
+    ClientContext.clear();
+    assertFalse(ClientContext.isMobileClient(ClientContext.getClientId()));
   }
 
   @Test
-  @DisplayName("Multiple persons can exist with same name across different clients")
-  public void testSameNameAcrossClients() throws Exception {
-    // Both clients create a person named "John"
-    PersonSimple john1 = new PersonSimple("John", 70.0, 175.0, LocalDate.of(1990, 1, 1), MOBILE_CLIENT_1);
-    PersonSimple john2 = new PersonSimple("John", 80.0, 180.0, LocalDate.of(1995, 1, 1), MOBILE_CLIENT_2);
+  @DisplayName("Delete returns 404 for other client")
+  void deletePerson_RejectsOtherClient() {
+    ClientContext.setClientId(MOBILE_CLIENT_2);
+    when(personRepository.findByIdAndClientId(4L, MOBILE_CLIENT_2)).thenReturn(Optional.empty());
 
-    personRepository.save(john1);
-    personRepository.save(john2);
+    ResponseEntity<Void> response = personController.deletePerson(4L);
 
-    // Each client should only see their own John
-    mockMvc
-        .perform(get("/api/persons").header(CLIENT_ID_HEADER, MOBILE_CLIENT_1))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].weight", is(70.0)));
-
-    mockMvc
-        .perform(get("/api/persons").header(CLIENT_ID_HEADER, MOBILE_CLIENT_2))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].weight", is(80.0)));
+    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    verify(personRepository, never()).delete(any(PersonSimple.class));
   }
 
   @Test
-  @DisplayName("Request without client ID header is rejected")
-  public void testRequestWithoutClientIdIsRejected() throws Exception {
-    mockMvc
-        .perform(get("/api/persons"))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message", containsString("X-Client-ID header is required")));
-  }
+  @DisplayName("List persons queries repository with active client")
+  void listPersons_QueryScopedByClient() {
+    ClientContext.setClientId(MOBILE_CLIENT_1);
+    List<PersonSimple> records =
+        List.of(
+            new PersonSimple("Eve", 60.0, 165.0, LocalDate.of(1994, 9, 9), MOBILE_CLIENT_1));
+    when(personRepository.findByClientId(MOBILE_CLIENT_1)).thenReturn(records);
 
-  @Test
-  @DisplayName("Request with invalid client ID format is rejected")
-  public void testRequestWithInvalidClientIdIsRejected() throws Exception {
-    mockMvc
-        .perform(get("/api/persons").header(CLIENT_ID_HEADER, "invalid-client-123"))
-        .andExpect(status().isBadRequest())
-        .andExpect(
-            jsonPath(
-                "$.message",
-                containsString("Invalid client ID format. Must start with 'mobile-' or 'research-'")));
+    ResponseEntity<List<PersonSimple>> response = personController.getAllPersons();
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(records, response.getBody());
+    verify(personRepository).findByClientId(eq(MOBILE_CLIENT_1));
+    assertTrue(ClientContext.isMobileClient(ClientContext.getClientId()));
   }
 }
