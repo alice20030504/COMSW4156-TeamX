@@ -4,12 +4,19 @@ package com.teamx.fitness.security;
  * Thread-local storage for client authentication context.
  * Stores and validates client IDs for the current request thread.
  */
-public class ClientContext {
+public final class ClientContext {
 
+  /** Prefix for mobile clients' IDs. */
   public static final String MOBILE_PREFIX = "mobile-";
+
+  /** Prefix for research clients' IDs. */
   public static final String RESEARCH_PREFIX = "research-";
 
-  private static final ThreadLocal<String> clientIdHolder = new ThreadLocal<>();
+  /** Thread-local holder for the current thread's client ID. */
+  private static final ThreadLocal<String> CLIENT_ID_HOLDER = new ThreadLocal<>();
+
+  // Private constructor to prevent instantiation of utility class
+  private ClientContext() { }
 
   /**
    * Sets the client ID for the current thread.
@@ -17,7 +24,7 @@ public class ClientContext {
    * @param clientId the client ID to set
    */
   public static void setClientId(String clientId) {
-    clientIdHolder.set(clientId);
+    CLIENT_ID_HOLDER.set(clientId);
   }
 
   /**
@@ -26,7 +33,7 @@ public class ClientContext {
    * @return the client ID, or null if not set
    */
   public static String getClientId() {
-    return clientIdHolder.get();
+    return CLIENT_ID_HOLDER.get();
   }
 
   /**
@@ -34,7 +41,7 @@ public class ClientContext {
    * Should be called after request processing is complete.
    */
   public static void clear() {
-    clientIdHolder.remove();
+    CLIENT_ID_HOLDER.remove();
   }
 
   /**

@@ -1,7 +1,13 @@
 package com.teamx.fitness.model;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
 
@@ -9,31 +15,37 @@ import java.time.LocalDate;
 @Table(name = "persons_simple")
 public class PersonSimple {
 
+  /** Unique identifier for the person. */
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
+  /** Name of the person. */
   @NotBlank(message = "Name is required")
   @Column(nullable = false)
   private String name;
 
+  /** Weight in kilograms. */
   @NotNull(message = "Weight is required")
   @Column(nullable = false)
   private Double weight;
 
+  /** Height in centimeters. */
   @NotNull(message = "Height is required")
   @Column(nullable = false)
   private Double height;
 
+  /** Birth date of the person. */
   @NotNull(message = "Birth date is required")
   @Column(name = "birth_date", nullable = false)
   private LocalDate birthDate;
 
+  /** Client ID associated with the person. */
   @NotBlank(message = "Client ID is required")
   @Column(name = "client_id", nullable = false)
   private String clientId;
 
-  public PersonSimple() {}
+  public PersonSimple() { }
 
   public PersonSimple(String name, Double weight, Double height, LocalDate birthDate, String clientId) {
     this.name = name;

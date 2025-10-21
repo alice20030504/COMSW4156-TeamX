@@ -11,7 +11,9 @@ import org.springframework.web.servlet.HandlerInterceptor;
  */
 @Component
 public class ClientIdInterceptor implements HandlerInterceptor {
-
+  /**
+   * HTTP header name used to pass the client ID in requests.
+   */
   public static final String CLIENT_ID_HEADER = "X-Client-ID";
 
   @Override
