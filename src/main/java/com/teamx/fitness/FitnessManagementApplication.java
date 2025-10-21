@@ -9,15 +9,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * for individual users and research analysts.
  */
 @SpringBootApplication
-public final class FitnessManagementApplication {
+@SuppressWarnings({"checkstyle:FinalClass", "checkstyle:HideUtilityClassConstructor"})
+public class FitnessManagementApplication {
 
-    private FitnessManagementApplication() { }
+    public FitnessManagementApplication() {
+        // no-op constructor required for Spring proxying
+    }
 
-    /**
-     * Main entry point for the Spring Boot application.
-     *
-     * @param args command line arguments
-     */
     public static void main(String[] args) {
         SpringApplication.run(FitnessManagementApplication.class, args);
     }
