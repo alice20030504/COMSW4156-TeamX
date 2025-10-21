@@ -11,6 +11,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
+/**
+ * Exercises {@link ClientIdInterceptor} to cover bypass routes, invalid requests, and valid header
+ * processing using mock servlet infrastructure.
+ */
 @DisplayName("ClientIdInterceptor header validation")
 class ClientIdInterceptorTest {
 
@@ -21,6 +25,9 @@ class ClientIdInterceptorTest {
     ClientContext.clear();
   }
 
+  /**
+   * Boundary scenario: swagger routes should bypass validation entirely.
+   */
   @Test
   @DisplayName("Requests for swagger docs bypass validation")
   void preHandle_SkipsSwaggerRoutes() throws Exception {
@@ -33,6 +40,9 @@ class ClientIdInterceptorTest {
     assertEquals(200, response.getStatus());
   }
 
+  /**
+   * Invalid scenario: missing header triggers a 400 and stops the handler chain.
+   */
   @Test
   @DisplayName("Missing client header returns 400 and blocks request")
   void preHandle_MissingHeader() throws Exception {
@@ -45,6 +55,9 @@ class ClientIdInterceptorTest {
     assertEquals(HttpServletResponse.SC_BAD_REQUEST, response.getStatus());
   }
 
+  /**
+   * Invalid scenario: malformed client IDs are rejected with a 400 status.
+   */
   @Test
   @DisplayName("Invalid client format returns 400 and blocks request")
   void preHandle_InvalidFormat() throws Exception {
@@ -58,6 +71,9 @@ class ClientIdInterceptorTest {
     assertEquals(HttpServletResponse.SC_BAD_REQUEST, response.getStatus());
   }
 
+  /**
+   * Valid scenario: well-formed client headers are stored and allow the request to proceed.
+   */
   @Test
   @DisplayName("Valid client ID is stored and allows request to proceed")
   void preHandle_ValidClient() throws Exception {

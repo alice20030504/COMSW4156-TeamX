@@ -13,6 +13,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.server.ResponseStatusException;
 
+/**
+ * Validates {@link ResearchController} access rules and response content for research and mobile
+ * clients across valid, boundary, and invalid scenarios without bringing up the MVC stack.
+ */
 @DisplayName("Research endpoint access control")
 class ResearchEndpointAccessControlTest {
 
@@ -23,6 +27,9 @@ class ResearchEndpointAccessControlTest {
     ClientContext.clear();
   }
 
+  /**
+   * Valid scenario: a research client retrieves anonymized demographics successfully.
+   */
   @Test
   @DisplayName("Research clients receive anonymized demographics")
   void demographics_AllowsResearchClient() {
@@ -36,6 +43,9 @@ class ResearchEndpointAccessControlTest {
     assertEquals(Boolean.TRUE, response.getBody().get("privacyCompliant"));
   }
 
+  /**
+   * Invalid scenario: mobile clients are forbidden from research endpoints.
+   */
   @Test
   @DisplayName("Mobile clients are blocked from research data")
   void demographics_BlocksMobileClient() {
@@ -49,6 +59,9 @@ class ResearchEndpointAccessControlTest {
     assertEquals(403, exception.getStatusCode().value());
   }
 
+  /**
+   * Boundary scenario: missing objective parameter defaults to aggregate results.
+   */
   @Test
   @DisplayName("Nutrition trends fall back to default objective")
   void nutritionTrends_DefaultsWhenObjectiveMissing() {
@@ -62,6 +75,9 @@ class ResearchEndpointAccessControlTest {
     assertFalse((Boolean) response.getBody().get("containsPII"));
   }
 
+  /**
+   * Valid scenario: BULK objective returns the expected macro mix.
+   */
   @Test
   @DisplayName("Nutrition trends for BULK objective return expected macros")
   void nutritionTrends_BulkObjective() {
@@ -77,6 +93,9 @@ class ResearchEndpointAccessControlTest {
     assertEquals(30, macroDistribution.get("protein"));
   }
 
+  /**
+   * Valid scenario: CUT objective highlights higher protein ratios.
+   */
   @Test
   @DisplayName("Nutrition trends for CUT objective emphasize protein")
   void nutritionTrends_CutObjective() {
@@ -90,5 +109,35 @@ class ResearchEndpointAccessControlTest {
         (Map<String, Object>) response.getBody().get("macroDistribution");
     assertEquals(40, macroDistribution.get("protein"));
     assertEquals(2000, macroDistribution.get("averageCalories"));
+  }
+
+  /**
+   * Valid scenario: research client can access population health metrics.
+   */
+  @Test
+  @DisplayName("Population health metrics returned for research client")
+  void populationHealth_AllowsResearchClient() {
+    ClientContext.setClientId("research-tool5");
+
+    ResponseEntity<Map<String, Object>> response = researchController.getPopulationHealth();
+
+    assertEquals(200, response.getStatusCode().value());
+    assertEquals("All data is aggregated and anonymized", response.getBody().get("dataProtection"));
+  }
+
+  /**
+   * Invalid scenario: mobile clients are forbidden from population health data.
+   */
+  @Test
+  @DisplayName("Mobile client blocked from population health")
+  void populationHealth_BlocksMobileClient() {
+    ClientContext.setClientId("mobile-app2");
+
+    ResponseStatusException exception =
+        assertThrows(
+            ResponseStatusException.class,
+            () -> researchController.getPopulationHealth());
+
+    assertEquals(403, exception.getStatusCode().value());
   }
 }

@@ -27,6 +27,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+/**
+ * Verifies that {@link PersonController} enforces client isolation rules using mocked
+ * repositories and the thread-local {@link ClientContext}. Each endpoint is exercised with
+ * representative valid, boundary, and invalid scenarios.
+ */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Client isolation safeguards")
 class ClientIsolationIntegrationTest {
@@ -45,6 +50,9 @@ class ClientIsolationIntegrationTest {
     ClientContext.clear();
   }
 
+  /**
+   * Valid scenario: the owning client retrieves their record successfully.
+   */
   @Test
   @DisplayName("Owner can fetch their person record")
   void getPersonById_AllowsOwner() {
@@ -61,6 +69,10 @@ class ClientIsolationIntegrationTest {
     assertEquals("Alice", response.getBody().getName());
   }
 
+  /**
+   * Invalid scenario: a different client receives a 404 when attempting to access another client's
+   * record.
+   */
   @Test
   @DisplayName("Different client receives 404 for protected record")
   void getPersonById_BlocksDifferentClient() {
@@ -72,6 +84,9 @@ class ClientIsolationIntegrationTest {
     assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
   }
 
+  /**
+   * Valid scenario: created records are automatically tagged with the active client.
+   */
   @Test
   @DisplayName("Create person assigns current client ID")
   void createPerson_AssignsClientId() {
@@ -91,6 +106,9 @@ class ClientIsolationIntegrationTest {
     verify(personRepository).save(any(PersonSimple.class));
   }
 
+  /**
+   * Valid update scenario demonstrating owner access to modify their record.
+   */
   @Test
   @DisplayName("Update respects client ownership")
   void updatePerson_RespectsOwnership() {
@@ -111,6 +129,9 @@ class ClientIsolationIntegrationTest {
     assertEquals("Carol Updated", response.getBody().getName());
   }
 
+  /**
+   * Invalid update scenario: non-owners receive a 404 and no persistence occurs.
+   */
   @Test
   @DisplayName("Update returns 404 when record belongs to another client")
   void updatePerson_RejectsOtherClient() {
@@ -126,6 +147,9 @@ class ClientIsolationIntegrationTest {
     verify(personRepository, never()).save(any(PersonSimple.class));
   }
 
+  /**
+   * Valid deletion scenario confirming owner access and context cleanup.
+   */
   @Test
   @DisplayName("Delete removes record for owner and clears context")
   void deletePerson_AllowsOwnerAndClearsContext() {
@@ -145,6 +169,9 @@ class ClientIsolationIntegrationTest {
     assertFalse(ClientContext.isMobileClient(ClientContext.getClientId()));
   }
 
+  /**
+   * Invalid deletion scenario: other clients cannot remove records they do not own.
+   */
   @Test
   @DisplayName("Delete returns 404 for other client")
   void deletePerson_RejectsOtherClient() {
@@ -157,6 +184,9 @@ class ClientIsolationIntegrationTest {
     verify(personRepository, never()).delete(any(PersonSimple.class));
   }
 
+  /**
+   * Boundary scenario: listing delegates to the repository using the active client context.
+   */
   @Test
   @DisplayName("List persons queries repository with active client")
   void listPersons_QueryScopedByClient() {

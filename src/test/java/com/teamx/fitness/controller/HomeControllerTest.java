@@ -6,6 +6,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.servlet.view.RedirectView;
 
+/**
+ * Simple smoke test ensuring the root endpoint redirects to the documented Swagger page.
+ */
 @DisplayName("HomeController redirect")
 class HomeControllerTest {
 

@@ -13,6 +13,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+/**
+ * Unit tests that exercise the key calculation methods exposed by {@link PersonService}.
+ */
 @DisplayName("PersonService core calculations")
 class PersonServiceTest {
 
@@ -23,7 +26,10 @@ class PersonServiceTest {
     personService = new PersonService();
   }
 
-  @ParameterizedTest(name = "{0}")
+  /**
+   * Confirms BMI computations produce expected categories and guard against null input.
+   */
+  @ParameterizedTest
   @MethodSource("calculateBmiScenarios")
   @DisplayName("calculateBMI handles valid, boundary, and invalid inputs")
   void calculateBMIHandlesScenarios(
@@ -48,7 +54,10 @@ class PersonServiceTest {
         Arguments.of("Invalid: null height", 68.0, null, null, true));
   }
 
-  @ParameterizedTest(name = "{0}")
+  /**
+   * Validates age calculations across normal, boundary, and null inputs.
+   */
+  @ParameterizedTest
   @MethodSource("calculateAgeScenarios")
   @DisplayName("calculateAge handles valid, boundary, and invalid inputs")
   void calculateAgeHandlesScenarios(
@@ -81,7 +90,10 @@ class PersonServiceTest {
         Arguments.of("Invalid: null birth date", null, null, true));
   }
 
-  @ParameterizedTest(name = "{0}")
+  /**
+   * Exercises BMR computation for male/female cases while checking null guards.
+   */
+  @ParameterizedTest
   @MethodSource("calculateBmrScenarios")
   @DisplayName("calculateBMR handles valid, boundary, and invalid inputs")
   void calculateBMRHandlesScenarios(
@@ -110,11 +122,18 @@ class PersonServiceTest {
         Arguments.of("Invalid: missing weight", null, 165.0, 35, true, null, true));
   }
 
-  @ParameterizedTest(name = "{0}")
+  /**
+   * Ensures calorie needs calculation reflects activity bracket logic and null-safety.
+   */
+  @ParameterizedTest
   @MethodSource("calculateDailyCalorieNeedsScenarios")
   @DisplayName("calculateDailyCalorieNeeds handles valid, boundary, and invalid inputs")
   void calculateDailyCalorieNeedsScenarios(
-      String description, Double bmr, Integer weeklyTrainingFreq, Double expectedValue, boolean expectNull) {
+      String description,
+      Double bmr,
+      Integer weeklyTrainingFreq,
+      Double expectedValue,
+      boolean expectNull) {
 
     Double result = personService.calculateDailyCalorieNeeds(bmr, weeklyTrainingFreq);
 

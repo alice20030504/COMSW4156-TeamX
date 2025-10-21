@@ -2,6 +2,7 @@ package com.teamx.fitness.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -16,6 +17,7 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -24,8 +26,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.junit.jupiter.api.extension.ExtendWith;
 
+/**
+ * Focused unit tests for {@link PersonController} covering core calculation and client-scoped
+ * behaviors with mocked collaborators.
+ */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PersonController basic calculations")
 class PersonControllerTest {
@@ -41,7 +46,10 @@ class PersonControllerTest {
     ClientContext.clear();
   }
 
-  @ParameterizedTest(name = "{0}")
+  /**
+   * Ensures the BMI endpoint returns consistent payloads across representative inputs.
+   */
+  @ParameterizedTest
   @MethodSource("calculateBmiScenarios")
   @DisplayName("calculateBMI handles valid, boundary, and invalid scenarios")
   void calculateBMIHandlesScenarios(
@@ -73,7 +81,11 @@ class PersonControllerTest {
         Arguments.of("Invalid: service returns null BMI", 70.0, 0.0, null, "Unknown"));
   }
 
-  @ParameterizedTest(name = "{0}")
+  /**
+   * Verifies the age endpoint parses dates and returns expected values for typical, boundary, and
+   * invalid service responses.
+   */
+  @ParameterizedTest
   @MethodSource("calculateAgeScenarios")
   @DisplayName("calculateAge returns age for provided birth dates")
   void calculateAgeHandlesScenarios(String description, String birthDate, Integer expectedAge) {
@@ -86,18 +98,27 @@ class PersonControllerTest {
     Map<String, Object> body = response.getBody();
     assertNotNull(body, description);
     assertEquals(birthDate, body.get("birthDate"), description);
-    assertEquals(expectedAge, body.get("age"), description);
+    if (expectedAge == null) {
+      assertNull(body.get("age"), description);
+    } else {
+      assertEquals(expectedAge, body.get("age"), description);
+    }
   }
 
   private static Stream<Arguments> calculateAgeScenarios() {
     return Stream.of(
         Arguments.of(
             "Valid: adult birth date", LocalDate.of(1995, 5, 15).toString(), 29),
-        Arguments.of("Boundary: born today", LocalDate.now().toString(), 0));
+        Arguments.of("Boundary: born today", LocalDate.now().toString(), 0),
+        Arguments.of(
+            "Invalid: service returns null age", LocalDate.now().minusYears(40).toString(), null));
   }
 
-  @ParameterizedTest(name = "{0}")
-  @MethodSource("calculateDailyCaloriesScenarios")
+  /**
+   * Confirms the calorie endpoint composes BMR and activity factors while honoring null guards.
+   */
+  @ParameterizedTest
+  @MethodSource("calculateDailyCalorieNeedsScenarios")
   @DisplayName("calculateDailyCalorieNeeds composes BMR and activity factor")
   void calculateDailyCalorieNeedsHandlesScenarios(
       String description,
@@ -125,7 +146,7 @@ class PersonControllerTest {
     assertEquals(weeklyTrainingFreq, body.get("weeklyTrainingFreq"), description);
   }
 
-  private static Stream<Arguments> calculateDailyCaloriesScenarios() {
+  private static Stream<Arguments> calculateDailyCalorieNeedsScenarios() {
     return Stream.of(
         Arguments.of(
             "Valid: male moderate activity",
@@ -145,6 +166,15 @@ class PersonControllerTest {
             0,
             1680.0,
             2016.0),
+        Arguments.of(
+            "Boundary: uppercase gender handled as male",
+            70.0,
+            175.0,
+            30,
+            "MALE",
+            4,
+            1680.0,
+            2604.0),
         Arguments.of(
             "Invalid: missing BMR prevents calorie calculation",
             70.0,
