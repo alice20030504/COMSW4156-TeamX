@@ -1,0 +1,529 @@
+{
+	"info": {
+		"_postman_id": "fitness-management-api-collection",
+		"name": "🏃‍♂️ Fitness Management Service API",
+		"description": "Comprehensive REST API for personal fitness management supporting multiple client types.\n\n## 🔐 Authentication & Access Control\n\n**Client Authentication:**\n- All API endpoints require the `X-Client-ID` header\n- **Mobile App Clients**: `mobile-*` (e.g., `mobile-app1`, `mobile-app2`)\n- **Research Tool Clients**: `research-*` (e.g., `research-tool1`)\n\n**User Authentication:**\n- Personal endpoints require user ID and birth date for authentication\n- Only authenticated users can access their own data\n\n## 📱 API Endpoint Groups\n\n**👤 Personal Controller:**\n- User account management (create, read, update, delete)\n- Health calculations (BMI, calories, age)\n- Personal health check\n- **Access**: Mobile clients + authenticated users\n\n**🔬 Research Controller:**\n- Aggregated, anonymized data for research\n- Demographic statistics and trends\n- Population health metrics\n- **Access**: Research clients only (403 Forbidden for mobile clients)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "fitness-api-exporter"
+	},
+	"item": [
+		{
+			"name": "👤 Personal Controller",
+			"description": "Endpoints for managing personal accounts and health metrics. Only the authenticated user can view or modify their own data.",
+			"item": [
+				{
+					"name": "Create User Account",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Client-ID",
+								"value": "mobile-app1",
+								"description": "Client identification header (mobile-* or research-*)"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John Doe\",\n  \"weight\": 75.5,\n  \"height\": 180.0,\n  \"birthDate\": \"1990-05-15\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/persons",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"persons"
+							]
+						},
+						"description": "Register a new user with personal information including name, weight, height, and birth date. The system automatically handles client ID assignment for data isolation."
+					},
+					"response": []
+				},
+				{
+					"name": "Update User Information",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-Client-ID",
+								"value": "mobile-app1",
+								"description": "Client identification header (mobile-* or research-*)"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John Doe Updated\",\n  \"weight\": 78.0,\n  \"height\": 182.0,\n  \"birthDate\": \"1990-05-15\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/persons/{{user_id}}?birthDate={{birth_date}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"persons",
+								"{{user_id}}"
+							],
+							"query": [
+								{
+									"key": "birthDate",
+									"value": "{{birth_date}}",
+									"description": "Birth date for authentication (YYYY-MM-DD)"
+								}
+							]
+						},
+						"description": "Update user's height, weight, and birth date. Requires authentication with user ID and birth date. Only the authenticated user can modify their own data."
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Record",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Client-ID",
+								"value": "mobile-app1",
+								"description": "Client identification header (mobile-* or research-*)"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/persons/{{user_id}}?birthDate={{birth_date}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"persons",
+								"{{user_id}}"
+							],
+							"query": [
+								{
+									"key": "birthDate",
+									"value": "{{birth_date}}",
+									"description": "Birth date for authentication (YYYY-MM-DD)"
+								}
+							]
+						},
+						"description": "Get user's personal information including calculated fields like age and BMI. Requires authentication with user ID and birth date. Only the authenticated user can view their own data."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User Account",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-Client-ID",
+								"value": "mobile-app1",
+								"description": "Client identification header (mobile-* or research-*)"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/persons/{{user_id}}?birthDate={{birth_date}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"persons",
+								"{{user_id}}"
+							],
+							"query": [
+								{
+									"key": "birthDate",
+									"value": "{{birth_date}}",
+									"description": "Birth date for authentication (YYYY-MM-DD)"
+								}
+							]
+						},
+						"description": "Delete the user's account permanently. Requires authentication with user ID and birth date. Only the authenticated user can delete their own account."
+					},
+					"response": []
+				},
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Client-ID",
+								"value": "mobile-app1",
+								"description": "Client identification header (mobile-* or research-*)"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/persons/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"persons",
+								"health"
+							]
+						},
+						"description": "Check the health status of the Personal Fitness Management Service. Returns service status and version information."
+					},
+					"response": []
+				},
+				{
+					"name": "Calculate Daily Calories",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Client-ID",
+								"value": "mobile-app1",
+								"description": "Client identification header (mobile-* or research-*)"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/persons/calories?weight={{weight}}&height={{height}}&age={{age}}&gender={{gender}}&weeklyTrainingFreq={{weekly_training_freq}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"persons",
+								"calories"
+							],
+							"query": [
+								{
+									"key": "weight",
+									"value": "{{weight}}",
+									"description": "Weight in kilograms"
+								},
+								{
+									"key": "height",
+									"value": "{{height}}",
+									"description": "Height in centimeters"
+								},
+								{
+									"key": "age",
+									"value": "{{age}}",
+									"description": "Age in years"
+								},
+								{
+									"key": "gender",
+									"value": "{{gender}}",
+									"description": "Gender (male/female)"
+								},
+								{
+									"key": "weeklyTrainingFreq",
+									"value": "{{weekly_training_freq}}",
+									"description": "Weekly training frequency"
+								}
+							]
+						},
+						"description": "Calculate daily calorie requirements based on personal metrics including weight, height, age, gender, and weekly training frequency. Uses BMR (Basal Metabolic Rate) calculation with activity multiplier."
+					},
+					"response": []
+				},
+				{
+					"name": "Calculate BMI",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Client-ID",
+								"value": "mobile-app1",
+								"description": "Client identification header (mobile-* or research-*)"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/persons/bmi?weight={{weight}}&height={{height}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"persons",
+								"bmi"
+							],
+							"query": [
+								{
+									"key": "weight",
+									"value": "{{weight}}",
+									"description": "Weight in kilograms"
+								},
+								{
+									"key": "height",
+									"value": "{{height}}",
+									"description": "Height in centimeters"
+								}
+							]
+						},
+						"description": "Calculate Body Mass Index (BMI) from weight and height, and return the corresponding health category. BMI categories: Underweight (<18.5), Normal (18.5-24.9), Overweight (25-29.9), Obese (≥30)."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for managing personal accounts and health metrics. Only the authenticated user can view or modify their own data."
+		},
+		{
+			"name": "🔬 Research Controller",
+			"description": "Endpoints for research data aggregation and analysis. Research users can view aggregated, anonymized information only.",
+			"item": [
+				{
+					"name": "Get All Users Anonymized",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Client-ID",
+								"value": "research-tool1",
+								"description": "Client identification header (mobile-* or research-*)"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/research/persons",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"research",
+								"persons"
+							]
+						},
+						"description": "Get aggregated, anonymized data from all users for research purposes. NO PII (Personal Identifiable Information) is exposed. Only research users can access this endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Demographic Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Client-ID",
+								"value": "research-tool1",
+								"description": "Client identification header (mobile-* or research-*)"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/research/demographics?ageRange={{age_range}}&gender={{gender}}&objective={{objective}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"research",
+								"demographics"
+							],
+							"query": [
+								{
+									"key": "ageRange",
+									"value": "{{age_range}}",
+									"description": "Age range filter (e.g., '25-34', '35-44')",
+									"disabled": true
+								},
+								{
+									"key": "gender",
+									"value": "{{gender}}",
+									"description": "Gender filter (optional)",
+									"disabled": true
+								},
+								{
+									"key": "objective",
+									"value": "{{objective}}",
+									"description": "Fitness objective filter (optional)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Retrieve anonymized demographic statistics with minimum cohort size enforcement. Returns aggregated data without PII. Only research users can access this endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Workout Patterns",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Client-ID",
+								"value": "research-tool1",
+								"description": "Client identification header (mobile-* or research-*)"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/research/workout-patterns?ageRange={{age_range}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"research",
+								"workout-patterns"
+							],
+							"query": [
+								{
+									"key": "ageRange",
+									"value": "{{age_range}}",
+									"description": "Age range filter (optional)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Retrieve anonymized workout pattern analysis by demographic groups. All data is aggregated and anonymized. Only research users can access this endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Nutrition Trends",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Client-ID",
+								"value": "research-tool1",
+								"description": "Client identification header (mobile-* or research-*)"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/research/nutrition-trends?objective={{objective}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"research",
+								"nutrition-trends"
+							],
+							"query": [
+								{
+									"key": "objective",
+									"value": "{{objective}}",
+									"description": "Fitness objective filter (BULK, CUT, RECOVER)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Retrieve anonymized nutrition trends and macro distribution patterns by fitness objective. Returns aggregated data without individual information. Only research users can access this endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Population Health Metrics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Client-ID",
+								"value": "research-tool1",
+								"description": "Client identification header (mobile-* or research-*)"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/research/population-health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"research",
+								"population-health"
+							]
+						},
+						"description": "Retrieve high-level population health indicators and goal achievement metrics. All data is aggregated and anonymized without individual identification. Only research users can access this endpoint."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for research data aggregation and analysis. Research users can view aggregated, anonymized information only."
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "user_id",
+			"value": "1",
+			"type": "string",
+			"description": "User ID for testing authenticated endpoints"
+		},
+		{
+			"key": "birth_date",
+			"value": "1990-05-15",
+			"type": "string",
+			"description": "Birth date for authentication (YYYY-MM-DD format)"
+		},
+		{
+			"key": "weight",
+			"value": "75.5",
+			"type": "string",
+			"description": "Weight in kilograms for calculations"
+		},
+		{
+			"key": "height",
+			"value": "180.0",
+			"type": "string",
+			"description": "Height in centimeters for calculations"
+		},
+		{
+			"key": "age",
+			"value": "34",
+			"type": "string",
+			"description": "Age in years for calculations"
+		},
+		{
+			"key": "gender",
+			"value": "male",
+			"type": "string",
+			"description": "Gender (male/female) for calculations"
+		},
+		{
+			"key": "weekly_training_freq",
+			"value": "4",
+			"type": "string",
+			"description": "Weekly training frequency for calorie calculations"
+		},
+		{
+			"key": "age_range",
+			"value": "25-34",
+			"type": "string",
+			"description": "Age range filter for research endpoints"
+		},
+		{
+			"key": "objective",
+			"value": "BULK",
+			"type": "string",
+			"description": "Fitness objective filter (BULK, CUT, RECOVER)"
+		}
+	]
+}
