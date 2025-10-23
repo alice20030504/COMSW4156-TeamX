@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuthService {
 
+  /** Repository for accessing person records for authentication. */
   @Autowired
   private PersonRepository personRepository;
 
@@ -43,3 +44,4 @@ public class AuthService {
         .body("Invalid ID or birth date. Only the authenticated user can access their own data.");
   }
 }
+
