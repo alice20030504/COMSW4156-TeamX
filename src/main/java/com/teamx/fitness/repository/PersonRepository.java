@@ -44,4 +44,14 @@ public interface PersonRepository extends JpaRepository<PersonSimple, Long> {
    * @return count of persons
    */
   long countByClientId(String clientId);
+
+  /**
+   * Checks if a person exists with the given ID and birth date.
+   * Used for authentication validation.
+   *
+   * @param id the person ID
+   * @param birthDate the person's birth date
+   * @return true if person exists with matching ID and birth date
+   */
+  boolean existsByIdAndBirthDate(Long id, java.time.LocalDate birthDate);
 }

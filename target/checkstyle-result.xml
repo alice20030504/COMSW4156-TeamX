@@ -1,3 +1,88 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <checkstyle version="10.12.5">
+<file name="C:\Users\ZHANG Shurong\Desktop\Master1\COMS W4156 Advance Software Engineering\COMSW4156-TeamX\src\main\java\com\teamx\fitness\config\GlobalExceptionHandler.java">
+</file>
+<file name="C:\Users\ZHANG Shurong\Desktop\Master1\COMS W4156 Advance Software Engineering\COMSW4156-TeamX\src\main\java\com\teamx\fitness\config\OpenApiConfig.java">
+<error line="25" severity="warning" message="Line is longer than 120 characters (found 122)." source="com.puppycrawl.tools.checkstyle.checks.sizes.LineLengthCheck"/>
+</file>
+<file name="C:\Users\ZHANG Shurong\Desktop\Master1\COMS W4156 Advance Software Engineering\COMSW4156-TeamX\src\main\java\com\teamx\fitness\config\WebMvcConfig.java">
+</file>
+<file name="C:\Users\ZHANG Shurong\Desktop\Master1\COMS W4156 Advance Software Engineering\COMSW4156-TeamX\src\main\java\com\teamx\fitness\controller\HomeController.java">
+</file>
+<file name="C:\Users\ZHANG Shurong\Desktop\Master1\COMS W4156 Advance Software Engineering\COMSW4156-TeamX\src\main\java\com\teamx\fitness\controller\PersonController.java">
+<error line="43" severity="warning" message="Line is longer than 120 characters (found 177)." source="com.puppycrawl.tools.checkstyle.checks.sizes.LineLengthCheck"/>
+<error line="70" severity="warning" message="@return tag should be present and have description." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+<error line="73" column="118" severity="warning" message="&apos;+&apos; should be on a new line." source="com.puppycrawl.tools.checkstyle.checks.whitespace.OperatorWrapCheck"/>
+<error line="94" column="33" severity="warning" message="Expected @param tag for &apos;person&apos;." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+<error line="107" severity="warning" message="@return tag should be present and have description." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+<error line="110" column="70" severity="warning" message="&apos;+&apos; should be on a new line." source="com.puppycrawl.tools.checkstyle.checks.whitespace.OperatorWrapCheck"/>
+<error line="111" column="76" severity="warning" message="&apos;+&apos; should be on a new line." source="com.puppycrawl.tools.checkstyle.checks.whitespace.OperatorWrapCheck"/>
+<error line="122" column="26" severity="warning" message="Expected @param tag for &apos;id&apos;." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+<error line="124" column="28" severity="warning" message="Expected @param tag for &apos;birthDate&apos;." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+<error line="126" column="33" severity="warning" message="Expected @param tag for &apos;updatedPerson&apos;." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+<error line="154" severity="warning" message="@return tag should be present and have description." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+<error line="157" column="102" severity="warning" message="&apos;+&apos; should be on a new line." source="com.puppycrawl.tools.checkstyle.checks.whitespace.OperatorWrapCheck"/>
+<error line="158" column="76" severity="warning" message="&apos;+&apos; should be on a new line." source="com.puppycrawl.tools.checkstyle.checks.whitespace.OperatorWrapCheck"/>
+<error line="179" column="26" severity="warning" message="Expected @param tag for &apos;id&apos;." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+<error line="181" column="28" severity="warning" message="Expected @param tag for &apos;birthDate&apos;." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+<error line="202" severity="warning" message="@return tag should be present and have description." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+<error line="205" column="63" severity="warning" message="&apos;+&apos; should be on a new line." source="com.puppycrawl.tools.checkstyle.checks.whitespace.OperatorWrapCheck"/>
+<error line="206" column="76" severity="warning" message="&apos;+&apos; should be on a new line." source="com.puppycrawl.tools.checkstyle.checks.whitespace.OperatorWrapCheck"/>
+<error line="216" column="26" severity="warning" message="Expected @param tag for &apos;id&apos;." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+<error line="218" column="28" severity="warning" message="Expected @param tag for &apos;birthDate&apos;." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+<error line="241" severity="warning" message="@return tag should be present and have description." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+<error line="244" column="92" severity="warning" message="&apos;+&apos; should be on a new line." source="com.puppycrawl.tools.checkstyle.checks.whitespace.OperatorWrapCheck"/>
+<error line="271" severity="warning" message="@return tag should be present and have description." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+<error line="274" column="97" severity="warning" message="&apos;+&apos; should be on a new line." source="com.puppycrawl.tools.checkstyle.checks.whitespace.OperatorWrapCheck"/>
+<error line="275" column="83" severity="warning" message="&apos;+&apos; should be on a new line." source="com.puppycrawl.tools.checkstyle.checks.whitespace.OperatorWrapCheck"/>
+<error line="292" column="28" severity="warning" message="Expected @param tag for &apos;weight&apos;." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+<error line="294" column="28" severity="warning" message="Expected @param tag for &apos;height&apos;." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+<error line="296" column="29" severity="warning" message="Expected @param tag for &apos;age&apos;." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+<error line="298" column="28" severity="warning" message="Expected @param tag for &apos;gender&apos;." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+<error line="300" column="29" severity="warning" message="Expected @param tag for &apos;weeklyTrainingFreq&apos;." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+<error line="320" severity="warning" message="@return tag should be present and have description." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+<error line="323" column="80" severity="warning" message="&apos;+&apos; should be on a new line." source="com.puppycrawl.tools.checkstyle.checks.whitespace.OperatorWrapCheck"/>
+<error line="324" column="69" severity="warning" message="&apos;+&apos; should be on a new line." source="com.puppycrawl.tools.checkstyle.checks.whitespace.OperatorWrapCheck"/>
+<error line="325" column="80" severity="warning" message="&apos;+&apos; should be on a new line." source="com.puppycrawl.tools.checkstyle.checks.whitespace.OperatorWrapCheck"/>
+<error line="343" column="28" severity="warning" message="Expected @param tag for &apos;weight&apos;." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+<error line="345" column="28" severity="warning" message="Expected @param tag for &apos;height&apos;." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+</file>
+<file name="C:\Users\ZHANG Shurong\Desktop\Master1\COMS W4156 Advance Software Engineering\COMSW4156-TeamX\src\main\java\com\teamx\fitness\controller\ResearchController.java">
+<error line="34" severity="warning" message="Line is longer than 120 characters (found 172)." source="com.puppycrawl.tools.checkstyle.checks.sizes.LineLengthCheck"/>
+<error line="150" severity="warning" message="@return tag should be present and have description." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+<error line="153" column="94" severity="warning" message="&apos;+&apos; should be on a new line." source="com.puppycrawl.tools.checkstyle.checks.whitespace.OperatorWrapCheck"/>
+<error line="154" column="78" severity="warning" message="&apos;+&apos; should be on a new line." source="com.puppycrawl.tools.checkstyle.checks.whitespace.OperatorWrapCheck"/>
+<error line="187" severity="warning" message="@return tag should be present and have description." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+<error line="190" column="105" severity="warning" message="&apos;+&apos; should be on a new line." source="com.puppycrawl.tools.checkstyle.checks.whitespace.OperatorWrapCheck"/>
+<error line="218" column="46" severity="warning" message="Expected @param tag for &apos;ageRange&apos;." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+<error line="220" column="46" severity="warning" message="Expected @param tag for &apos;gender&apos;." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+<error line="222" column="46" severity="warning" message="Expected @param tag for &apos;objective&apos;." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+<error line="264" severity="warning" message="@return tag should be present and have description." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+<error line="267" column="92" severity="warning" message="&apos;+&apos; should be on a new line." source="com.puppycrawl.tools.checkstyle.checks.whitespace.OperatorWrapCheck"/>
+<error line="296" column="46" severity="warning" message="Expected @param tag for &apos;ageRange&apos;." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+<error line="329" severity="warning" message="@return tag should be present and have description." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+<error line="332" column="115" severity="warning" message="&apos;+&apos; should be on a new line." source="com.puppycrawl.tools.checkstyle.checks.whitespace.OperatorWrapCheck"/>
+<error line="333" severity="warning" message="Line is longer than 120 characters (found 122)." source="com.puppycrawl.tools.checkstyle.checks.sizes.LineLengthCheck"/>
+<error line="356" column="46" severity="warning" message="Expected @param tag for &apos;objective&apos;." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+<error line="393" severity="warning" message="@return tag should be present and have description." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck"/>
+<error line="396" column="103" severity="warning" message="&apos;+&apos; should be on a new line." source="com.puppycrawl.tools.checkstyle.checks.whitespace.OperatorWrapCheck"/>
+<error line="397" column="96" severity="warning" message="&apos;+&apos; should be on a new line." source="com.puppycrawl.tools.checkstyle.checks.whitespace.OperatorWrapCheck"/>
+</file>
+<file name="C:\Users\ZHANG Shurong\Desktop\Master1\COMS W4156 Advance Software Engineering\COMSW4156-TeamX\src\main\java\com\teamx\fitness\FitnessManagementApplication.java">
+</file>
+<file name="C:\Users\ZHANG Shurong\Desktop\Master1\COMS W4156 Advance Software Engineering\COMSW4156-TeamX\src\main\java\com\teamx\fitness\model\ApiLog.java">
+</file>
+<file name="C:\Users\ZHANG Shurong\Desktop\Master1\COMS W4156 Advance Software Engineering\COMSW4156-TeamX\src\main\java\com\teamx\fitness\model\PersonSimple.java">
+</file>
+<file name="C:\Users\ZHANG Shurong\Desktop\Master1\COMS W4156 Advance Software Engineering\COMSW4156-TeamX\src\main\java\com\teamx\fitness\repository\PersonRepository.java">
+</file>
+<file name="C:\Users\ZHANG Shurong\Desktop\Master1\COMS W4156 Advance Software Engineering\COMSW4156-TeamX\src\main\java\com\teamx\fitness\security\ClientContext.java">
+</file>
+<file name="C:\Users\ZHANG Shurong\Desktop\Master1\COMS W4156 Advance Software Engineering\COMSW4156-TeamX\src\main\java\com\teamx\fitness\security\ClientIdInterceptor.java">
+</file>
+<file name="C:\Users\ZHANG Shurong\Desktop\Master1\COMS W4156 Advance Software Engineering\COMSW4156-TeamX\src\main\java\com\teamx\fitness\service\AuthService.java">
+<error line="17" column="3" severity="warning" message="Missing a Javadoc comment." source="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocVariableCheck"/>
+</file>
+<file name="C:\Users\ZHANG Shurong\Desktop\Master1\COMS W4156 Advance Software Engineering\COMSW4156-TeamX\src\main\java\com\teamx\fitness\service\PersonService.java">
+</file>
 </checkstyle>

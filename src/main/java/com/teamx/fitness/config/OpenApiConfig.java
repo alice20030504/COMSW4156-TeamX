@@ -18,25 +18,34 @@ public class OpenApiConfig {
     return new OpenAPI()
         .info(
             new Info()
-                .title("Fitness Management Service API")
+                .title("🏃‍♂️ Fitness Management Service API")
                 .version("1.0.0")
                 .description(
-                    "REST API for fitness management supporting multiple client types.\n\n"
-                        + "## Client Authentication\n"
-                        + "All API endpoints (except root and Swagger UI) require the"
-                        + " `X-Client-ID` header.\n\n"
-                        + "### Client ID Format:\n"
-                        + "- **Mobile App Clients**: `mobile-*` (e.g., `mobile-app1`,"
-                        + " `mobile-app2`)\n"
+                    "## 👤 Personal Fitness Management API\n\n"
+                        + "A comprehensive REST API for personal fitness management supporting multiple client types.\n\n"
+                        + "### 🔐 Authentication & Access Control\n\n"
+                        + "**Client Authentication:**\n"
+                        + "- All API endpoints require the `X-Client-ID` header\n"
+                        + "- **Mobile App Clients**: `mobile-*` (e.g., `mobile-app1`, `mobile-app2`)\n"
                         + "- **Research Tool Clients**: `research-*` (e.g., `research-tool1`)\n\n"
-                        + "### Access Control:\n"
-                        + "- **Mobile clients**: Can access `/api/persons` endpoints. Cannot access"
-                        + " `/api/research` endpoints (403 Forbidden).\n"
-                        + "- **Research clients**: Can access both `/api/persons` and `/api/research`"
-                        + " endpoints.\n\n"
-                        + "### Data Isolation:\n"
-                        + "Each client's data is isolated. A client can only view, create, update, or"
-                        + " delete their own data."))
+                        + "**User Authentication:**\n"
+                        + "- Personal endpoints require user ID and birth date for authentication\n"
+                        + "- Only authenticated users can access their own data\n\n"
+                        + "### 📱 API Endpoint Groups\n\n"
+                        + "**👤 Personal Controller:**\n"
+                        + "- User account management (create, read, update, delete)\n"
+                        + "- Health calculations (BMI, calories, age)\n"
+                        + "- Personal health check\n"
+                        + "- **Access**: Mobile clients + authenticated users\n\n"
+                        + "**🔬 Research Controller:**\n"
+                        + "- Aggregated, anonymized data for research\n"
+                        + "- Demographic statistics and trends\n"
+                        + "- Population health metrics\n"
+                        + "- **Access**: Research clients only (403 Forbidden for mobile clients)\n\n"
+                        + "### 🛡️ Data Protection\n"
+                        + "- **Data Isolation**: Each client can only access their own data\n"
+                        + "- **Privacy**: Research endpoints return anonymized data only\n"
+                        + "- **No PII**: Personal Identifiable Information is never exposed in research endpoints"))
         .components(
             new Components()
                 .addSecuritySchemes(
@@ -46,8 +55,13 @@ public class OpenApiConfig {
                         .in(SecurityScheme.In.HEADER)
                         .name("X-Client-ID")
                         .description(
-                            "Client identification header. Format: 'mobile-*' for mobile clients or"
-                                + " 'research-*' for research tools.")))
+                            "🔐 Client identification header required for all endpoints.\n\n"
+                                + "**Format:**\n"
+                                + "- Mobile clients: `mobile-*` (e.g., `mobile-app1`)\n"
+                                + "- Research clients: `research-*` (e.g., `research-tool1`)\n\n"
+                                + "**Access Control:**\n"
+                                + "- Mobile clients: Personal endpoints only\n"
+                                + "- Research clients: All endpoints")))
         .addSecurityItem(new SecurityRequirement().addList("ClientId"));
   }
 
@@ -69,7 +83,7 @@ public class OpenApiConfig {
             new Parameter()
                 .in("header")
                 .name("X-Client-ID")
-                .description("Client identification (mobile-* or research-*)")
+                .description("🔐 Client identification header (mobile-* or research-*)")
                 .required(true)
                 .example("mobile-app1")
                 .schema(new io.swagger.v3.oas.models.media.StringSchema());
