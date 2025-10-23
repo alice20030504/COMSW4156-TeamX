@@ -4,3 +4,6 @@
 # Application logs
 /logs/
 
+# IDE settings
+/.vscode/
+

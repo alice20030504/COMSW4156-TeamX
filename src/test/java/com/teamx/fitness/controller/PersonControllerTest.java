@@ -2,16 +2,11 @@ package com.teamx.fitness.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.teamx.fitness.model.PersonSimple;
 import com.teamx.fitness.repository.PersonRepository;
 import com.teamx.fitness.security.ClientContext;
 import com.teamx.fitness.service.PersonService;
-import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
@@ -80,8 +75,6 @@ class PersonControllerTest {
         Arguments.of("Boundary: obese classification", 110.0, 170.0, 38.06, "Obese"),
         Arguments.of("Invalid: service returns null BMI", 70.0, 0.0, null, "Unknown"));
   }
-
-  // Note: calculateAge method was removed from PersonController as it's not part of the core API
 
   /**
    * Confirms the calorie endpoint composes BMR and activity factors while honoring null guards.
@@ -154,9 +147,10 @@ class PersonControllerTest {
             null,
             null));
   }
-
-  // Note: getAllPersons method was removed from PersonController as it's not part of the core API
-
+  
+  /**
+   * Valid creation scenario demonstrating client ID assignment.
+   */
   @Test
   @DisplayName("healthCheck reports service availability metadata")
   void healthCheckReturnsMetadata() {

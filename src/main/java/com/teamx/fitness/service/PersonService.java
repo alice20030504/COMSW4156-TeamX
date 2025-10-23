@@ -124,15 +124,15 @@ public class PersonService {
         // Activity factor based on weekly training frequency
         double activityFactor;
         if (weeklyTrainingFreq == 0) {
-            activityFactor = ACTIVITY_SEDENTARY; // Sedentary
+            activityFactor = ACTIVITY_SEDENTARY; 
         } else if (weeklyTrainingFreq <= 2) {
-            activityFactor = ACTIVITY_LIGHT; // Light activity
+            activityFactor = ACTIVITY_LIGHT; 
         } else if (weeklyTrainingFreq <= MAX_MODERATE_TRAINING) {
-            activityFactor = ACTIVITY_MODERATE; // Moderate activity
+            activityFactor = ACTIVITY_MODERATE; 
         } else if (weeklyTrainingFreq <= MAX_VERY_ACTIVE_TRAINING) {
-            activityFactor = ACTIVITY_VERY; // Very active
+            activityFactor = ACTIVITY_VERY; 
         } else {
-            activityFactor = ACTIVITY_EXTRA; // Extra active
+            activityFactor = ACTIVITY_EXTRA; 
         }
 
         return bmr * activityFactor;
