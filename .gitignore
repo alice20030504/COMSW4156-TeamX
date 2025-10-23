@@ -1,4 +1,6 @@
-target/
-logs/
-LICENSE
+# Build output
+/target/
+
+# Application logs
+/logs/
 
