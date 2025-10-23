@@ -81,38 +81,7 @@ class PersonControllerTest {
         Arguments.of("Invalid: service returns null BMI", 70.0, 0.0, null, "Unknown"));
   }
 
-  /**
-   * Verifies the age endpoint parses dates and returns expected values for typical, boundary, and
-   * invalid service responses.
-   */
-  @ParameterizedTest
-  @MethodSource("calculateAgeScenarios")
-  @DisplayName("calculateAge returns age for provided birth dates")
-  void calculateAgeHandlesScenarios(String description, String birthDate, Integer expectedAge) {
-    LocalDate parsedDate = LocalDate.parse(birthDate);
-    when(personService.calculateAge(parsedDate)).thenReturn(expectedAge);
-
-    ResponseEntity<Map<String, Object>> response = personController.calculateAge(birthDate);
-
-    assertEquals(HttpStatus.OK, response.getStatusCode(), description);
-    Map<String, Object> body = response.getBody();
-    assertNotNull(body, description);
-    assertEquals(birthDate, body.get("birthDate"), description);
-    if (expectedAge == null) {
-      assertNull(body.get("age"), description);
-    } else {
-      assertEquals(expectedAge, body.get("age"), description);
-    }
-  }
-
-  private static Stream<Arguments> calculateAgeScenarios() {
-    return Stream.of(
-        Arguments.of(
-            "Valid: adult birth date", LocalDate.of(1995, 5, 15).toString(), 29),
-        Arguments.of("Boundary: born today", LocalDate.now().toString(), 0),
-        Arguments.of(
-            "Invalid: service returns null age", LocalDate.now().minusYears(40).toString(), null));
-  }
+  // Note: calculateAge method was removed from PersonController as it's not part of the core API
 
   /**
    * Confirms the calorie endpoint composes BMR and activity factors while honoring null guards.
@@ -186,24 +155,7 @@ class PersonControllerTest {
             null));
   }
 
-  @Test
-  @DisplayName("getAllPersons returns client-scoped records")
-  void getAllPersonsReturnsClientData() {
-    String clientId = "mobile-app1";
-    ClientContext.setClientId(clientId);
-
-    List<PersonSimple> expected =
-        List.of(
-            new PersonSimple(
-                "Alice", 65.0, 170.0, LocalDate.of(1990, 5, 15), clientId));
-    when(personRepository.findByClientId(clientId)).thenReturn(expected);
-
-    ResponseEntity<List<PersonSimple>> response = personController.getAllPersons();
-
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals(expected, response.getBody());
-    verify(personRepository).findByClientId(clientId);
-  }
+  // Note: getAllPersons method was removed from PersonController as it's not part of the core API
 
   @Test
   @DisplayName("healthCheck reports service availability metadata")

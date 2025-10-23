@@ -1,6 +1,14 @@
 package com.teamx.fitness.controller;
 
 import com.teamx.fitness.security.ClientContext;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
@@ -13,13 +21,17 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
- * REST controller for research/analyzer endpoints.
- * Provides anonymized, aggregated data for research purposes.
- * NO PII (Personal Identifiable Information) is exposed through these endpoints.
+ * 🔬 Research Controller - Endpoints for research data aggregation and analysis.
+ * 
+ * This controller provides endpoints for research users to access aggregated, 
+ * anonymized data for research purposes. NO PII (Personal Identifiable Information) 
+ * is exposed through these endpoints. Research users can view aggregated, 
+ * anonymized information only.
  */
 @RestController
 @RequestMapping("/api/research")
 @CrossOrigin(origins = "*")
+@Tag(name = "Research Controller", description = "🔬 Endpoints for research data aggregation and analysis. Research users can view aggregated, anonymized information only.")
 public class ResearchController {
 
     // --- Constants for aggregated statistics ---
@@ -130,18 +142,83 @@ public class ResearchController {
   }
 
   /**
+   * Retrieve all users' anonymized data.
+   * 
+   * Returns aggregated, anonymized data for research purposes.
+   * NO PII (Personal Identifiable Information) is exposed.
+   */
+  @GetMapping("/persons")
+  @Operation(
+      summary = "Retrieve all users' anonymized data",
+      description = "Get aggregated, anonymized data from all users for research purposes. " +
+                   "NO PII (Personal Identifiable Information) is exposed. " +
+                   "Only research users can access this endpoint."
+  )
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Anonymized data retrieved successfully",
+          content = @Content(schema = @Schema(implementation = Map.class),
+              examples = @ExampleObject(value = """
+                  {
+                    "totalUsers": 1523,
+                    "dataAnonymized": true,
+                    "privacyCompliant": true,
+                    "containsPII": false
+                  }
+                  """))),
+      @ApiResponse(responseCode = "403", description = "Forbidden - Mobile clients cannot access research endpoints")
+  })
+  public ResponseEntity<Map<String, Object>> getAllUsersAnonymized() {
+    validateResearchAccess();
+    
+    Map<String, Object> response = new HashMap<>();
+    response.put("totalUsers", POPULATION_TOTAL);
+    response.put("dataAnonymized", true);
+    response.put("privacyCompliant", true);
+    response.put("containsPII", false);
+    response.put("accessLevel", "RESEARCH_ONLY");
+    
+    return ResponseEntity.ok(response);
+  }
+
+  /**
    * Get aggregated statistics by demographic cohort.
-     * Returns anonymized data with minimum cohort size enforcement.
-     *
-     * @param ageRange age range (e.g., "25-34", "35-44")
-     * @param gender gender filter (optional)
-     * @param objective fitness objective filter (optional)
-     * @return aggregated statistics without PII
-     */
+   * Returns anonymized data with minimum cohort size enforcement.
+   */
   @GetMapping("/demographics")
+  @Operation(
+      summary = "Get aggregated statistics by demographic cohort",
+      description = "Retrieve anonymized demographic statistics with minimum cohort size enforcement. " +
+                   "Returns aggregated data without PII. Only research users can access this endpoint."
+  )
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Demographic statistics retrieved successfully",
+          content = @Content(schema = @Schema(implementation = Map.class),
+              examples = @ExampleObject(value = """
+                  {
+                    "cohort": {
+                      "ageRange": "25-34",
+                      "gender": "ALL",
+                      "objective": "ALL",
+                      "sampleSize": 156,
+                      "meetsPrivacyThreshold": true
+                    },
+                    "physicalMetrics": {
+                      "averageBMI": 24.5,
+                      "averageWeight": 72.3,
+                      "averageHeight": 171.2
+                    },
+                    "dataAnonymized": true,
+                    "privacyCompliant": true
+                  }
+                  """))),
+      @ApiResponse(responseCode = "403", description = "Forbidden - Mobile clients cannot access research endpoints")
+  })
   public ResponseEntity<Map<String, Object>> getDemographicStats(
+      @Parameter(description = "Age range filter (e.g., '25-34', '35-44')")
       @RequestParam(required = false) String ageRange,
+      @Parameter(description = "Gender filter (optional)")
       @RequestParam(required = false) String gender,
+      @Parameter(description = "Fitness objective filter (optional)")
       @RequestParam(required = false) String objective) {
 
     validateResearchAccess();
@@ -183,12 +260,39 @@ public class ResearchController {
     /**
      * Get workout pattern analysis by demographic.
      * All data is aggregated and anonymized.
-     *
-     * @param ageRange age range filter
-     * @return anonymized workout patterns
      */
   @GetMapping("/workout-patterns")
+  @Operation(
+      summary = "Get workout pattern analysis by demographic",
+      description = "Retrieve anonymized workout pattern analysis by demographic groups. " +
+                   "All data is aggregated and anonymized. Only research users can access this endpoint."
+  )
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Workout patterns retrieved successfully",
+          content = @Content(schema = @Schema(implementation = Map.class),
+              examples = @ExampleObject(value = """
+                  {
+                    "ageRange": "25-34",
+                    "patterns": {
+                      "averageWorkoutsPerWeek": 3.8,
+                      "mostCommonExerciseType": "AEROBIC",
+                      "averageSessionDuration": 52,
+                      "averageCaloriesBurnedPerSession": 420
+                    },
+                    "exerciseDistribution": {
+                      "AEROBIC": 45.0,
+                      "ANAEROBIC": 35.0,
+                      "FLEXIBILITY": 15.0,
+                      "MIXED": 5.0
+                    },
+                    "sampleSize": 89,
+                    "privacyProtected": true
+                  }
+                  """))),
+      @ApiResponse(responseCode = "403", description = "Forbidden - Mobile clients cannot access research endpoints")
+  })
   public ResponseEntity<Map<String, Object>> getWorkoutPatterns(
+      @Parameter(description = "Age range filter (optional)")
       @RequestParam(required = false) String ageRange) {
 
     validateResearchAccess();
@@ -221,11 +325,34 @@ public class ResearchController {
     /**
      * Get nutrition trends by fitness objective.
      * Returns macro distribution patterns without individual data.
-     * @param objective fitness objective (BULK, CUT, RECOVER)
-     * @return aggregated nutrition trends
      */
   @GetMapping("/nutrition-trends")
+  @Operation(
+      summary = "Get nutrition trends by fitness objective",
+      description = "Retrieve anonymized nutrition trends and macro distribution patterns by fitness objective. " +
+                   "Returns aggregated data without individual information. Only research users can access this endpoint."
+  )
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Nutrition trends retrieved successfully",
+          content = @Content(schema = @Schema(implementation = Map.class),
+              examples = @ExampleObject(value = """
+                  {
+                    "objective": "BULK",
+                    "macroDistribution": {
+                      "carbs": 45,
+                      "protein": 30,
+                      "fat": 25,
+                      "averageCalories": 3200
+                    },
+                    "sampleSize": 234,
+                    "dataType": "AGGREGATED",
+                    "containsPII": false
+                  }
+                  """))),
+      @ApiResponse(responseCode = "403", description = "Forbidden - Mobile clients cannot access research endpoints")
+  })
   public ResponseEntity<Map<String, Object>> getNutritionTrends(
+      @Parameter(description = "Fitness objective filter (BULK, CUT, RECOVER)")
       @RequestParam(required = false) String objective) {
 
         validateResearchAccess();
@@ -262,10 +389,37 @@ public class ResearchController {
     /**
      * Get population health metrics.
      * Provides high-level health indicators without individual identification.
-     *
-     * @return JSON response containing population-level health metrics
      */
   @GetMapping("/population-health")
+  @Operation(
+      summary = "Get population health metrics",
+      description = "Retrieve high-level population health indicators and goal achievement metrics. " +
+                   "All data is aggregated and anonymized without individual identification. " +
+                   "Only research users can access this endpoint."
+  )
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Population health metrics retrieved successfully",
+          content = @Content(schema = @Schema(implementation = Map.class),
+              examples = @ExampleObject(value = """
+                  {
+                    "totalPopulation": 1523,
+                    "bmiDistribution": {
+                      "underweight": 5.2,
+                      "normal": 48.3,
+                      "overweight": 32.1,
+                      "obese": 14.4
+                    },
+                    "goalMetrics": {
+                      "overallAchievementRate": 67.8,
+                      "weightLossSuccessRate": 62.3,
+                      "muscleGainSuccessRate": 71.5,
+                      "maintenanceAdherence": 82.1
+                    },
+                    "dataProtection": "All data is aggregated and anonymized"
+                  }
+                  """))),
+      @ApiResponse(responseCode = "403", description = "Forbidden - Mobile clients cannot access research endpoints")
+  })
   public ResponseEntity<Map<String, Object>> getPopulationHealth() {
 
     validateResearchAccess();

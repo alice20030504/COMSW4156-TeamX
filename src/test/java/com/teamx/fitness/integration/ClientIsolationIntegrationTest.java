@@ -13,6 +13,7 @@ import com.teamx.fitness.controller.PersonController;
 import com.teamx.fitness.model.PersonSimple;
 import com.teamx.fitness.repository.PersonRepository;
 import com.teamx.fitness.security.ClientContext;
+import com.teamx.fitness.service.AuthService;
 import com.teamx.fitness.service.PersonService;
 import java.time.LocalDate;
 import java.util.List;
@@ -43,6 +44,8 @@ class ClientIsolationIntegrationTest {
 
   @Mock private PersonService personService;
 
+  @Mock private AuthService authService;
+
   @InjectMocks private PersonController personController;
 
   @AfterEach
@@ -59,29 +62,34 @@ class ClientIsolationIntegrationTest {
     PersonSimple stored =
         new PersonSimple("Alice", 65.0, 170.0, LocalDate.of(1990, 5, 15), MOBILE_CLIENT_1);
     stored.setId(1L);
+    String birthDate = "1990-05-15";
 
     ClientContext.setClientId(MOBILE_CLIENT_1);
+    when(authService.validateUserAccess(1L, LocalDate.parse(birthDate))).thenReturn(true);
     when(personRepository.findByIdAndClientId(1L, MOBILE_CLIENT_1)).thenReturn(Optional.of(stored));
 
-    ResponseEntity<PersonSimple> response = personController.getPersonById(1L);
+    ResponseEntity<?> response = personController.getPersonById(1L, birthDate);
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals("Alice", response.getBody().getName());
+    assertEquals("Alice", ((PersonSimple) response.getBody()).getName());
   }
 
   /**
-   * Invalid scenario: a different client receives a 404 when attempting to access another client's
-   * record.
+   * Invalid scenario: a different client receives a 401 when attempting to access another client's
+   * record due to authentication failure.
    */
   @Test
-  @DisplayName("Different client receives 404 for protected record")
+  @DisplayName("Different client receives 401 for invalid authentication")
   void getPersonById_BlocksDifferentClient() {
+    String birthDate = "1990-05-15";
     ClientContext.setClientId(MOBILE_CLIENT_2);
-    when(personRepository.findByIdAndClientId(1L, MOBILE_CLIENT_2)).thenReturn(Optional.empty());
+    when(authService.validateUserAccess(1L, LocalDate.parse(birthDate))).thenReturn(false);
+    when(authService.createUnauthorizedResponse()).thenReturn(
+        ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid ID or birth date."));
 
-    ResponseEntity<PersonSimple> response = personController.getPersonById(1L);
+    ResponseEntity<?> response = personController.getPersonById(1L, birthDate);
 
-    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
   }
 
   /**
@@ -116,34 +124,40 @@ class ClientIsolationIntegrationTest {
     PersonSimple existing =
         new PersonSimple("Carol", 70.0, 172.0, LocalDate.of(1992, 7, 10), MOBILE_CLIENT_1);
     existing.setId(9L);
+    String birthDate = "1992-07-10";
 
     PersonSimple update =
         new PersonSimple("Carol Updated", 72.0, 172.0, existing.getBirthDate(), null);
 
+    when(authService.validateUserAccess(9L, LocalDate.parse(birthDate))).thenReturn(true);
     when(personRepository.findByIdAndClientId(9L, MOBILE_CLIENT_1)).thenReturn(Optional.of(existing));
     when(personRepository.save(existing)).thenReturn(existing);
 
-    ResponseEntity<PersonSimple> response = personController.updatePerson(9L, update);
+    ResponseEntity<?> response = personController.updatePerson(9L, birthDate, update);
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals("Carol Updated", response.getBody().getName());
+    assertEquals("Carol Updated", ((PersonSimple) response.getBody()).getName());
   }
 
   /**
-   * Invalid update scenario: non-owners receive a 404 and no persistence occurs.
+   * Invalid update scenario: non-owners receive a 401 due to authentication failure.
    */
   @Test
-  @DisplayName("Update returns 404 when record belongs to another client")
+  @DisplayName("Update returns 401 when authentication fails")
   void updatePerson_RejectsOtherClient() {
+    String birthDate = "1992-07-10";
     ClientContext.setClientId(MOBILE_CLIENT_2);
-    when(personRepository.findByIdAndClientId(9L, MOBILE_CLIENT_2)).thenReturn(Optional.empty());
+    when(authService.validateUserAccess(9L, LocalDate.parse(birthDate))).thenReturn(false);
+    when(authService.createUnauthorizedResponse()).thenReturn(
+        ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid ID or birth date."));
 
-    ResponseEntity<PersonSimple> response =
+    ResponseEntity<?> response =
         personController.updatePerson(
             9L,
+            birthDate,
             new PersonSimple("Carol Updated", 72.0, 172.0, LocalDate.of(1992, 7, 10), null));
 
-    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     verify(personRepository, never()).save(any(PersonSimple.class));
   }
 
@@ -157,10 +171,12 @@ class ClientIsolationIntegrationTest {
     PersonSimple existing =
         new PersonSimple("Dana", 68.0, 168.0, LocalDate.of(1991, 1, 1), MOBILE_CLIENT_1);
     existing.setId(4L);
+    String birthDate = "1991-01-01";
 
+    when(authService.validateUserAccess(4L, LocalDate.parse(birthDate))).thenReturn(true);
     when(personRepository.findByIdAndClientId(4L, MOBILE_CLIENT_1)).thenReturn(Optional.of(existing));
 
-    ResponseEntity<Void> response = personController.deletePerson(4L);
+    ResponseEntity<?> response = personController.deletePerson(4L, birthDate);
 
     assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     verify(personRepository).delete(existing);
@@ -173,34 +189,19 @@ class ClientIsolationIntegrationTest {
    * Invalid deletion scenario: other clients cannot remove records they do not own.
    */
   @Test
-  @DisplayName("Delete returns 404 for other client")
+  @DisplayName("Delete returns 401 for authentication failure")
   void deletePerson_RejectsOtherClient() {
+    String birthDate = "1991-01-01";
     ClientContext.setClientId(MOBILE_CLIENT_2);
-    when(personRepository.findByIdAndClientId(4L, MOBILE_CLIENT_2)).thenReturn(Optional.empty());
+    when(authService.validateUserAccess(4L, LocalDate.parse(birthDate))).thenReturn(false);
+    when(authService.createUnauthorizedResponse()).thenReturn(
+        ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid ID or birth date."));
 
-    ResponseEntity<Void> response = personController.deletePerson(4L);
+    ResponseEntity<?> response = personController.deletePerson(4L, birthDate);
 
-    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     verify(personRepository, never()).delete(any(PersonSimple.class));
   }
 
-  /**
-   * Boundary scenario: listing delegates to the repository using the active client context.
-   */
-  @Test
-  @DisplayName("List persons queries repository with active client")
-  void listPersons_QueryScopedByClient() {
-    ClientContext.setClientId(MOBILE_CLIENT_1);
-    List<PersonSimple> records =
-        List.of(
-            new PersonSimple("Eve", 60.0, 165.0, LocalDate.of(1994, 9, 9), MOBILE_CLIENT_1));
-    when(personRepository.findByClientId(MOBILE_CLIENT_1)).thenReturn(records);
-
-    ResponseEntity<List<PersonSimple>> response = personController.getAllPersons();
-
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals(records, response.getBody());
-    verify(personRepository).findByClientId(eq(MOBILE_CLIENT_1));
-    assertTrue(ClientContext.isMobileClient(ClientContext.getClientId()));
-  }
+  // Note: getAllPersons method was removed from PersonController as it's not part of the core API
 }
