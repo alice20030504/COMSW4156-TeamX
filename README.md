@@ -270,31 +270,34 @@ mvn spring-boot:run -Dspring-boot.run.arguments=--server.port=8081
 
 ### Testing
 
-**Note**: Comprehensive test suite will be implemented in Iteration 2.
+Our automated testing now spans unit, integration, and end-to-end API coverage:
 
 ```bash
-# Run all tests (when implemented)
+# Run all JUnit/Mockito tests
 mvn test
 
-# Run with coverage report
-mvn clean test
-
-# Run specific test class
+# Run focused unit test class
 mvn test -Dtest=PersonServiceTest
 
-# View coverage report (after running tests)
-open target/site/jacoco/index.html  # macOS
+# Generate coverage report
+mvn clean test
 ```
+
+**System/API Tests (Postman + Newman)**
+
+- Collection & environment live under `postman/`
+- Run instructions and execution summary: [docs/API_TESTING.md](docs/API_TESTING.md)
+- Latest Newman results recorded at `reports/postman-newman-results.json`
 
 **Test Configuration Files**:
 - Testing framework: JUnit 5 (configured in `pom.xml`)
 - Mocking framework: Mockito (configured in `pom.xml`)
-- API testing tool: REST Assured (configured in `pom.xml`)
+- API testing toolchain: Postman collection + Newman CLI (see `docs/API_TESTING.md`)
 - Coverage tool: JaCoCo (configured in `pom.xml`)
 
 **Coverage Goals**:
-- Iteration 1: Framework configured (tests TBD)
-- Iteration 2: 80% branch coverage required
+- Iteration 1: ≥60% branch coverage (achieved)
+- Iteration 2: 80%+ branch coverage target
 
 ### Configuration Files
 
