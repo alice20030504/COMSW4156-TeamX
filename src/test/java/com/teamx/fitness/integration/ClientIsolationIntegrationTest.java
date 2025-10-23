@@ -2,9 +2,7 @@ package com.teamx.fitness.integration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -16,7 +14,6 @@ import com.teamx.fitness.security.ClientContext;
 import com.teamx.fitness.service.AuthService;
 import com.teamx.fitness.service.PersonService;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -203,5 +200,4 @@ class ClientIsolationIntegrationTest {
     verify(personRepository, never()).delete(any(PersonSimple.class));
   }
 
-  // Note: getAllPersons method was removed from PersonController as it's not part of the core API
 }

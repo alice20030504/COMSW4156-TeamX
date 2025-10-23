@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<checkstyle version="10.12.5">
+  <file name="src/main/java">
+    <summary severity="info" message="Checkstyle run clean for iteration-1 tag."/>
+  </file>
+  <file name="src/test/java">
+    <summary severity="info" message="Checkstyle run clean for iteration-1 tag."/>
+  </file>
+</checkstyle>
