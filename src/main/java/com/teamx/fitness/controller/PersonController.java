@@ -40,7 +40,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/persons")
 @CrossOrigin(origins = "*")
-@Tag(name = "Personal Controller", description = "👤 Endpoints for managing personal accounts and health metrics. Only the authenticated user can view or modify their own data.")
+@Tag(name = "Personal Controller", description = "👤 Endpoints for managing personal accounts and health metrics. "
+        + "Only the authenticated user can view or modify their own data.")
 public class PersonController {
 
   /** Service layer for person-related calculations. */
@@ -66,12 +67,16 @@ public class PersonController {
    * 
    * Users register with their name, weight, height, and birth date.
    * The system automatically assigns a client ID for data isolation.
+   * 
+   * @param person User information including name, weight, height, and birth date
+   * @return ResponseEntity containing the created person or error response
    */
   @PostMapping
   @Operation(
       summary = "Create a new user account",
-      description = "Register a new user with personal information including name, weight, height, and birth date. " +
-                   "The system automatically handles client ID assignment for data isolation."
+      description = "Register a new user with personal information including name, weight, height, "
+                   + "and birth date. The system automatically handles client ID assignment for "
+                   + "data isolation."
   )
   @ApiResponses(value = {
       @ApiResponse(responseCode = "201", description = "User created successfully",
@@ -103,13 +108,18 @@ public class PersonController {
    * 
    * Allow editing of height, weight, and birth date.
    * Requires authentication with user ID and birth date.
+   * 
+   * @param id The person ID
+   * @param birthDate Birth date for authentication (YYYY-MM-DD)
+   * @param updatedPerson Updated data for the person
+   * @return ResponseEntity containing the updated person or 404 if not found
    */
   @PutMapping("/{id}")
   @Operation(
       summary = "Update existing user information",
-      description = "Update user's height, weight, and birth date. " +
-                   "Requires authentication with user ID and birth date. " +
-                   "Only the authenticated user can modify their own data."
+      description = "Update user's height, weight, and birth date. "
+                   + "Requires authentication with user ID and birth date. "
+                   + "Only the authenticated user can modify their own data."
   )
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "User updated successfully",
@@ -150,13 +160,17 @@ public class PersonController {
    * 
    * The response includes calculated fields such as age and BMI if available.
    * Requires authentication with user ID and birth date.
+   * 
+   * @param id The person ID
+   * @param birthDate Birth date for authentication (YYYY-MM-DD)
+   * @return ResponseEntity containing the person record or 404 if not found
    */
   @GetMapping("/{id}")
   @Operation(
       summary = "Retrieve an individual's record",
-      description = "Get user's personal information including calculated fields like age and BMI. " +
-                   "Requires authentication with user ID and birth date. " +
-                   "Only the authenticated user can view their own data."
+      description = "Get user's personal information including calculated fields like age and BMI. "
+                   + "Requires authentication with user ID and birth date. "
+                   + "Only the authenticated user can view their own data."
   )
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "User record retrieved successfully",
@@ -198,13 +212,17 @@ public class PersonController {
    * 
    * Requires authentication with user ID and birth date.
    * Only the authenticated user can delete their own account.
+   * 
+   * @param id The person ID
+   * @param birthDate Birth date for authentication (YYYY-MM-DD)
+   * @return ResponseEntity with 204 No Content if successful, 404 if not found
    */
   @DeleteMapping("/{id}")
   @Operation(
       summary = "Delete their own account",
-      description = "Delete the user's account permanently. " +
-                   "Requires authentication with user ID and birth date. " +
-                   "Only the authenticated user can delete their own account."
+      description = "Delete the user's account permanently. "
+                   + "Requires authentication with user ID and birth date. "
+                   + "Only the authenticated user can delete their own account."
   )
   @ApiResponses(value = {
       @ApiResponse(responseCode = "204", description = "Account deleted successfully"),
@@ -237,12 +255,14 @@ public class PersonController {
    * Perform a health check on their own account.
    * 
    * Return a structured JSON such as { "status": "UP", "service": "Personal Fitness Management Service" }.
+   * 
+   * @return ResponseEntity containing health status information
    */
   @GetMapping("/health")
   @Operation(
       summary = "Perform a health check on their own account",
-      description = "Check the health status of the Personal Fitness Management Service. " +
-                   "Returns service status and version information."
+      description = "Check the health status of the Personal Fitness Management Service. "
+                   + "Returns service status and version information."
   )
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Health check successful",
@@ -267,13 +287,20 @@ public class PersonController {
    * Calculate daily calorie needs based on parameters.
    * 
    * Calculate daily calorie requirements based on weight, height, age, gender, and training frequency.
+   * 
+   * @param weight Weight in kilograms
+   * @param height Height in centimeters
+   * @param age Age in years
+   * @param gender Gender (male/female)
+   * @param weeklyTrainingFreq Weekly training frequency
+   * @return ResponseEntity containing calorie calculation results
    */
   @GetMapping("/calories")
   @Operation(
       summary = "Calculate daily calorie needs based on parameters",
-      description = "Calculate daily calorie requirements based on personal metrics including " +
-                   "weight, height, age, gender, and weekly training frequency. " +
-                   "Uses BMR (Basal Metabolic Rate) calculation with activity multiplier."
+      description = "Calculate daily calorie requirements based on personal metrics including "
+                   + "weight, height, age, gender, and weekly training frequency. "
+                   + "Uses BMR (Basal Metabolic Rate) calculation with activity multiplier."
   )
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Calorie calculation successful",
@@ -316,14 +343,18 @@ public class PersonController {
    * 
    * Calculate BMI (Body Mass Index) and return the corresponding category 
    * ("Underweight", "Normal weight", "Overweight", "Obese").
+   * 
+   * @param weight Weight in kilograms
+   * @param height Height in centimeters
+   * @return ResponseEntity containing BMI calculation results
    */
   @GetMapping("/bmi")
   @Operation(
       summary = "Calculate BMI and return BMI category",
-      description = "Calculate Body Mass Index (BMI) from weight and height, " +
-                   "and return the corresponding health category. " +
-                   "BMI categories: Underweight (<18.5), Normal (18.5-24.9), " +
-                   "Overweight (25-29.9), Obese (≥30)."
+      description = "Calculate Body Mass Index (BMI) from weight and height, "
+                   + "and return the corresponding health category. "
+                   + "BMI categories: Underweight (<18.5), Normal (18.5-24.9), "
+                   + "Overweight (25-29.9), Obese (≥30)."
   )
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "BMI calculation successful",

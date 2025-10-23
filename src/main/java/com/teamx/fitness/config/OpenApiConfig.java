@@ -21,8 +21,9 @@ public class OpenApiConfig {
                 .title("🏃‍♂️ Fitness Management Service API")
                 .version("1.0.0")
                 .description(
-                    "## 👤 Personal Fitness Management API\n\n"
-                        + "A comprehensive REST API for personal fitness management supporting multiple client types.\n\n"
+                    "##  Personal Fitness Management API\n\n"
+                        + "A comprehensive REST API for personal fitness management supporting "
+                        + "multiple client types.\n\n"
                         + "### 🔐 Authentication & Access Control\n\n"
                         + "**Client Authentication:**\n"
                         + "- All API endpoints require the `X-Client-ID` header\n"
@@ -31,7 +32,7 @@ public class OpenApiConfig {
                         + "**User Authentication:**\n"
                         + "- Personal endpoints require user ID and birth date for authentication\n"
                         + "- Only authenticated users can access their own data\n\n"
-                        + "### 📱 API Endpoint Groups\n\n"
+                        + "### API Endpoint Groups\n\n"
                         + "**👤 Personal Controller:**\n"
                         + "- User account management (create, read, update, delete)\n"
                         + "- Health calculations (BMI, calories, age)\n"
@@ -45,7 +46,8 @@ public class OpenApiConfig {
                         + "### 🛡️ Data Protection\n"
                         + "- **Data Isolation**: Each client can only access their own data\n"
                         + "- **Privacy**: Research endpoints return anonymized data only\n"
-                        + "- **No PII**: Personal Identifiable Information is never exposed in research endpoints"))
+                        + "- **No PII**: Personal Identifiable Information is never exposed "
+                        + "in research endpoints"))
         .components(
             new Components()
                 .addSecuritySchemes(
