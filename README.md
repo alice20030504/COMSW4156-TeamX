@@ -25,7 +25,7 @@ mvn jacoco:report # Test Coverage Report
 
 Load fitness-api-tests.postman_collection.json and fitness-api-tests.postman_environment.json files from postman/ to Postman for API testing
 
-Configuration files: `pom.xml`, `src/main/resources/application.yml`, `application-prod.yml`, `data.sql`.
+Configuration files: `pom.xml`, `src/main/resources/application.yml`, `data.sql`.
 
 ## Testing
 Frameworks and configuration locations:
@@ -36,7 +36,6 @@ Frameworks and configuration locations:
 
 ## Style and Quality
 - Style checker: Checkstyle 10.12.5 using `checkstyle.xml` (Google Java Style base). (summary in `docs/STYLE_CHECK_SUMMARY.md`). Latest report (`reports/checkstyle-result.xml`) shows zero violations.
-- Static analysis: PMD configured in `pom.xml` 
 - Logging: SLF4J + Spring Boot configuration in `application.yml`, writing to console and `logs/fitness-app.log`.
 
 ## Tooling Summary
