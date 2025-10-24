@@ -94,10 +94,23 @@ Frameworks and configuration locations:
 
 ## Bug Fixes and TODOs
 
-- **Fixed:** Guarded BMI calculation against zero height to prevent division errors.  
-- **Fixed:** Cleared `ClientContext` after interceptor execution to avoid cross-request leakage.  
-- **TODO:** Harden research analytics queries once PostgreSQL integration is in place.  
-- **TODO:** Add error-handling coverage for future Spring Security integration.
+### Fixed
+- **Guarded BMI calculation** against zero height to prevent division errors.  
+- **Cleared `ClientContext`** after interceptor execution to avoid cross-request leakage.
+
+---
+
+### TODO (Planned Enhancements)
+- **Nutrition Module Integration:**  
+  Extend the existing personal metrics (BMI, BMR, calorie) with a **Nutrition Recommendation module**,  
+  providing adaptive meal plans and macro-nutrient ratios tailored to user objectives (e.g., fat loss, muscle gain, weight maintenance).
+
+- **PostgreSQL Deployment:**  
+  Migrate from the embedded **H2 development database** to a **PostgreSQL** backend for persistent and scalable data analytics.
+
+- **Error Handling Coverage:**  
+  Add enhanced exception mappings and negative test coverage for future **Spring Security** integration.
+
 
 
 ## Project Management
@@ -110,5 +123,7 @@ Documented in `docs/AI_USAGE.md` (ChatGPT used for documentation formatting and 
 Managed through Maven (`pom.xml`) with resolved artifacts from Maven Central. Dependency tables and licenses are summarized in the README.
 
 ## Tags
-`iteration-1` marks the Iteration 1 submission snapshot.
+- **Iteration 1 focus:** Designing and integrating **secure and meaningful data operations** (beyond basic CRUD),  
+  implementing **fitness calculators**, **research dashboards**, and **SpringDoc-powered API documentation**.
+
 
