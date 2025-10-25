@@ -20,7 +20,6 @@ COPY --from=build /app/target/*.jar /app/app.jar
 
 # Copy JaCoCo agent into the image for runtime coverage (from Maven cache)
 # Version must match pom.xml <jacoco.version>
-COPY --from=build /root/.m2/repository/org/jacoco/org.jacoco.agent/0.8.11/org.jacoco.agent-0.8.11-runtime.jar /app/jacocoagent.jar
 
 # App listens on port 8080
 EXPOSE 8080

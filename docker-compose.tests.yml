@@ -15,13 +15,17 @@ services:
           wget -qO- http://app:8080/actuator/health >/dev/null 2>&1 && break; sleep 2;
         done;
         echo 'Running Newman tests...';
+        # Consolidate unit test reports if they exist in the mounted workspace
+        mkdir -p testresult/unit testresult/unit-coverage; cp -r target/surefire-reports testresult/unit/ 2>/dev/null || true; cp -r target/site/jacoco testresult/unit-coverage/ 2>/dev/null || true;
         # Ensure HTML reporter is available in the container
         npm -g ls newman-reporter-html >/dev/null 2>&1 || npm -g i newman-reporter-html;
+        mkdir -p testresult/api; \
         newman run postman/fitness-api-tests.postman_collection.json \
           -e postman/fitness-api-tests.postman_environment.json \
           --env-var baseUrl=http://app:8080 \
-          --reporters cli,html \
-          --reporter-html-export postman/postman-report.html
+          --reporters cli,html,json \
+          --reporter-html-export testresult/api/postman-report.html \
+          --reporter-json-export testresult/api/postman-summary.json
     volumes:
       - ./:/etc/newman
 
@@ -29,7 +33,14 @@ services:
     image: maven:3.9-eclipse-temurin-17
     container_name: fitness-unit-tests
     working_dir: /workspace
-    command: mvn -q -e clean test
+    command:
+      - /bin/sh
+      - -lc
+      - >-
+        mvn -e -B clean test checkstyle:check -Dstyle.color=always -Dsurefire.printSummary=true &&
+        mkdir -p testresult/unit testresult/unit-coverage &&
+        cp -r target/surefire-reports testresult/unit/ 2>/dev/null || true &&
+        cp -r target/site/jacoco testresult/unit-coverage/ 2>/dev/null || true
     volumes:
       - ./:/workspace
       - maven-cache:/root/.m2

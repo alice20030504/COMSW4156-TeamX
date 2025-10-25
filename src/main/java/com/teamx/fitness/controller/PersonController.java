@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -96,7 +97,7 @@ public class PersonController {
   })
   public ResponseEntity<PersonSimple> createPerson(
       @Parameter(description = "User information including name, weight, height, and birth date", required = true)
-      @RequestBody PersonSimple person) {
+      @Valid @RequestBody PersonSimple person) {
     String clientId = ClientContext.getClientId();
     person.setClientId(clientId);
     PersonSimple savedPerson = personRepository.save(person);
@@ -133,7 +134,7 @@ public class PersonController {
       @Parameter(description = "Birth date for authentication (YYYY-MM-DD)", required = true)
       @RequestParam String birthDate,
       @Parameter(description = "Updated user information", required = true)
-      @RequestBody PersonSimple updatedPerson) {
+      @Valid @RequestBody PersonSimple updatedPerson) {
     
     // Authenticate user with ID and birth date
     LocalDate birthDateParsed = LocalDate.parse(birthDate);

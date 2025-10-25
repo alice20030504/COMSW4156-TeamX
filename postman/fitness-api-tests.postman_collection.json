@@ -1634,6 +1634,90 @@
           ]
         }
       ]
+    },
+    {
+      "name": "Negative and Boundary Tests",
+      "item": [
+        {
+          "name": "Create Person - invalid client header format",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Client-ID", "value": "invalid-app" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/persons", "host": ["{{baseUrl}}"], "path": ["api","persons"] },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Bad Header\",\n  \"weight\": 70.0,\n  \"height\": 175.0,\n  \"birthDate\": \"1990-01-01\"\n}" }
+          },
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Invalid client header returns 400', function () { pm.response.to.have.status(400); });"
+          ] } } ]
+        },
+        {
+          "name": "Create Person - missing required field (name)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Client-ID", "value": "{{mobileClient}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/persons", "host": ["{{baseUrl}}"], "path": ["api","persons"] },
+            "body": { "mode": "raw", "raw": "{\n  \"weight\": 70.0,\n  \"height\": 175.0,\n  \"birthDate\": \"1990-01-01\"\n}" }
+          },
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Missing required field returns 400', function () { pm.response.to.have.status(400); });"
+          ] } } ]
+        },
+        {
+          "name": "Get Person - invalid birthDate format",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "X-Client-ID", "value": "{{mobileClient}}" } ],
+            "url": {
+              "raw": "{{baseUrl}}/api/persons/123?birthDate=1990/01/01",
+              "host": ["{{baseUrl}}"],
+              "path": ["api","persons","123"],
+              "query": [ { "key": "birthDate", "value": "1990/01/01" } ]
+            }
+          },
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Invalid birthDate format returns 400', function () { pm.response.to.have.status(400); });"
+          ] } } ]
+        },
+        {
+          "name": "Get Person - nonexistent id unauthorized",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "X-Client-ID", "value": "{{mobileClient}}" } ],
+            "url": {
+              "raw": "{{baseUrl}}/api/persons/999999?birthDate=1990-01-01",
+              "host": ["{{baseUrl}}"],
+              "path": ["api","persons","999999"],
+              "query": [ { "key": "birthDate", "value": "1990-01-01" } ]
+            }
+          },
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Nonexistent id yields 401', function () { pm.response.to.have.status(401); });"
+          ] } } ]
+        },
+        {
+          "name": "Update Person - missing client header",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": {
+              "raw": "{{baseUrl}}/api/persons/{{personIdTypical}}?birthDate={{personBirthDateTypical}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api","persons","{{personIdTypical}}"],
+              "query": [ { "key": "birthDate", "value": "{{personBirthDateTypical}}" } ]
+            },
+            "body": { "mode": "raw", "raw": "{\n  \"weight\": 70.0,\n  \"height\": 175.0,\n  \"birthDate\": \"1990-01-01\"\n}" }
+          },
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Missing client header on update returns 400', function () { pm.response.to.have.status(400); });"
+          ] } } ]
+        }
+      ]
     }
   ],
   "event": [],
