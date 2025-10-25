@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: fitnessdb-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: fitnessdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d
+
+volumes:
+  # Named volumes not strictly needed here since we bind-mount ./data
+  # but can be added later if desired.
+  pgdata:

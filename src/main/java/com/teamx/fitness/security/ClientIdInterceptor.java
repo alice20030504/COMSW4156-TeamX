@@ -35,6 +35,7 @@ public class ClientIdInterceptor implements HandlerInterceptor {
     if (requestUri.startsWith("/swagger-ui")
         || requestUri.startsWith("/v3/api-docs")
         || requestUri.startsWith("/actuator")
+        || requestUri.equals("/health")
         || requestUri.equals("/")) {
       return true;
     }

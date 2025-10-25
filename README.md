@@ -53,6 +53,22 @@ which includes explanations of:
 - Mocked and parameterized test scenarios
 - Coverage snapshots and interpretation
 
+### Docker-based API tests and coverage
+
+- Unit tests (local):
+  - `mvn clean test`
+- Start app with coverage + DB (Docker):
+  - `docker compose -f docker-compose.yml -f docker-compose.coverage.yml up -d --build`
+- Run Postman tests (Docker; writes HTML report):
+  - `docker compose -f docker-compose.yml -f docker-compose.tests.yml up --abort-on-container-exit --build newman`
+  - Report: `postman/postman-report.html`
+- Stop containers (keep coverage file):
+  - `docker compose down`
+- Merge unit + API coverage and generate a single report:
+  - `mvn org.jacoco:jacoco-maven-plugin:0.8.11:merge -Djacoco.destFile=target/jacoco-merged.exec -Djacoco.dataFileList="target/jacoco.exec,coverage/jacoco-it.exec"`
+  - `mvn org.jacoco:jacoco-maven-plugin:0.8.11:report -Djacoco.dataFile=target/jacoco-merged.exec`
+  - Open: `target/site/jacoco/index.html`
+
 ## API Test
 
 Load fitness-api-tests.postman_collection.json and fitness-api-tests.postman_environment.json files from postman/ to Postman for API testing
@@ -127,3 +143,76 @@ Managed through Maven (`pom.xml`) with resolved artifacts from Maven Central. De
   implementing **fitness calculators**, **research dashboards**, and **SpringDoc-powered API documentation**.
 
 
+
+### Run with PostgreSQL (persistent)
+
+Minimal PostgreSQL configuration is provided via the `postgres` Spring profile.
+
+1) Ensure PostgreSQL is running and accessible.
+   - Defaults used if env vars unset: `DB_URL=jdbc:postgresql://localhost:5432/fitnessdb`, `DB_USERNAME=postgres`, `DB_PASSWORD=postgres`.
+
+2) Run the app with the profile and optional env vars:
+
+```bash
+# Windows PowerShell
+$env:DB_URL="jdbc:postgresql://localhost:5432/fitnessdb"
+$env:DB_USERNAME="postgres"
+$env:DB_PASSWORD="postgres"
+mvn spring-boot:run -Dspring-boot.run.profiles=postgres
+
+# macOS/Linux
+export DB_URL="jdbc:postgresql://localhost:5432/fitnessdb"
+export DB_USERNAME="postgres"
+export DB_PASSWORD="postgres"
+mvn spring-boot:run -Dspring-boot.run.profiles=postgres
+```
+
+The `postgres` profile uses `ddl-auto=update` to create/update tables automatically, and persists data between restarts.
+
+### Run with Docker (App + Postgres)
+
+This spins up both PostgreSQL and the app in containers.
+
+1) Install and start Docker Desktop, then verify:
+   - `docker --version`
+   - `docker compose version` (or use `docker-compose` if older)
+
+2) From the app root, build and start services:
+```
+cd COMSW4156-TeamX
+# Build the app image and start Postgres + app
+# Newer Docker
+docker compose up -d --build
+# Older Docker
+# docker-compose up -d --build
+```
+   - App URL: `http://localhost:8080`
+   - DB: `postgres://postgres:postgres@localhost:5432/fitnessdb` (data persists in `COMSW4156-TeamX/database/data`)
+
+3) Optional: run Postman tests via Docker (after app is up)
+```
+# Combine base compose with test compose and run the newman service
+docker compose -f docker-compose.yml -f docker-compose.tests.yml up --abort-on-container-exit newman
+# Older Docker
+# docker-compose -f docker-compose.yml -f docker-compose.tests.yml up --abort-on-container-exit newman
+```
+   - HTML report: `COMSW4156-TeamX/postman/postman-report.html`
+
+4) Stop services
+```
+docker compose down
+# docker-compose down
+```
+
+Troubleshooting
+- If `docker` is not recognized, install Docker Desktop and restart your terminal.
+- If port 5432 is busy, edit `docker-compose.yml` to map e.g. `5433:5432` and update `DB_URL` if you access from outside Docker.
+- First build takes a while (Maven downloads). Subsequent builds are faster.
+### All tests + combined coverage (unit + API)
+
+- PowerShell (Windows):
+  - `pwsh -File scripts/run-all-tests.ps1`
+- macOS/Linux:
+  - `bash scripts/run-all-tests.sh`
+
+This runs unit tests (JaCoCo), starts the app with a JaCoCo runtime agent, executes the Postman collection via Docker, merges unit and API coverage, and writes a single report to `target/site/jacoco/index.html`.

@@ -76,6 +76,12 @@
             <version>2.3.0</version>
         </dependency>
 
+        <!-- Spring Boot Actuator for health/info/metrics endpoints -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
         <!-- Spring Boot Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

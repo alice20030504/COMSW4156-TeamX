@@ -1,0 +1,11 @@
+target
+.git
+.gitignore
+.idea
+.vscode
+logs
+**/.DS_Store
+**/Thumbs.db
+reports
+postman-report.html
+

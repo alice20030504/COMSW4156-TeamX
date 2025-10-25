@@ -1,0 +1,8 @@
+services:
+  app:
+    environment:
+      # Enable JaCoCo runtime agent to record coverage from HTTP/API tests
+      JAVA_TOOL_OPTIONS: -javaagent:/app/jacocoagent.jar=destfile=/coverage/jacoco-it.exec,output=file
+    volumes:
+      - ./coverage:/coverage
+
