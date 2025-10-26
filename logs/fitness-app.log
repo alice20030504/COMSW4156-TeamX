@@ -4944,3 +4944,614 @@ java.time.format.DateTimeParseException: Text '1990/01/01' could not be parsed a
 2025-10-25 16:49:13 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
 2025-10-25 16:49:13 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
 2025-10-25 16:49:13 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-10-25 16:49:14 [main] INFO  c.t.f.FitnessManagementApplication - Starting FitnessManagementApplication v1.0.0-SNAPSHOT using Java 17.0.16 with PID 1 (/app/app.jar started by root in /app)
+2025-10-25 16:49:14 [main] DEBUG c.t.f.FitnessManagementApplication - Running with Spring Boot v3.2.0, Spring v6.1.1
+2025-10-25 16:49:14 [main] INFO  c.t.f.FitnessManagementApplication - The following 1 profile is active: "postgres"
+2025-10-25 16:49:15 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-10-25 16:49:15 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 127 ms. Found 1 JPA repository interface.
+2025-10-25 16:49:16 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8080 (http)
+2025-10-25 16:49:16 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-10-25 16:49:16 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.16]
+2025-10-25 16:49:16 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-10-25 16:49:16 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 1865 ms
+2025-10-25 16:49:16 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-10-25 16:49:16 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@49c83262
+2025-10-25 16:49:16 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-10-25 16:49:16 [main] INFO  o.s.b.a.h.H2ConsoleAutoConfiguration - H2 console available at '/h2-console'. Database available at 'jdbc:postgresql://postgres:5432/fitnessdb'
+2025-10-25 16:49:16 [main] DEBUG o.s.w.f.ServerHttpObservationFilter - Filter 'webMvcObservationFilter' configured for use
+2025-10-25 16:49:16 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-10-25 16:49:16 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.3.1.Final
+2025-10-25 16:49:16 [main] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+2025-10-25 16:49:17 [main] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-10-25 16:49:17 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-10-25 16:49:17 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-10-25 16:49:17 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-10-25 16:49:18 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-10-25 16:49:18 [main] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - 20 mappings in 'requestMappingHandlerMapping'
+2025-10-25 16:49:18 [main] DEBUG o.s.w.s.h.SimpleUrlHandlerMapping - Patterns [/webjars/**, /**, /swagger-ui*/*swagger-initializer.js, /swagger-ui*/**] in 'resourceHandlerMapping'
+2025-10-25 16:49:18 [main] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerAdapter - ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
+2025-10-25 16:49:18 [main] DEBUG o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - ControllerAdvice beans: 2 @ExceptionHandler, 1 ResponseBodyAdvice
+2025-10-25 16:49:19 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 3 endpoint(s) beneath base path '/actuator'
+2025-10-25 16:49:19 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8080 (http) with context path ''
+2025-10-25 16:49:19 [main] INFO  c.t.f.FitnessManagementApplication - Started FitnessManagementApplication in 5.167 seconds (process running for 5.552)
+2025-10-25 16:53:09 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-10-25 16:53:09 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-10-25 16:53:09 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-10-25 16:53:35 [main] INFO  c.t.f.FitnessManagementApplication - Starting FitnessManagementApplication v1.0.0-SNAPSHOT using Java 17.0.16 with PID 1 (/app/app.jar started by root in /app)
+2025-10-25 16:53:35 [main] DEBUG c.t.f.FitnessManagementApplication - Running with Spring Boot v3.2.0, Spring v6.1.1
+2025-10-25 16:53:35 [main] INFO  c.t.f.FitnessManagementApplication - The following 1 profile is active: "postgres"
+2025-10-25 16:53:36 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-10-25 16:53:36 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 112 ms. Found 1 JPA repository interface.
+2025-10-25 16:53:37 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8080 (http)
+2025-10-25 16:53:37 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-10-25 16:53:37 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.16]
+2025-10-25 16:53:37 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-10-25 16:53:37 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 1852 ms
+2025-10-25 16:53:37 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-10-25 16:53:38 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@14485747
+2025-10-25 16:53:38 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-10-25 16:53:38 [main] INFO  o.s.b.a.h.H2ConsoleAutoConfiguration - H2 console available at '/h2-console'. Database available at 'jdbc:postgresql://postgres:5432/fitnessdb'
+2025-10-25 16:53:38 [main] DEBUG o.s.w.f.ServerHttpObservationFilter - Filter 'webMvcObservationFilter' configured for use
+2025-10-25 16:53:38 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-10-25 16:53:38 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.3.1.Final
+2025-10-25 16:53:38 [main] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+2025-10-25 16:53:38 [main] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-10-25 16:53:39 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-10-25 16:53:40 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-10-25 16:53:40 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-10-25 16:53:41 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-10-25 16:53:41 [main] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - 20 mappings in 'requestMappingHandlerMapping'
+2025-10-25 16:53:41 [main] DEBUG o.s.w.s.h.SimpleUrlHandlerMapping - Patterns [/webjars/**, /**, /swagger-ui*/*swagger-initializer.js, /swagger-ui*/**] in 'resourceHandlerMapping'
+2025-10-25 16:53:41 [main] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerAdapter - ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
+2025-10-25 16:53:41 [main] DEBUG o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - ControllerAdvice beans: 2 @ExceptionHandler, 1 ResponseBodyAdvice
+2025-10-25 16:53:42 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 3 endpoint(s) beneath base path '/actuator'
+2025-10-25 16:53:42 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8080 (http) with context path ''
+2025-10-25 16:53:42 [main] INFO  c.t.f.FitnessManagementApplication - Started FitnessManagementApplication in 7.287 seconds (process running for 7.686)
+2025-10-25 16:54:08 [http-nio-8080-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-10-25 16:54:08 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-10-25 16:54:08 [http-nio-8080-exec-1] DEBUG o.s.web.servlet.DispatcherServlet - Detected StandardServletMultipartResolver
+2025-10-25 16:54:08 [http-nio-8080-exec-1] DEBUG o.s.web.servlet.DispatcherServlet - Detected AcceptHeaderLocaleResolver
+2025-10-25 16:54:08 [http-nio-8080-exec-1] DEBUG o.s.web.servlet.DispatcherServlet - Detected FixedThemeResolver
+2025-10-25 16:54:08 [http-nio-8080-exec-1] DEBUG o.s.web.servlet.DispatcherServlet - Detected org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator@37e0614e
+2025-10-25 16:54:08 [http-nio-8080-exec-1] DEBUG o.s.web.servlet.DispatcherServlet - Detected org.springframework.web.servlet.support.SessionFlashMapManager@19993ed
+2025-10-25 16:54:08 [http-nio-8080-exec-1] DEBUG o.s.web.servlet.DispatcherServlet - enableLoggingRequestDetails='false': request parameters and headers will be masked to prevent unsafe logging of potentially sensitive data
+2025-10-25 16:54:08 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 3 ms
+2025-10-25 16:54:08 [http-nio-8080-exec-1] DEBUG o.s.web.servlet.DispatcherServlet - GET "/actuator/health", parameters={}
+2025-10-25 16:54:08 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/octet-stream" to []
+2025-10-25 16:54:08 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/vnd.spring-boot.actuator.v3+json', given [*/*] and supported [application/vnd.spring-boot.actuator.v3+json, application/vnd.spring-boot.actuator.v2+json, application/json]
+2025-10-25 16:54:08 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [org.springframework.boot.actuate.health.SystemHealth@767dd5aa]
+2025-10-25 16:54:08 [http-nio-8080-exec-1] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-10-25 16:54:17 [http-nio-8080-exec-2] DEBUG o.s.web.servlet.DispatcherServlet - POST "/api/persons", parameters={}
+2025-10-25 16:54:17 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.PersonController#createPerson(PersonSimple)
+2025-10-25 16:54:17 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [com.teamx.fitness.model.PersonSimple@f3e54ca]
+2025-10-25 16:54:17 [http-nio-8080-exec-2] DEBUG org.hibernate.SQL - 
+    insert 
+    into
+        persons_simple
+        (birth_date, client_id, height, name, weight) 
+    values
+        (?, ?, ?, ?, ?)
+2025-10-25 16:54:17 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:17 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [com.teamx.fitness.model.PersonSimple@f3e54ca]
+2025-10-25 16:54:17 [http-nio-8080-exec-2] INFO  API_LOG - {"clientId":"mobile-app1","method":"POST","path":"/api/persons","status":201,"durationMs":148,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:17 [http-nio-8080-exec-2] DEBUG o.s.web.servlet.DispatcherServlet - Completed 201 CREATED
+2025-10-25 16:54:18 [http-nio-8080-exec-3] DEBUG o.s.web.servlet.DispatcherServlet - POST "/api/persons", parameters={}
+2025-10-25 16:54:18 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.PersonController#createPerson(PersonSimple)
+2025-10-25 16:54:18 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [com.teamx.fitness.model.PersonSimple@179df39]
+2025-10-25 16:54:18 [http-nio-8080-exec-3] DEBUG org.hibernate.SQL - 
+    insert 
+    into
+        persons_simple
+        (birth_date, client_id, height, name, weight) 
+    values
+        (?, ?, ?, ?, ?)
+2025-10-25 16:54:18 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:18 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [com.teamx.fitness.model.PersonSimple@179df39]
+2025-10-25 16:54:18 [http-nio-8080-exec-3] INFO  API_LOG - {"clientId":"mobile-app1","method":"POST","path":"/api/persons","status":201,"durationMs":10,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:18 [http-nio-8080-exec-3] DEBUG o.s.web.servlet.DispatcherServlet - Completed 201 CREATED
+2025-10-25 16:54:18 [http-nio-8080-exec-4] DEBUG o.s.web.servlet.DispatcherServlet - POST "/api/persons", parameters={}
+2025-10-25 16:54:18 [http-nio-8080-exec-4] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.PersonController#createPerson(PersonSimple)
+2025-10-25 16:54:18 [http-nio-8080-exec-4] DEBUG o.s.web.servlet.DispatcherServlet - Completed 400 BAD_REQUEST
+2025-10-25 16:54:18 [http-nio-8080-exec-5] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/persons/38?birthDate=1992-04-15", parameters={masked}
+2025-10-25 16:54:18 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.PersonController#getPersonById(Long, String)
+2025-10-25 16:54:18 [http-nio-8080-exec-5] DEBUG org.hibernate.SQL - 
+    select
+        ps1_0.id 
+    from
+        persons_simple ps1_0 
+    where
+        ps1_0.id=? 
+        and ps1_0.birth_date=? 
+    fetch
+        first ? rows only
+2025-10-25 16:54:18 [http-nio-8080-exec-5] DEBUG org.hibernate.SQL - 
+    select
+        ps1_0.id,
+        ps1_0.birth_date,
+        ps1_0.client_id,
+        ps1_0.height,
+        ps1_0.name,
+        ps1_0.weight 
+    from
+        persons_simple ps1_0 
+    where
+        ps1_0.id=? 
+        and ps1_0.client_id=?
+2025-10-25 16:54:18 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:18 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [com.teamx.fitness.model.PersonSimple@46403821]
+2025-10-25 16:54:18 [http-nio-8080-exec-5] INFO  API_LOG - {"clientId":"mobile-app1","method":"GET","path":"/api/persons/38","status":200,"durationMs":110,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:18 [http-nio-8080-exec-5] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-10-25 16:54:18 [http-nio-8080-exec-6] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/persons/39?birthDate=1985-11-30", parameters={masked}
+2025-10-25 16:54:18 [http-nio-8080-exec-6] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.PersonController#getPersonById(Long, String)
+2025-10-25 16:54:18 [http-nio-8080-exec-6] DEBUG org.hibernate.SQL - 
+    select
+        ps1_0.id 
+    from
+        persons_simple ps1_0 
+    where
+        ps1_0.id=? 
+        and ps1_0.birth_date=? 
+    fetch
+        first ? rows only
+2025-10-25 16:54:18 [http-nio-8080-exec-6] DEBUG org.hibernate.SQL - 
+    select
+        ps1_0.id,
+        ps1_0.birth_date,
+        ps1_0.client_id,
+        ps1_0.height,
+        ps1_0.name,
+        ps1_0.weight 
+    from
+        persons_simple ps1_0 
+    where
+        ps1_0.id=? 
+        and ps1_0.client_id=?
+2025-10-25 16:54:18 [http-nio-8080-exec-6] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:18 [http-nio-8080-exec-6] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [com.teamx.fitness.model.PersonSimple@6f4b4af7]
+2025-10-25 16:54:18 [http-nio-8080-exec-6] INFO  API_LOG - {"clientId":"mobile-app1","method":"GET","path":"/api/persons/39","status":200,"durationMs":7,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:18 [http-nio-8080-exec-6] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-10-25 16:54:18 [http-nio-8080-exec-7] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/persons/38?birthDate=1990-01-01", parameters={masked}
+2025-10-25 16:54:18 [http-nio-8080-exec-7] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.PersonController#getPersonById(Long, String)
+2025-10-25 16:54:18 [http-nio-8080-exec-7] DEBUG org.hibernate.SQL - 
+    select
+        ps1_0.id 
+    from
+        persons_simple ps1_0 
+    where
+        ps1_0.id=? 
+        and ps1_0.birth_date=? 
+    fetch
+        first ? rows only
+2025-10-25 16:54:18 [http-nio-8080-exec-7] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'text/plain', given [*/*] and supported [text/plain, */*, application/json, application/*+json]
+2025-10-25 16:54:18 [http-nio-8080-exec-7] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing ["Invalid ID or birth date. Only the authenticated user can access their own data."]
+2025-10-25 16:54:18 [http-nio-8080-exec-7] INFO  API_LOG - {"clientId":"mobile-app1","method":"GET","path":"/api/persons/38","status":401,"durationMs":5,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:18 [http-nio-8080-exec-7] DEBUG o.s.web.servlet.DispatcherServlet - Completed 401 UNAUTHORIZED
+2025-10-25 16:54:18 [http-nio-8080-exec-8] DEBUG o.s.web.servlet.DispatcherServlet - PUT "/api/persons/38?birthDate=1992-04-15", parameters={masked}
+2025-10-25 16:54:18 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.PersonController#updatePerson(Long, String, PersonSimple)
+2025-10-25 16:54:18 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [com.teamx.fitness.model.PersonSimple@452bf29]
+2025-10-25 16:54:18 [http-nio-8080-exec-8] DEBUG org.hibernate.SQL - 
+    select
+        ps1_0.id 
+    from
+        persons_simple ps1_0 
+    where
+        ps1_0.id=? 
+        and ps1_0.birth_date=? 
+    fetch
+        first ? rows only
+2025-10-25 16:54:18 [http-nio-8080-exec-8] DEBUG org.hibernate.SQL - 
+    select
+        ps1_0.id,
+        ps1_0.birth_date,
+        ps1_0.client_id,
+        ps1_0.height,
+        ps1_0.name,
+        ps1_0.weight 
+    from
+        persons_simple ps1_0 
+    where
+        ps1_0.id=? 
+        and ps1_0.client_id=?
+2025-10-25 16:54:18 [http-nio-8080-exec-8] DEBUG org.hibernate.SQL - 
+    update
+        persons_simple 
+    set
+        birth_date=?,
+        client_id=?,
+        height=?,
+        name=?,
+        weight=? 
+    where
+        id=?
+2025-10-25 16:54:18 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:18 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [com.teamx.fitness.model.PersonSimple@4a738be3]
+2025-10-25 16:54:18 [http-nio-8080-exec-8] INFO  API_LOG - {"clientId":"mobile-app1","method":"PUT","path":"/api/persons/38","status":200,"durationMs":26,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:18 [http-nio-8080-exec-8] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-10-25 16:54:18 [http-nio-8080-exec-9] DEBUG o.s.web.servlet.DispatcherServlet - PUT "/api/persons/39?birthDate=1985-11-30", parameters={masked}
+2025-10-25 16:54:18 [http-nio-8080-exec-9] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.PersonController#updatePerson(Long, String, PersonSimple)
+2025-10-25 16:54:18 [http-nio-8080-exec-9] DEBUG o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [com.teamx.fitness.model.PersonSimple@59a6c7c0]
+2025-10-25 16:54:18 [http-nio-8080-exec-9] DEBUG org.hibernate.SQL - 
+    select
+        ps1_0.id 
+    from
+        persons_simple ps1_0 
+    where
+        ps1_0.id=? 
+        and ps1_0.birth_date=? 
+    fetch
+        first ? rows only
+2025-10-25 16:54:18 [http-nio-8080-exec-9] DEBUG org.hibernate.SQL - 
+    select
+        ps1_0.id,
+        ps1_0.birth_date,
+        ps1_0.client_id,
+        ps1_0.height,
+        ps1_0.name,
+        ps1_0.weight 
+    from
+        persons_simple ps1_0 
+    where
+        ps1_0.id=? 
+        and ps1_0.client_id=?
+2025-10-25 16:54:18 [http-nio-8080-exec-9] DEBUG org.hibernate.SQL - 
+    update
+        persons_simple 
+    set
+        birth_date=?,
+        client_id=?,
+        height=?,
+        name=?,
+        weight=? 
+    where
+        id=?
+2025-10-25 16:54:18 [http-nio-8080-exec-9] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:18 [http-nio-8080-exec-9] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [com.teamx.fitness.model.PersonSimple@1abc80ac]
+2025-10-25 16:54:18 [http-nio-8080-exec-9] INFO  API_LOG - {"clientId":"mobile-app1","method":"PUT","path":"/api/persons/39","status":200,"durationMs":14,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:18 [http-nio-8080-exec-9] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-10-25 16:54:18 [http-nio-8080-exec-10] DEBUG o.s.web.servlet.DispatcherServlet - PUT "/api/persons/38?birthDate=1992-04-15", parameters={masked}
+2025-10-25 16:54:18 [http-nio-8080-exec-10] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.PersonController#updatePerson(Long, String, PersonSimple)
+2025-10-25 16:54:18 [http-nio-8080-exec-10] DEBUG o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [com.teamx.fitness.model.PersonSimple@3cb15658]
+2025-10-25 16:54:18 [http-nio-8080-exec-10] DEBUG org.hibernate.SQL - 
+    select
+        ps1_0.id 
+    from
+        persons_simple ps1_0 
+    where
+        ps1_0.id=? 
+        and ps1_0.birth_date=? 
+    fetch
+        first ? rows only
+2025-10-25 16:54:18 [http-nio-8080-exec-10] DEBUG org.hibernate.SQL - 
+    select
+        ps1_0.id,
+        ps1_0.birth_date,
+        ps1_0.client_id,
+        ps1_0.height,
+        ps1_0.name,
+        ps1_0.weight 
+    from
+        persons_simple ps1_0 
+    where
+        ps1_0.id=? 
+        and ps1_0.client_id=?
+2025-10-25 16:54:18 [http-nio-8080-exec-10] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/octet-stream', given [*/*] and supported [*/*]
+2025-10-25 16:54:18 [http-nio-8080-exec-10] INFO  API_LOG - {"clientId":"mobile-app2","method":"PUT","path":"/api/persons/38","status":404,"durationMs":8,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:18 [http-nio-8080-exec-10] DEBUG o.s.web.servlet.DispatcherServlet - Completed 404 NOT_FOUND
+2025-10-25 16:54:18 [http-nio-8080-exec-1] DEBUG o.s.web.servlet.DispatcherServlet - DELETE "/api/persons/39?birthDate=1985-11-30", parameters={masked}
+2025-10-25 16:54:18 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.PersonController#deletePerson(Long, String)
+2025-10-25 16:54:18 [http-nio-8080-exec-1] DEBUG org.hibernate.SQL - 
+    select
+        ps1_0.id 
+    from
+        persons_simple ps1_0 
+    where
+        ps1_0.id=? 
+        and ps1_0.birth_date=? 
+    fetch
+        first ? rows only
+2025-10-25 16:54:18 [http-nio-8080-exec-1] DEBUG org.hibernate.SQL - 
+    select
+        ps1_0.id,
+        ps1_0.birth_date,
+        ps1_0.client_id,
+        ps1_0.height,
+        ps1_0.name,
+        ps1_0.weight 
+    from
+        persons_simple ps1_0 
+    where
+        ps1_0.id=? 
+        and ps1_0.client_id=?
+2025-10-25 16:54:18 [http-nio-8080-exec-1] DEBUG org.hibernate.SQL - 
+    delete 
+    from
+        persons_simple 
+    where
+        id=?
+2025-10-25 16:54:18 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/octet-stream', given [*/*] and supported [*/*]
+2025-10-25 16:54:18 [http-nio-8080-exec-1] INFO  API_LOG - {"clientId":"mobile-app1","method":"DELETE","path":"/api/persons/39","status":204,"durationMs":25,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:18 [http-nio-8080-exec-1] DEBUG o.s.web.servlet.DispatcherServlet - Completed 204 NO_CONTENT
+2025-10-25 16:54:18 [http-nio-8080-exec-2] DEBUG o.s.web.servlet.DispatcherServlet - DELETE "/api/persons/38?birthDate=1992-04-15", parameters={masked}
+2025-10-25 16:54:18 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.PersonController#deletePerson(Long, String)
+2025-10-25 16:54:18 [http-nio-8080-exec-2] DEBUG org.hibernate.SQL - 
+    select
+        ps1_0.id 
+    from
+        persons_simple ps1_0 
+    where
+        ps1_0.id=? 
+        and ps1_0.birth_date=? 
+    fetch
+        first ? rows only
+2025-10-25 16:54:18 [http-nio-8080-exec-2] DEBUG org.hibernate.SQL - 
+    select
+        ps1_0.id,
+        ps1_0.birth_date,
+        ps1_0.client_id,
+        ps1_0.height,
+        ps1_0.name,
+        ps1_0.weight 
+    from
+        persons_simple ps1_0 
+    where
+        ps1_0.id=? 
+        and ps1_0.client_id=?
+2025-10-25 16:54:18 [http-nio-8080-exec-2] DEBUG org.hibernate.SQL - 
+    delete 
+    from
+        persons_simple 
+    where
+        id=?
+2025-10-25 16:54:18 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/octet-stream', given [*/*] and supported [*/*]
+2025-10-25 16:54:18 [http-nio-8080-exec-2] INFO  API_LOG - {"clientId":"mobile-app1","method":"DELETE","path":"/api/persons/38","status":204,"durationMs":12,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:18 [http-nio-8080-exec-2] DEBUG o.s.web.servlet.DispatcherServlet - Completed 204 NO_CONTENT
+2025-10-25 16:54:18 [http-nio-8080-exec-3] DEBUG o.s.web.servlet.DispatcherServlet - DELETE "/api/persons/38?birthDate=1992-04-15", parameters={masked}
+2025-10-25 16:54:18 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.PersonController#deletePerson(Long, String)
+2025-10-25 16:54:18 [http-nio-8080-exec-3] DEBUG org.hibernate.SQL - 
+    select
+        ps1_0.id 
+    from
+        persons_simple ps1_0 
+    where
+        ps1_0.id=? 
+        and ps1_0.birth_date=? 
+    fetch
+        first ? rows only
+2025-10-25 16:54:18 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'text/plain', given [*/*] and supported [text/plain, */*, application/json, application/*+json]
+2025-10-25 16:54:18 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing ["Invalid ID or birth date. Only the authenticated user can access their own data."]
+2025-10-25 16:54:18 [http-nio-8080-exec-3] INFO  API_LOG - {"clientId":"mobile-app1","method":"DELETE","path":"/api/persons/38","status":401,"durationMs":5,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:18 [http-nio-8080-exec-3] DEBUG o.s.web.servlet.DispatcherServlet - Completed 401 UNAUTHORIZED
+2025-10-25 16:54:18 [http-nio-8080-exec-4] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/persons/health", parameters={}
+2025-10-25 16:54:18 [http-nio-8080-exec-4] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.PersonController#healthCheck()
+2025-10-25 16:54:18 [http-nio-8080-exec-4] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:18 [http-nio-8080-exec-4] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [{service=Personal Fitness Management Service, version=1.0.0, status=UP}]
+2025-10-25 16:54:18 [http-nio-8080-exec-4] INFO  API_LOG - {"clientId":"mobile-app1","method":"GET","path":"/api/persons/health","status":200,"durationMs":4,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:18 [http-nio-8080-exec-4] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-10-25 16:54:18 [http-nio-8080-exec-5] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/persons/health", parameters={}
+2025-10-25 16:54:18 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.PersonController#healthCheck()
+2025-10-25 16:54:18 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:18 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [{service=Personal Fitness Management Service, version=1.0.0, status=UP}]
+2025-10-25 16:54:18 [http-nio-8080-exec-5] INFO  API_LOG - {"clientId":"research-tool1","method":"GET","path":"/api/persons/health","status":200,"durationMs":2,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:18 [http-nio-8080-exec-5] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-10-25 16:54:18 [http-nio-8080-exec-6] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/persons/health", parameters={}
+2025-10-25 16:54:18 [http-nio-8080-exec-6] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.PersonController#healthCheck()
+2025-10-25 16:54:18 [http-nio-8080-exec-6] DEBUG o.s.web.servlet.DispatcherServlet - Completed 400 BAD_REQUEST
+2025-10-25 16:54:18 [http-nio-8080-exec-7] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/persons/bmi?weight=70&height=175", parameters={masked}
+2025-10-25 16:54:18 [http-nio-8080-exec-7] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.PersonController#calculateBMI(Double, Double)
+2025-10-25 16:54:18 [http-nio-8080-exec-7] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:18 [http-nio-8080-exec-7] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [{weight=70.0, category=Normal weight, height=175.0, bmi=22.857142857142858}]
+2025-10-25 16:54:18 [http-nio-8080-exec-7] INFO  API_LOG - {"clientId":"mobile-app1","method":"GET","path":"/api/persons/bmi","status":200,"durationMs":5,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:18 [http-nio-8080-exec-7] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-10-25 16:54:18 [http-nio-8080-exec-8] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/persons/bmi?weight=45&height=180", parameters={masked}
+2025-10-25 16:54:18 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.PersonController#calculateBMI(Double, Double)
+2025-10-25 16:54:18 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:18 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [{weight=45.0, category=Underweight, height=180.0, bmi=13.888888888888888}]
+2025-10-25 16:54:18 [http-nio-8080-exec-8] INFO  API_LOG - {"clientId":"mobile-app1","method":"GET","path":"/api/persons/bmi","status":200,"durationMs":2,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:18 [http-nio-8080-exec-8] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-10-25 16:54:18 [http-nio-8080-exec-9] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/persons/bmi?weight=70", parameters={masked}
+2025-10-25 16:54:18 [http-nio-8080-exec-9] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.PersonController#calculateBMI(Double, Double)
+2025-10-25 16:54:18 [http-nio-8080-exec-9] DEBUG o.s.web.method.HandlerMethod - Could not resolve parameter [1] in public org.springframework.http.ResponseEntity<java.util.Map<java.lang.String, java.lang.Object>> com.teamx.fitness.controller.PersonController.calculateBMI(java.lang.Double,java.lang.Double): Required request parameter 'height' for method parameter type Double is not present
+2025-10-25 16:54:18 [http-nio-8080-exec-9] WARN  o.s.w.s.m.s.DefaultHandlerExceptionResolver - Resolved [org.springframework.web.bind.MissingServletRequestParameterException: Required request parameter 'height' for method parameter type Double is not present]
+2025-10-25 16:54:18 [http-nio-8080-exec-9] INFO  API_LOG - {"clientId":"mobile-app1","method":"GET","path":"/api/persons/bmi","status":400,"durationMs":5,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:18 [http-nio-8080-exec-9] DEBUG o.s.web.servlet.DispatcherServlet - Completed 400 BAD_REQUEST
+2025-10-25 16:54:18 [http-nio-8080-exec-9] DEBUG o.s.web.servlet.DispatcherServlet - "ERROR" dispatch for GET "/error?weight=70", parameters={masked}
+2025-10-25 16:54:18 [http-nio-8080-exec-9] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorController#error(HttpServletRequest)
+2025-10-25 16:54:18 [http-nio-8080-exec-9] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:18 [http-nio-8080-exec-9] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [{timestamp=Sat Oct 25 16:54:18 UTC 2025, status=400, error=Bad Request, message=Required parameter ' (truncated)...]
+2025-10-25 16:54:18 [http-nio-8080-exec-9] DEBUG o.s.web.servlet.DispatcherServlet - Exiting from "ERROR" dispatch, status 400
+2025-10-25 16:54:18 [http-nio-8080-exec-10] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/persons/calories?weight=70&height=175&age=30&gender=male&weeklyTrainingFreq=3", parameters={masked}
+2025-10-25 16:54:18 [http-nio-8080-exec-10] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.PersonController#calculateDailyCalories(Double, Double, Integer, String, Integer)
+2025-10-25 16:54:18 [http-nio-8080-exec-10] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:18 [http-nio-8080-exec-10] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [{bmr=1695.6670000000001, dailyCalories=2628.2838500000003, weeklyTrainingFreq=3}]
+2025-10-25 16:54:18 [http-nio-8080-exec-10] INFO  API_LOG - {"clientId":"mobile-app1","method":"GET","path":"/api/persons/calories","status":200,"durationMs":3,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:18 [http-nio-8080-exec-10] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-10-25 16:54:18 [http-nio-8080-exec-1] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/persons/calories?weight=55&height=165&age=28&gender=female&weeklyTrainingFreq=0", parameters={masked}
+2025-10-25 16:54:18 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.PersonController#calculateDailyCalories(Double, Double, Integer, String, Integer)
+2025-10-25 16:54:18 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:18 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [{bmr=1346.108, dailyCalories=1615.3295999999998, weeklyTrainingFreq=0}]
+2025-10-25 16:54:18 [http-nio-8080-exec-1] INFO  API_LOG - {"clientId":"mobile-app1","method":"GET","path":"/api/persons/calories","status":200,"durationMs":2,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:18 [http-nio-8080-exec-1] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-10-25 16:54:18 [http-nio-8080-exec-2] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/persons/calories?weight=70&height=175&gender=male&weeklyTrainingFreq=3", parameters={masked}
+2025-10-25 16:54:18 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.PersonController#calculateDailyCalories(Double, Double, Integer, String, Integer)
+2025-10-25 16:54:18 [http-nio-8080-exec-2] DEBUG o.s.web.method.HandlerMethod - Could not resolve parameter [2] in public org.springframework.http.ResponseEntity<java.util.Map<java.lang.String, java.lang.Object>> com.teamx.fitness.controller.PersonController.calculateDailyCalories(java.lang.Double,java.lang.Double,java.lang.Integer,java.lang.String,java.lang.Integer): Required request parameter 'age' for method parameter type Integer is not present
+2025-10-25 16:54:18 [http-nio-8080-exec-2] WARN  o.s.w.s.m.s.DefaultHandlerExceptionResolver - Resolved [org.springframework.web.bind.MissingServletRequestParameterException: Required request parameter 'age' for method parameter type Integer is not present]
+2025-10-25 16:54:18 [http-nio-8080-exec-2] INFO  API_LOG - {"clientId":"mobile-app1","method":"GET","path":"/api/persons/calories","status":400,"durationMs":2,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:18 [http-nio-8080-exec-2] DEBUG o.s.web.servlet.DispatcherServlet - Completed 400 BAD_REQUEST
+2025-10-25 16:54:18 [http-nio-8080-exec-2] DEBUG o.s.web.servlet.DispatcherServlet - "ERROR" dispatch for GET "/error?weight=70&height=175&gender=male&weeklyTrainingFreq=3", parameters={masked}
+2025-10-25 16:54:18 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorController#error(HttpServletRequest)
+2025-10-25 16:54:18 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:18 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [{timestamp=Sat Oct 25 16:54:18 UTC 2025, status=400, error=Bad Request, message=Required parameter ' (truncated)...]
+2025-10-25 16:54:18 [http-nio-8080-exec-2] DEBUG o.s.web.servlet.DispatcherServlet - Exiting from "ERROR" dispatch, status 400
+2025-10-25 16:54:18 [http-nio-8080-exec-3] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/research/persons", parameters={}
+2025-10-25 16:54:18 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.ResearchController#getAllUsersAnonymized()
+2025-10-25 16:54:18 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:18 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [{dataAnonymized=true, totalUsers=1523, accessLevel=RESEARCH_ONLY, containsPII=false, privacyComplian (truncated)...]
+2025-10-25 16:54:18 [http-nio-8080-exec-3] INFO  API_LOG - {"clientId":"research-tool1","method":"GET","path":"/api/research/persons","status":200,"durationMs":2,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:18 [http-nio-8080-exec-3] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-10-25 16:54:18 [http-nio-8080-exec-4] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/research/persons", parameters={}
+2025-10-25 16:54:18 [http-nio-8080-exec-4] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.ResearchController#getAllUsersAnonymized()
+2025-10-25 16:54:18 [http-nio-8080-exec-4] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:18 [http-nio-8080-exec-4] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [{dataAnonymized=true, totalUsers=1523, accessLevel=RESEARCH_ONLY, containsPII=false, privacyComplian (truncated)...]
+2025-10-25 16:54:18 [http-nio-8080-exec-4] INFO  API_LOG - {"clientId":"research-tool2","method":"GET","path":"/api/research/persons","status":200,"durationMs":2,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:18 [http-nio-8080-exec-4] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-10-25 16:54:18 [http-nio-8080-exec-5] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/research/persons", parameters={}
+2025-10-25 16:54:18 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.ResearchController#getAllUsersAnonymized()
+2025-10-25 16:54:18 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Using @ExceptionHandler com.teamx.fitness.config.GlobalExceptionHandler#handleResponseStatusException(ResponseStatusException)
+2025-10-25 16:54:18 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:18 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [{error=Forbidden, message=Mobile clients are not authorized to access research endpoints. Research e (truncated)...]
+2025-10-25 16:54:18 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [org.springframework.web.server.ResponseStatusException: 403 FORBIDDEN "Mobile clients are not authorized to access research endpoints. Research endpoints are restricted to research-tool clients only."]
+2025-10-25 16:54:18 [http-nio-8080-exec-5] INFO  API_LOG - {"clientId":"mobile-app1","method":"GET","path":"/api/research/persons","status":403,"durationMs":5,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:18 [http-nio-8080-exec-5] DEBUG o.s.web.servlet.DispatcherServlet - Completed 403 FORBIDDEN
+2025-10-25 16:54:18 [http-nio-8080-exec-6] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/research/demographics?ageRange=25-34&gender=ALL", parameters={masked}
+2025-10-25 16:54:18 [http-nio-8080-exec-6] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.ResearchController#getDemographicStats(String, String, String)
+2025-10-25 16:54:18 [http-nio-8080-exec-6] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:18 [http-nio-8080-exec-6] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [{dataAnonymized=true, cohort={ageRange=25-34, meetsPrivacyThreshold=true, gender=ALL, sampleSize=156 (truncated)...]
+2025-10-25 16:54:18 [http-nio-8080-exec-6] INFO  API_LOG - {"clientId":"research-tool1","method":"GET","path":"/api/research/demographics","status":200,"durationMs":2,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:18 [http-nio-8080-exec-6] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-10-25 16:54:18 [http-nio-8080-exec-7] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/research/demographics?ageRange=65-74&gender=FEMALE", parameters={masked}
+2025-10-25 16:54:18 [http-nio-8080-exec-7] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.ResearchController#getDemographicStats(String, String, String)
+2025-10-25 16:54:18 [http-nio-8080-exec-7] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:18 [http-nio-8080-exec-7] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [{dataAnonymized=true, cohort={ageRange=65-74, meetsPrivacyThreshold=true, gender=FEMALE, sampleSize= (truncated)...]
+2025-10-25 16:54:18 [http-nio-8080-exec-7] INFO  API_LOG - {"clientId":"research-tool2","method":"GET","path":"/api/research/demographics","status":200,"durationMs":2,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:18 [http-nio-8080-exec-7] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-10-25 16:54:18 [http-nio-8080-exec-8] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/research/demographics", parameters={}
+2025-10-25 16:54:18 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.ResearchController#getDemographicStats(String, String, String)
+2025-10-25 16:54:18 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Using @ExceptionHandler com.teamx.fitness.config.GlobalExceptionHandler#handleResponseStatusException(ResponseStatusException)
+2025-10-25 16:54:18 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:18 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [{error=Forbidden, message=Mobile clients are not authorized to access research endpoints. Research e (truncated)...]
+2025-10-25 16:54:18 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [org.springframework.web.server.ResponseStatusException: 403 FORBIDDEN "Mobile clients are not authorized to access research endpoints. Research endpoints are restricted to research-tool clients only."]
+2025-10-25 16:54:18 [http-nio-8080-exec-8] INFO  API_LOG - {"clientId":"mobile-app1","method":"GET","path":"/api/research/demographics","status":403,"durationMs":4,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:18 [http-nio-8080-exec-8] DEBUG o.s.web.servlet.DispatcherServlet - Completed 403 FORBIDDEN
+2025-10-25 16:54:18 [http-nio-8080-exec-9] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/research/workout-patterns?ageRange=25-34", parameters={masked}
+2025-10-25 16:54:18 [http-nio-8080-exec-9] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.ResearchController#getWorkoutPatterns(String)
+2025-10-25 16:54:18 [http-nio-8080-exec-9] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:18 [http-nio-8080-exec-9] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [{ageRange=25-34, privacyProtected=true, exerciseDistribution={AEROBIC=45.0, MIXED=5.0, FLEXIBILITY=1 (truncated)...]
+2025-10-25 16:54:18 [http-nio-8080-exec-9] INFO  API_LOG - {"clientId":"research-tool1","method":"GET","path":"/api/research/workout-patterns","status":200,"durationMs":2,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:18 [http-nio-8080-exec-9] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-10-25 16:54:18 [http-nio-8080-exec-10] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/research/workout-patterns", parameters={}
+2025-10-25 16:54:18 [http-nio-8080-exec-10] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.ResearchController#getWorkoutPatterns(String)
+2025-10-25 16:54:18 [http-nio-8080-exec-10] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:18 [http-nio-8080-exec-10] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [{ageRange=ALL, privacyProtected=true, exerciseDistribution={AEROBIC=45.0, MIXED=5.0, FLEXIBILITY=15. (truncated)...]
+2025-10-25 16:54:18 [http-nio-8080-exec-10] INFO  API_LOG - {"clientId":"research-tool2","method":"GET","path":"/api/research/workout-patterns","status":200,"durationMs":2,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:18 [http-nio-8080-exec-10] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-10-25 16:54:18 [http-nio-8080-exec-1] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/research/workout-patterns", parameters={}
+2025-10-25 16:54:18 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.ResearchController#getWorkoutPatterns(String)
+2025-10-25 16:54:18 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Using @ExceptionHandler com.teamx.fitness.config.GlobalExceptionHandler#handleResponseStatusException(ResponseStatusException)
+2025-10-25 16:54:18 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:18 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [{error=Forbidden, message=Mobile clients are not authorized to access research endpoints. Research e (truncated)...]
+2025-10-25 16:54:18 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [org.springframework.web.server.ResponseStatusException: 403 FORBIDDEN "Mobile clients are not authorized to access research endpoints. Research endpoints are restricted to research-tool clients only."]
+2025-10-25 16:54:18 [http-nio-8080-exec-1] INFO  API_LOG - {"clientId":"mobile-app1","method":"GET","path":"/api/research/workout-patterns","status":403,"durationMs":3,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:18 [http-nio-8080-exec-1] DEBUG o.s.web.servlet.DispatcherServlet - Completed 403 FORBIDDEN
+2025-10-25 16:54:18 [http-nio-8080-exec-2] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/research/nutrition-trends?objective=BULK", parameters={masked}
+2025-10-25 16:54:18 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.ResearchController#getNutritionTrends(String)
+2025-10-25 16:54:18 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:18 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [{dataType=AGGREGATED, containsPII=false, macroDistribution={averageCalories=3200, carbs=45, protein= (truncated)...]
+2025-10-25 16:54:18 [http-nio-8080-exec-2] INFO  API_LOG - {"clientId":"research-tool1","method":"GET","path":"/api/research/nutrition-trends","status":200,"durationMs":2,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:18 [http-nio-8080-exec-2] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-10-25 16:54:19 [http-nio-8080-exec-3] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/research/nutrition-trends", parameters={}
+2025-10-25 16:54:19 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.ResearchController#getNutritionTrends(String)
+2025-10-25 16:54:19 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:19 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [{dataType=AGGREGATED, containsPII=false, macroDistribution={averageCalories=2500, carbs=40, protein= (truncated)...]
+2025-10-25 16:54:19 [http-nio-8080-exec-3] INFO  API_LOG - {"clientId":"research-tool2","method":"GET","path":"/api/research/nutrition-trends","status":200,"durationMs":2,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:19 [http-nio-8080-exec-3] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-10-25 16:54:19 [http-nio-8080-exec-4] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/research/nutrition-trends", parameters={}
+2025-10-25 16:54:19 [http-nio-8080-exec-4] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.ResearchController#getNutritionTrends(String)
+2025-10-25 16:54:19 [http-nio-8080-exec-4] DEBUG o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Using @ExceptionHandler com.teamx.fitness.config.GlobalExceptionHandler#handleResponseStatusException(ResponseStatusException)
+2025-10-25 16:54:19 [http-nio-8080-exec-4] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:19 [http-nio-8080-exec-4] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [{error=Forbidden, message=Mobile clients are not authorized to access research endpoints. Research e (truncated)...]
+2025-10-25 16:54:19 [http-nio-8080-exec-4] DEBUG o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [org.springframework.web.server.ResponseStatusException: 403 FORBIDDEN "Mobile clients are not authorized to access research endpoints. Research endpoints are restricted to research-tool clients only."]
+2025-10-25 16:54:19 [http-nio-8080-exec-4] INFO  API_LOG - {"clientId":"mobile-app1","method":"GET","path":"/api/research/nutrition-trends","status":403,"durationMs":3,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:19 [http-nio-8080-exec-4] DEBUG o.s.web.servlet.DispatcherServlet - Completed 403 FORBIDDEN
+2025-10-25 16:54:19 [http-nio-8080-exec-5] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/research/population-health", parameters={}
+2025-10-25 16:54:19 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.ResearchController#getPopulationHealth()
+2025-10-25 16:54:19 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:19 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [{dataProtection=All data is aggregated and anonymized, totalPopulation=1523, goalMetrics={weightLoss (truncated)...]
+2025-10-25 16:54:19 [http-nio-8080-exec-5] INFO  API_LOG - {"clientId":"research-tool1","method":"GET","path":"/api/research/population-health","status":200,"durationMs":3,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:19 [http-nio-8080-exec-5] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-10-25 16:54:19 [http-nio-8080-exec-6] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/research/population-health", parameters={}
+2025-10-25 16:54:19 [http-nio-8080-exec-6] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.ResearchController#getPopulationHealth()
+2025-10-25 16:54:19 [http-nio-8080-exec-6] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:19 [http-nio-8080-exec-6] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [{dataProtection=All data is aggregated and anonymized, totalPopulation=1523, goalMetrics={weightLoss (truncated)...]
+2025-10-25 16:54:19 [http-nio-8080-exec-6] INFO  API_LOG - {"clientId":"research-tool2","method":"GET","path":"/api/research/population-health","status":200,"durationMs":3,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:19 [http-nio-8080-exec-6] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-10-25 16:54:19 [http-nio-8080-exec-7] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/research/population-health", parameters={}
+2025-10-25 16:54:19 [http-nio-8080-exec-7] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.ResearchController#getPopulationHealth()
+2025-10-25 16:54:19 [http-nio-8080-exec-7] DEBUG o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Using @ExceptionHandler com.teamx.fitness.config.GlobalExceptionHandler#handleResponseStatusException(ResponseStatusException)
+2025-10-25 16:54:19 [http-nio-8080-exec-7] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:19 [http-nio-8080-exec-7] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [{error=Forbidden, message=Mobile clients are not authorized to access research endpoints. Research e (truncated)...]
+2025-10-25 16:54:19 [http-nio-8080-exec-7] DEBUG o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [org.springframework.web.server.ResponseStatusException: 403 FORBIDDEN "Mobile clients are not authorized to access research endpoints. Research endpoints are restricted to research-tool clients only."]
+2025-10-25 16:54:19 [http-nio-8080-exec-7] INFO  API_LOG - {"clientId":"mobile-app1","method":"GET","path":"/api/research/population-health","status":403,"durationMs":3,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:19 [http-nio-8080-exec-7] DEBUG o.s.web.servlet.DispatcherServlet - Completed 403 FORBIDDEN
+2025-10-25 16:54:19 [http-nio-8080-exec-8] DEBUG o.s.web.servlet.DispatcherServlet - GET "/actuator/health", parameters={}
+2025-10-25 16:54:19 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/octet-stream" to []
+2025-10-25 16:54:19 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/vnd.spring-boot.actuator.v3+json', given [*/*] and supported [application/vnd.spring-boot.actuator.v3+json, application/vnd.spring-boot.actuator.v2+json, application/json]
+2025-10-25 16:54:19 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [org.springframework.boot.actuate.health.SystemHealth@31edd45c]
+2025-10-25 16:54:19 [http-nio-8080-exec-8] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-10-25 16:54:19 [http-nio-8080-exec-9] DEBUG o.s.web.servlet.DispatcherServlet - GET "/health", parameters={}
+2025-10-25 16:54:19 [http-nio-8080-exec-9] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.HealthController#health()
+2025-10-25 16:54:19 [http-nio-8080-exec-9] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:19 [http-nio-8080-exec-9] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [{service=Personal Fitness Management Service, version=1.0.0, status=UP}]
+2025-10-25 16:54:19 [http-nio-8080-exec-9] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-10-25 16:54:19 [http-nio-8080-exec-10] DEBUG o.s.web.servlet.DispatcherServlet - POST "/api/persons", parameters={}
+2025-10-25 16:54:19 [http-nio-8080-exec-10] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.PersonController#createPerson(PersonSimple)
+2025-10-25 16:54:19 [http-nio-8080-exec-10] DEBUG o.s.web.servlet.DispatcherServlet - Completed 400 BAD_REQUEST
+2025-10-25 16:54:19 [http-nio-8080-exec-1] DEBUG o.s.web.servlet.DispatcherServlet - POST "/api/persons", parameters={}
+2025-10-25 16:54:19 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.PersonController#createPerson(PersonSimple)
+2025-10-25 16:54:19 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [com.teamx.fitness.model.PersonSimple@300fc0d4]
+2025-10-25 16:54:19 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Using @ExceptionHandler com.teamx.fitness.config.GlobalExceptionHandler#handleMethodArgumentNotValid(MethodArgumentNotValidException)
+2025-10-25 16:54:19 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:19 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [{error=Bad Request, message=name: Name is required, status=400}]
+2025-10-25 16:54:19 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [org.springframework.web.bind.MethodArgumentNotValidException: Validation failed for argument [0] in public org.springframework.http.ResponseEntity<com.teamx.fitness.model.PersonSimple> com.teamx.fitness.controller.PersonController.createPerson(com.teamx.fitness.model.PersonSimple): [Field error in object 'personSimple' on field 'name': rejected value [null]; codes [NotBlank.personSimple.name,NotBlank.name,NotBlank.java.lang.String,NotBlank]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [personSimple.name,name]; arguments []; default message [name]]; default message [Name is required]] ]
+2025-10-25 16:54:19 [http-nio-8080-exec-1] INFO  API_LOG - {"clientId":"mobile-app1","method":"POST","path":"/api/persons","status":400,"durationMs":7,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:19 [http-nio-8080-exec-1] DEBUG o.s.web.servlet.DispatcherServlet - Completed 400 BAD_REQUEST
+2025-10-25 16:54:19 [http-nio-8080-exec-2] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/persons/123?birthDate=1990/01/01", parameters={masked}
+2025-10-25 16:54:19 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.PersonController#getPersonById(Long, String)
+2025-10-25 16:54:19 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Using @ExceptionHandler com.teamx.fitness.config.GlobalExceptionHandler#handleDateTimeParse(DateTimeParseException)
+2025-10-25 16:54:19 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-25 16:54:19 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [{error=Bad Request, message=Invalid date format. Use YYYY-MM-DD, status=400}]
+2025-10-25 16:54:19 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [java.time.format.DateTimeParseException: Text '1990/01/01' could not be parsed at index 4]
+2025-10-25 16:54:19 [http-nio-8080-exec-2] INFO  API_LOG - {"clientId":"mobile-app1","method":"GET","path":"/api/persons/123","status":400,"durationMs":7,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:19 [http-nio-8080-exec-2] DEBUG o.s.web.servlet.DispatcherServlet - Completed 400 BAD_REQUEST
+2025-10-25 16:54:19 [http-nio-8080-exec-3] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/persons/999999?birthDate=1990-01-01", parameters={masked}
+2025-10-25 16:54:19 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.PersonController#getPersonById(Long, String)
+2025-10-25 16:54:19 [http-nio-8080-exec-3] DEBUG org.hibernate.SQL - 
+    select
+        ps1_0.id 
+    from
+        persons_simple ps1_0 
+    where
+        ps1_0.id=? 
+        and ps1_0.birth_date=? 
+    fetch
+        first ? rows only
+2025-10-25 16:54:19 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'text/plain', given [*/*] and supported [text/plain, */*, application/json, application/*+json]
+2025-10-25 16:54:19 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing ["Invalid ID or birth date. Only the authenticated user can access their own data."]
+2025-10-25 16:54:19 [http-nio-8080-exec-3] INFO  API_LOG - {"clientId":"mobile-app1","method":"GET","path":"/api/persons/999999","status":401,"durationMs":3,"ip":"172.18.0.4","ua":"PostmanRuntime/7.39.0"}
+2025-10-25 16:54:19 [http-nio-8080-exec-3] DEBUG o.s.web.servlet.DispatcherServlet - Completed 401 UNAUTHORIZED
+2025-10-25 16:54:19 [http-nio-8080-exec-4] DEBUG o.s.web.servlet.DispatcherServlet - PUT "/api/persons/38?birthDate=1992-04-15", parameters={masked}
+2025-10-25 16:54:19 [http-nio-8080-exec-4] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.PersonController#updatePerson(Long, String, PersonSimple)
+2025-10-25 16:54:19 [http-nio-8080-exec-4] DEBUG o.s.web.servlet.DispatcherServlet - Completed 400 BAD_REQUEST
+2025-10-25 17:53:01 [http-nio-8080-exec-6] DEBUG o.s.web.servlet.DispatcherServlet - GET "/", parameters={}
+2025-10-25 17:53:01 [http-nio-8080-exec-6] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.HomeController#home()
+2025-10-25 17:53:01 [http-nio-8080-exec-6] DEBUG o.s.web.servlet.view.RedirectView - View [RedirectView], model {}
+2025-10-25 17:53:01 [http-nio-8080-exec-6] DEBUG o.s.web.servlet.DispatcherServlet - Completed 302 FOUND
+2025-10-25 17:53:02 [http-nio-8080-exec-8] DEBUG o.s.web.servlet.DispatcherServlet - GET "/swagger-ui.html", parameters={}
+2025-10-25 17:53:02 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to org.springdoc.webmvc.ui.SwaggerWelcomeWebMvc#redirectToUi(HttpServletRequest)
+2025-10-25 17:53:02 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json;q=0.8', given [text/html, application/xhtml+xml, application/xml;q=0.9, */*;q=0.8] and supported [application/json, application/*+json]
+2025-10-25 17:53:02 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Nothing to write: null body
+2025-10-25 17:53:02 [http-nio-8080-exec-8] DEBUG o.s.web.servlet.DispatcherServlet - Completed 302 FOUND
+2025-10-25 17:53:02 [http-nio-8080-exec-10] DEBUG o.s.web.servlet.DispatcherServlet - GET "/swagger-ui/index.html", parameters={}
+2025-10-25 17:53:02 [http-nio-8080-exec-10] DEBUG o.s.w.s.h.SimpleUrlHandlerMapping - Mapped to ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]
+2025-10-25 17:53:02 [http-nio-8080-exec-10] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-10-25 18:30:23 [http-nio-8080-exec-3] DEBUG o.s.web.servlet.DispatcherServlet - GET "/", parameters={}
+2025-10-25 18:30:23 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.teamx.fitness.controller.HomeController#home()
+2025-10-25 18:30:23 [http-nio-8080-exec-3] DEBUG o.s.web.servlet.view.RedirectView - View [RedirectView], model {}
+2025-10-25 18:30:23 [http-nio-8080-exec-3] DEBUG o.s.web.servlet.DispatcherServlet - Completed 302 FOUND
+2025-10-25 18:30:23 [http-nio-8080-exec-5] DEBUG o.s.web.servlet.DispatcherServlet - GET "/swagger-ui.html", parameters={}
+2025-10-25 18:30:23 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to org.springdoc.webmvc.ui.SwaggerWelcomeWebMvc#redirectToUi(HttpServletRequest)
+2025-10-25 18:30:23 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json;q=0.8', given [text/html, application/xhtml+xml, application/xml;q=0.9, */*;q=0.8] and supported [application/json, application/*+json]
+2025-10-25 18:30:23 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Nothing to write: null body
+2025-10-25 18:30:23 [http-nio-8080-exec-5] DEBUG o.s.web.servlet.DispatcherServlet - Completed 302 FOUND
+2025-10-25 18:30:23 [http-nio-8080-exec-7] DEBUG o.s.web.servlet.DispatcherServlet - GET "/swagger-ui/index.html", parameters={}
+2025-10-25 18:30:23 [http-nio-8080-exec-7] DEBUG o.s.w.s.h.SimpleUrlHandlerMapping - Mapped to ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]
+2025-10-25 18:30:23 [http-nio-8080-exec-7] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
