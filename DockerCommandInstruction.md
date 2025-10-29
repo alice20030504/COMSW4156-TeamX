@@ -1,4 +1,4 @@
-Docker Commands — Clean, Build, Test
+Docker Commands - Clean, Build, Test
 
 Assumptions
 - Docker Desktop is running.
@@ -7,7 +7,7 @@ Assumptions
 1) Clean (start fresh)
 - Soft clean (keeps DB data):
   - `docker compose -f docker-compose.yml -f docker-compose.tests.yml down --remove-orphans`
-- Hard clean (removes DB data — destructive):
+- Hard clean (removes DB data - destructive):
   - `docker compose -f docker-compose.yml -f docker-compose.tests.yml down -v --remove-orphans`
   - Optionally delete `database/data`
 
@@ -28,7 +28,7 @@ Assumptions
 4) Shutdown
 - `docker compose down`
 
-Manual API Injection — Newman and curl
+Manual API Injection - Newman and curl
 
 Newman (local Node)
 - Full suite:
@@ -45,7 +45,7 @@ curl (Windows PowerShell; use `curl.exe` to bypass alias)
 - Read (replace ID):
   - `curl.exe -s -X GET "http://localhost:8080/api/persons/<ID>?birthDate=1992-02-01" -H "X-Client-ID: mobile-app1"`
 
-Persistent Data — Write, Restart, Read
+Persistent Data - Write, Restart, Read
 
 Option A: via curl
 - Write:
@@ -65,6 +65,7 @@ Notes
 
 Testing Persistent Data After Restart (PowerShell)
 - Open Windows PowerShell in `COMSW4156-TeamX` and run:
+```
 $base = "http://localhost:8080"
 $headers = @{ 'Content-Type'='application/json'; 'X-Client-ID'='mobile-app1' }
 $body = @'
@@ -80,5 +81,6 @@ docker compose restart app | Out-Null
 Start-Sleep -Seconds 3
 "Reading after restart..."
 Invoke-RestMethod -Method GET -Uri ("$base/api/persons/{0}?birthDate=1992-02-01" -f $id) -Headers @{ 'X-Client-ID'='mobile-app1' } | ConvertTo-Json -Depth 5
-- Expect the same record before and after the restart, proving persistence.
+# Expect the same record before and after the restart, proving persistence.
+```
 

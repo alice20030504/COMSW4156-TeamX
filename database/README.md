@@ -1,4 +1,4 @@
-PostgreSQL (Persistent Data) — Quick Start
+PostgreSQL (Persistent Data) - Quick Start
 
 This project includes a minimal PostgreSQL setup for persistent storage using Docker.
 
@@ -25,7 +25,7 @@ Data persists under `COMSW4156-TeamX/database/data` between app restarts.
 
 2) Run the Spring Boot app with the postgres profile
 - Open a new terminal at the repo root.
-- Set environment variables (optional — defaults match Docker config) and start the app.
+- Set environment variables (optional - defaults match Docker config) and start the app.
 
 Windows PowerShell
 ```
@@ -79,9 +79,9 @@ Notes
      curl -H 'X-Client-ID: mobile-app1' \
        "http://localhost:8080/api/persons/{id}?birthDate=1992-02-01"
      ```
-   You should still see the same record — confirming persistent storage in PostgreSQL.
+   You should still see the same record - confirming persistent storage in PostgreSQL.
 
-4) Optional — Run API tests (Newman)
+4) Optional - Run API tests (Newman)
 - From repo root (Windows PowerShell):
 ```
 cd <repo-root>
@@ -97,7 +97,7 @@ npx -y newman run COMSW4156-TeamX/postman/fitness-api-tests.postman_collection.j
 - Wipe stored data: delete the `COMSW4156-TeamX/database/data` folder (this is destructive)
 
 Troubleshooting
-- Port already in use: change `"5432:5432"` to `"5433:5432"` in `docker-compose.yml` and update `DB_URL` to match.
+- Port already in use: change "5432:5432" to "5433:5432" in `docker-compose.yml` and update `DB_URL` to match.
 - Connection refused: ensure Docker is running and container `fitnessdb-postgres` is healthy (`docker ps`).
 - Authentication failed: confirm `DB_USERNAME`/`DB_PASSWORD` match compose env values.
 

@@ -6,18 +6,18 @@
 - The application is deployed as a Spring Boot service running on Java 17.
 
 ## Core Modules
-1. **Configuration**
+1. Configuration
    - Bootstrapped by `FitnessManagementApplication`.
    - OpenAPI configuration exposes Swagger UI for interactive exploration.
-2. **Controllers**
+2. Controllers
    - `PersonController` serves client-facing endpoints for BMI, calorie needs, CRUD actions, and health checks.
    - `ResearchController` delivers anonymized analytics reserved for research clients.
-3. **Service Layer**
+3. Service Layer
    - `PersonService` calculates BMI, BMR, and calorie requirements.
    - `AuthService` validates identity using repository lookups and encapsulates unauthorized responses.
-4. **Security**
+4. Security
    - `ClientIdInterceptor` enforces presence and format of `X-Client-ID` headers and stores context in `ClientContext`.
-5. **Persistence**
+5. Persistence
    - `PersonRepository` is a Spring Data JPA repository backed by an H2 database (development) or PostgreSQL (production).
 
 ## Data Flow
@@ -34,43 +34,43 @@
 - Unit tests mock services and repositories to validate controller logic.
 - Integration and system tests use Postman/Newman to hit HTTP endpoints and verify multi-client isolation, persistence, and error handling.
 
-## Repository Layout
+## Repository Layout (simplified)
 
 ```
 COMSW4156-TeamX/
-├─ README.md
-├─ pom.xml
-├─ docs/
-│  ├─ AI_USAGE.md
-│  ├─ ARCHITECTURE.md
-│  ├─ STYLE_CHECK_SUMMARY.md
-│  ├─ TESTING_RESULTS.md
-│  └─ API_REFERENCE.md
-├─ postman/
-│  ├─ fitness-api-tests.postman_collection.json
-│  └─ fitness-api-tests.postman_environment.json
-├─ reports/
-│  ├─ checkstyle-result.xml
-│  └─ postman-newman-results.json
-│  └─ test-coverage
-│  └─ checkstyle Results
-├─ src/
-│  ├─ main/
-│  │  ├─ java/com/teamx/fitness/
-│  │  │  ├─ FitnessManagementApplication.java
-│  │  │  ├─ config/
-│  │  │  ├─ controller/
-│  │  │  ├─ repository/
-│  │  │  ├─ security/
-│  │  │  └─ service/
-│  │  └─ resources/
-│  │     ├─ application.yml
-│  │     └─ data.sql
-│  └─ test/
-│     └─ java/com/teamx/fitness/
-│        ├─ controller/
-│        ├─ integration/
-│        ├─ security/
-│        └─ service/
-└─ .gitignore
+  README.md
+  pom.xml
+  docs/
+    AI_USAGE.md
+    ARCHITECTURE.md
+    STYLE_CHECK_SUMMARY.md
+    TESTING_RESULTS.md
+    API_REFERENCE.md
+  postman/
+    fitness-api-tests.postman_collection.json
+    fitness-api-tests.postman_environment.json
+  reports/
+    checkstyle-result.xml
+    postman-newman-results.json
+    test-coverage
+  src/
+    main/
+      java/com/teamx/fitness/
+        FitnessManagementApplication.java
+        config/
+        controller/
+        repository/
+        security/
+        service/
+      resources/
+        application.yml
+        data.sql
+    test/
+      java/com/teamx/fitness/
+        controller/
+        integration/
+        security/
+        service/
+  .gitignore
 ```
+
