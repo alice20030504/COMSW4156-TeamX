@@ -159,7 +159,7 @@ class PersonControllerTest {
     assertEquals(HttpStatus.OK, response.getStatusCode());
     Map<String, Object> body = response.getBody();
     assertNotNull(body);
-    assertEquals("OK", body.get("status"));
+    assertEquals("UP", body.get("status"));
     assertEquals("Personal Fitness Management Service", body.get("service"));
     assertEquals("1.0.0", body.get("version"));
   }

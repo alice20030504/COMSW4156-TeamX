@@ -9,7 +9,7 @@ RUN mvn -q -e -DskipTests dependency:go-offline
 # Copy sources and build
 COPY checkstyle.xml .
 COPY src ./src
-RUN mvn -q -DskipTests package
+RUN mvn -e -DskipTests package
 
 # ---- Runtime stage ----
 FROM eclipse-temurin:17-jre

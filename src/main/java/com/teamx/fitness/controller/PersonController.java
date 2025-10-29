@@ -49,12 +49,22 @@ import org.springframework.web.bind.annotation.RestController;
         + "Only the authenticated user can view or modify their own data.")
 public class PersonController {
 
+  /** Service for handling person-related business logic */
   @Autowired private PersonService personService;
+  
+  /** Repository for person data persistence */
   @Autowired private PersonRepository personRepository;
+  
+  /** Service for handling authentication and authorization */
   @Autowired private AuthService authService;
 
+  /** BMI threshold for underweight classification */
   private static final double BMI_UNDERWEIGHT = 18.5;
+  
+  /** BMI threshold for normal weight classification */
   private static final double BMI_NORMAL = 25.0;
+  
+  /** BMI threshold for overweight classification */
   private static final double BMI_OVERWEIGHT = 30.0;
 
   @PostMapping
@@ -100,7 +110,7 @@ public class PersonController {
       @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid credentials"),
       @ApiResponse(responseCode = "404", description = "User not found")
   })
-  public ResponseEntity<PersonSimple> updatePerson(
+  public ResponseEntity<Object> updatePerson(
       @Parameter(description = "The person ID", required = true)
       @PathVariable Long id,
       @Parameter(description = "Birth date for authentication (YYYY-MM-DD)", required = true)
@@ -109,7 +119,8 @@ public class PersonController {
       @Valid @RequestBody PersonSimple updatedPerson) {
 
     if (!authService.validateUserAccess(id, birthDate)) {
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+          .body("Invalid ID or birth date");
     }
 
     String clientId = ClientContext.getClientId();
@@ -135,20 +146,23 @@ public class PersonController {
       @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid credentials"),
       @ApiResponse(responseCode = "404", description = "User not found")
   })
-  public ResponseEntity<PersonSimple> getPerson(
+  public ResponseEntity<?> getPerson(
       @Parameter(description = "The person ID", required = true)
       @PathVariable Long id,
       @Parameter(description = "Birth date for authentication (YYYY-MM-DD)", required = true)
       @RequestParam LocalDate birthDate) {
 
     if (!authService.validateUserAccess(id, birthDate)) {
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+          .body("Invalid ID or birth date");
     }
 
     String clientId = ClientContext.getClientId();
-    return personRepository.findByIdAndClientId(id, clientId)
-        .map(ResponseEntity::ok)
-        .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    Optional<PersonSimple> person = personRepository.findByIdAndClientId(id, clientId);
+    if (person.isEmpty()) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+    return ResponseEntity.ok(person.get());
   }
 
   @DeleteMapping("/{id}")
@@ -161,14 +175,15 @@ public class PersonController {
       @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid credentials"),
       @ApiResponse(responseCode = "404", description = "User not found")
   })
-  public ResponseEntity<Void> deletePerson(
+  public ResponseEntity<Object> deletePerson(
       @Parameter(description = "The person ID", required = true)
       @PathVariable Long id,
       @Parameter(description = "Birth date for authentication (YYYY-MM-DD)", required = true)
       @RequestParam LocalDate birthDate) {
 
     if (!authService.validateUserAccess(id, birthDate)) {
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+          .body("Invalid ID or birth date");
     }
 
     String clientId = ClientContext.getClientId();
@@ -198,7 +213,7 @@ public class PersonController {
   )
   public ResponseEntity<Map<String, Object>> health() {
     Map<String, Object> response = new HashMap<>();
-    response.put("status", "OK");
+    response.put("status", "UP");
     response.put("service", "Personal Fitness Management Service");
     response.put("version", "1.0.0");
     return ResponseEntity.ok(response);

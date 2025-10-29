@@ -36,54 +36,124 @@ import org.springframework.web.server.ResponseStatusException;
         + "Research users can view aggregated, anonymized information only.")
 public class ResearchController {
 
-  // --- Constants for aggregated statistics ---
+  /** Size of the demographic sample for basic statistics */
   private static final int SAMPLE_SIZE = 156;
+  
+  /** Average Body Mass Index across the sample */
   private static final double AVG_BMI = 24.5;
+  
+  /** Average weight in kilograms across the sample */
   private static final double AVG_WEIGHT = 72.3;
+  
+  /** Average height in centimeters across the sample */
   private static final double AVG_HEIGHT = 171.2;
+  
+  /** Average body fat percentage across the sample */
   private static final double AVG_BODY_FAT = 18.5;
+  
+  /** Average weekly training frequency across the sample */
   private static final double AVG_WEEKLY_FREQ = 4.2;
 
-  // --- Nutrition constants ---
+  /** Average daily caloric intake across the sample */
   private static final int AVG_CALORIES = 2450;
+  
+  /** Average daily protein intake in grams */
   private static final int AVG_PROTEIN = 120;
+  
+  /** Average daily carbohydrate intake in grams */
   private static final int AVG_CARBS = 280;
+  
+  /** Average daily fat intake in grams */
   private static final int AVG_FAT = 85;
 
-  // --- Workout patterns ---
+  /** Average number of workouts per week */
   private static final double AVG_WORKOUTS = 3.8;
+  
+  /** Average workout duration in minutes */
   private static final int AVG_DURATION = 52;
+  
+  /** Average calories burned per workout session */
   private static final int AVG_BURN = 420;
+  
+  /** Percentage of aerobic exercises in workout distribution */
   private static final double EX_AEROBIC = 45.0;
+  
+  /** Percentage of anaerobic exercises in workout distribution */
   private static final double EX_ANAEROBIC = 35.0;
+  
+  /** Percentage of flexibility exercises in workout distribution */
   private static final double EX_FLEX = 15.0;
+  
+  /** Percentage of mixed-type exercises in workout distribution */
   private static final double EX_MIXED = 5.0;
+  
+  /** Sample size for workout pattern analysis */
   private static final int SAMPLE_SIZE_WORKOUT = 89;
 
-  // --- Nutrition trends ---
+  /** Percentage of carbohydrates in bulking diet */
   private static final int BULK_CARBS = 45;
+  
+  /** Percentage of protein in bulking diet */
   private static final int BULK_PROTEIN = 30;
+  
+  /** Percentage of fat in bulking diet */
   private static final int BULK_FAT = 25;
+  
+  /** Daily caloric intake for bulking diet */
   private static final int BULK_CAL = 3200;
+  
+  /** Percentage of carbohydrates in cutting diet */
   private static final int CUT_CARBS = 35;
+  
+  /** Percentage of protein in cutting diet */
   private static final int CUT_PROTEIN = 40;
+  
+  /** Percentage of fat in cutting diet */
   private static final int CUT_FAT = 25;
+  
+  /** Daily caloric intake for cutting diet */
   private static final int CUT_CAL = 2000;
+  
+  /** Percentage of carbohydrates in maintenance diet */
   private static final int DEFAULT_CARBS = 40;
+  
+  /** Percentage of protein in maintenance diet */
   private static final int DEFAULT_PROTEIN = 30;
+  
+  /** Percentage of fat in maintenance diet */
   private static final int DEFAULT_FAT = 30;
+  
+  /** Daily caloric intake for maintenance diet */
   private static final int DEFAULT_CAL = 2500;
+  
+  /** Sample size for nutrition trend analysis */
   private static final int NUTRITION_SAMPLE_SIZE = 234;
 
-  // --- Population health ---
+  /** Percentage of population in underweight BMI category */
   private static final double BMI_UNDER = 5.2;
+
+  /** Percentage of population in normal BMI category */
   private static final double BMI_NORMAL = 48.3;
+
+  /** Percentage of population in overweight BMI category */
   private static final double BMI_OVER = 32.1;
+
+  /** Percentage of population in obese BMI category */
   private static final double BMI_OBESE = 14.4;
+
+  /** Overall goal achievement rate as a percentage */
   private static final double ACHIEVE_OVERALL = 67.8;
+
+  /** Weight loss goal achievement rate as a percentage */
   private static final double ACHIEVE_LOSS = 62.3;
+
+  /** Muscle gain goal achievement rate as a percentage */
   private static final double ACHIEVE_GAIN = 71.5;
+
+  /** Maintenance goal adherence rate as a percentage */
   private static final double ACHIEVE_MAINTAIN = 82.1;
+
+  /** Total number of people in the studied population */
   private static final int POPULATION_TOTAL = 1523;
 
   private void validateResearchAccess() {
