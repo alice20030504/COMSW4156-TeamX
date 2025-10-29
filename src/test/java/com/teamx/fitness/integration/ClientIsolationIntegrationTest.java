@@ -65,7 +65,7 @@ class ClientIsolationIntegrationTest {
     when(authService.validateUserAccess(1L, LocalDate.parse(birthDate))).thenReturn(true);
     when(personRepository.findByIdAndClientId(1L, MOBILE_CLIENT_1)).thenReturn(Optional.of(stored));
 
-    ResponseEntity<?> response = personController.getPersonById(1L, birthDate);
+    ResponseEntity<?> response = personController.getPerson(1L, LocalDate.parse(birthDate));
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals("Alice", ((PersonSimple) response.getBody()).getName());
@@ -84,7 +84,7 @@ class ClientIsolationIntegrationTest {
     when(authService.createUnauthorizedResponse()).thenReturn(
         ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid ID or birth date."));
 
-    ResponseEntity<?> response = personController.getPersonById(1L, birthDate);
+    ResponseEntity<?> response = personController.getPerson(1L, LocalDate.parse(birthDate));
 
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
   }
@@ -130,7 +130,7 @@ class ClientIsolationIntegrationTest {
     when(personRepository.findByIdAndClientId(9L, MOBILE_CLIENT_1)).thenReturn(Optional.of(existing));
     when(personRepository.save(existing)).thenReturn(existing);
 
-    ResponseEntity<?> response = personController.updatePerson(9L, birthDate, update);
+    ResponseEntity<?> response = personController.updatePerson(9L, LocalDate.parse(birthDate), update);
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals("Carol Updated", ((PersonSimple) response.getBody()).getName());
@@ -151,7 +151,7 @@ class ClientIsolationIntegrationTest {
     ResponseEntity<?> response =
         personController.updatePerson(
             9L,
-            birthDate,
+            LocalDate.parse(birthDate),
             new PersonSimple("Carol Updated", 72.0, 172.0, LocalDate.of(1992, 7, 10), null));
 
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
@@ -173,7 +173,7 @@ class ClientIsolationIntegrationTest {
     when(authService.validateUserAccess(4L, LocalDate.parse(birthDate))).thenReturn(true);
     when(personRepository.findByIdAndClientId(4L, MOBILE_CLIENT_1)).thenReturn(Optional.of(existing));
 
-    ResponseEntity<?> response = personController.deletePerson(4L, birthDate);
+    ResponseEntity<?> response = personController.deletePerson(4L, LocalDate.parse(birthDate));
 
     assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     verify(personRepository).delete(existing);
@@ -194,7 +194,7 @@ class ClientIsolationIntegrationTest {
     when(authService.createUnauthorizedResponse()).thenReturn(
         ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid ID or birth date."));
 
-    ResponseEntity<?> response = personController.deletePerson(4L, birthDate);
+    ResponseEntity<?> response = personController.deletePerson(4L, LocalDate.parse(birthDate));
 
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     verify(personRepository, never()).delete(any(PersonSimple.class));
