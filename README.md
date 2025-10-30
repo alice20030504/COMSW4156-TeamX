@@ -84,37 +84,32 @@ mvn spring-boot:run -Dspring-boot.run.profiles=postgres
 
 ## Run with Docker (App + Postgres)
 
-From the app root:
-```
-docker compose up -d --build
-```
-App URL: `http://localhost:8080`
-DB URL: `postgres://postgres:postgres@localhost:5432/fitnessdb`
+Assumptions
+- Docker Desktop is running.
+- Run commands from `COMSW4156-TeamX`.
 
-Run Postman tests via Docker once the app is up:
-```
-docker compose -f docker-compose.yml -f docker-compose.tests.yml up --abort-on-container-exit newman
-```
-HTML report: `COMSW4156-TeamX/postman/postman-report.html`
+1) Clean (start fresh)
+- Soft clean (keeps DB data):
+  - `docker compose -f docker-compose.yml -f docker-compose.tests.yml down --remove-orphans`
+- Hard clean (removes DB data - destructive):
+  - `docker compose -f docker-compose.yml -f docker-compose.tests.yml down -v --remove-orphans`
+  - Optionally delete `database/data`
 
-Stop services:
-```
-docker compose down
-```
+2) Build + run services (app + Postgres)
+- `docker compose up -d --build`
+- Health checks: `http://localhost:8080/health` or `http://localhost:8080/actuator/health`
 
----
+3) Test
+- Unit + Checkstyle (Dockerized Maven):
+  - `docker compose -f docker-compose.yml -f docker-compose.tests.yml run --rm unit-tests`
+- API tests (Newman):
+  - `docker compose -f docker-compose.yml -f docker-compose.tests.yml run --rm newman`
+- Outputs (kept under `testresult/`):
+  - `testresult/unit/` (Surefire)
+  - `testresult/unit-coverage/jacoco/index.html` (JaCoCo)
+  - `testresult/api/postman-report.html` (Newman HTML)
 
-## All tests + combined coverage (unit + API)
-
-Windows:
+4) Shutdown
+- `docker compose down`
 ```
-pwsh -File scripts/run-all-tests.ps1
-```
-
-macOS/Linux:
-```
-bash scripts/run-all-tests.sh
-```
-
-This runs unit tests (JaCoCo), starts the app with a JaCoCo runtime agent, executes the Postman collection via Docker, merges unit and API coverage, and writes a single report to `target/site/jacoco/index.html`.
 
