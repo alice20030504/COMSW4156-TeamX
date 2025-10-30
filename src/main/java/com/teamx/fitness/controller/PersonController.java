@@ -15,7 +15,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,46 +34,39 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 👤 Personal Controller - Endpoints for managing personal accounts and health metrics.
- * 
- * This controller provides endpoints for normal users (mobile clients) to manage their own
+ * Personal Controller - Endpoints for managing personal accounts and health metrics.
+ *
+ * <p>This controller provides endpoints for normal users (mobile clients) to manage their own
  * personal fitness data. All endpoints require authentication using user ID and birth date.
- * Users can only access, create, update, or delete their own data.
+ * Users can only access, create, update, or delete their own data.</p>
  */
 @RestController
 @RequestMapping("/api/persons")
 @CrossOrigin(origins = "*")
-@Tag(name = "Personal Controller", description = "👤 Endpoints for managing personal accounts and health metrics. "
+@Tag(
+    name = "Personal Controller",
+    description = "Endpoints for managing personal accounts and health metrics. "
         + "Only the authenticated user can view or modify their own data.")
 public class PersonController {
 
-  /** Service layer for person-related calculations. */
+  /** Service for handling person-related business logic */
   @Autowired private PersonService personService;
-
-  /** Repository for accessing person records. */
+  
+  /** Repository for person data persistence */
   @Autowired private PersonRepository personRepository;
-
-  /** Authentication service for user validation. */
+  
+  /** Service for handling authentication and authorization */
   @Autowired private AuthService authService;
 
-  /** Constant for lower BMI threshold. */
+  /** BMI threshold for underweight classification */
   private static final double BMI_UNDERWEIGHT = 18.5;
-
-  /** Constant for normal BMI upper threshold. */
+  
+  /** BMI threshold for normal weight classification */
   private static final double BMI_NORMAL = 25.0;
-
-  /** Constant for overweight BMI upper threshold. */
+  
+  /** BMI threshold for overweight classification */
   private static final double BMI_OVERWEIGHT = 30.0;
 
-  /**
-   * Create a new user account.
-   * 
-   * Users register with their name, weight, height, and birth date.
-   * The system automatically assigns a client ID for data isolation.
-   * 
-   * @param person User information including name, weight, height, and birth date
-   * @return ResponseEntity containing the created person or error response
-   */
   @PostMapping
   @Operation(
       summary = "Create a new user account",
@@ -83,12 +79,12 @@ public class PersonController {
           content = @Content(schema = @Schema(implementation = PersonSimple.class),
               examples = @ExampleObject(value = """
                   {
-                    "id": 1,
-                    "name": "John Doe",
-                    "weight": 75.5,
-                    "height": 180.0,
-                    "birthDate": "1990-05-15",
-                    "clientId": "mobile-app1"
+                    \"id\": 1,
+                    \"name\": \"John Doe\",
+                    \"weight\": 75.5,
+                    \"height\": 180.0,
+                    \"birthDate\": \"1990-05-15\",
+                    \"clientId\": \"mobile-app1\"
                   }
                   """))),
       @ApiResponse(responseCode = "400", description = "Invalid input data"),
@@ -96,205 +92,133 @@ public class PersonController {
   })
   public ResponseEntity<PersonSimple> createPerson(
       @Parameter(description = "User information including name, weight, height, and birth date", required = true)
-      @RequestBody PersonSimple person) {
+      @Valid @RequestBody PersonSimple person) {
     String clientId = ClientContext.getClientId();
     person.setClientId(clientId);
     PersonSimple savedPerson = personRepository.save(person);
     return ResponseEntity.status(HttpStatus.CREATED).body(savedPerson);
   }
 
-  /**
-   * Update existing user information.
-   * 
-   * Allow editing of height, weight, and birth date.
-   * Requires authentication with user ID and birth date.
-   * 
-   * @param id The person ID
-   * @param birthDate Birth date for authentication (YYYY-MM-DD)
-   * @param updatedPerson Updated data for the person
-   * @return ResponseEntity containing the updated person or 404 if not found
-   */
   @PutMapping("/{id}")
   @Operation(
       summary = "Update existing user information",
-      description = "Update user's height, weight, and birth date. "
-                   + "Requires authentication with user ID and birth date. "
-                   + "Only the authenticated user can modify their own data."
+      description = "Allow editing of height, weight, and birth date. Requires authentication."
   )
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "User updated successfully",
           content = @Content(schema = @Schema(implementation = PersonSimple.class))),
-      @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid ID or birth date"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid credentials"),
       @ApiResponse(responseCode = "404", description = "User not found")
   })
-  public ResponseEntity<?> updatePerson(
-      @Parameter(description = "User ID", required = true)
+  public ResponseEntity<Object> updatePerson(
+      @Parameter(description = "The person ID", required = true)
       @PathVariable Long id,
       @Parameter(description = "Birth date for authentication (YYYY-MM-DD)", required = true)
-      @RequestParam String birthDate,
-      @Parameter(description = "Updated user information", required = true)
-      @RequestBody PersonSimple updatedPerson) {
-    
-    // Authenticate user with ID and birth date
-    LocalDate birthDateParsed = LocalDate.parse(birthDate);
-    if (!authService.validateUserAccess(id, birthDateParsed)) {
-      return authService.createUnauthorizedResponse();
+      @RequestParam LocalDate birthDate,
+      @Parameter(description = "Updated user data", required = true)
+      @Valid @RequestBody PersonSimple updatedPerson) {
+
+    if (!authService.validateUserAccess(id, birthDate)) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+          .body("Invalid ID or birth date");
     }
-    
+
     String clientId = ClientContext.getClientId();
-    return personRepository
-        .findByIdAndClientId(id, clientId)
-        .map(existingPerson -> {
-          existingPerson.setName(updatedPerson.getName());
-          existingPerson.setWeight(updatedPerson.getWeight());
-          existingPerson.setHeight(updatedPerson.getHeight());
-          existingPerson.setBirthDate(updatedPerson.getBirthDate());
-          PersonSimple saved = personRepository.save(existingPerson);
-          return ResponseEntity.ok(saved);
-        })
-        .orElse(ResponseEntity.notFound().build());
+    Optional<PersonSimple> existing = personRepository.findByIdAndClientId(id, clientId);
+    if (existing.isEmpty()) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+
+    updatedPerson.setId(id);
+    updatedPerson.setClientId(clientId);
+    PersonSimple saved = personRepository.save(updatedPerson);
+    return ResponseEntity.ok(saved);
   }
 
-  /**
-   * Retrieve an individual's record.
-   * 
-   * The response includes calculated fields such as age and BMI if available.
-   * Requires authentication with user ID and birth date.
-   * 
-   * @param id The person ID
-   * @param birthDate Birth date for authentication (YYYY-MM-DD)
-   * @return ResponseEntity containing the person record or 404 if not found
-   */
   @GetMapping("/{id}")
   @Operation(
-      summary = "Retrieve an individual's record",
-      description = "Get user's personal information including calculated fields like age and BMI. "
-                   + "Requires authentication with user ID and birth date. "
-                   + "Only the authenticated user can view their own data."
+      summary = "Get person by ID",
+      description = "Retrieve a person record by ID if it belongs to the calling client."
   )
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "User record retrieved successfully",
-          content = @Content(schema = @Schema(implementation = PersonSimple.class),
-              examples = @ExampleObject(value = """
-                  {
-                    "id": 1,
-                    "name": "John Doe",
-                    "weight": 75.5,
-                    "height": 180.0,
-                    "birthDate": "1990-05-15",
-                    "clientId": "mobile-app1"
-                  }
-                  """))),
-      @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid ID or birth date"),
+      @ApiResponse(responseCode = "200", description = "Person retrieved",
+          content = @Content(schema = @Schema(implementation = PersonSimple.class))),
+      @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid credentials"),
       @ApiResponse(responseCode = "404", description = "User not found")
   })
-  public ResponseEntity<?> getPersonById(
-      @Parameter(description = "User ID", required = true)
+  public ResponseEntity<?> getPerson(
+      @Parameter(description = "The person ID", required = true)
       @PathVariable Long id,
       @Parameter(description = "Birth date for authentication (YYYY-MM-DD)", required = true)
-      @RequestParam String birthDate) {
-    
-    // Authenticate user with ID and birth date
-    LocalDate birthDateParsed = LocalDate.parse(birthDate);
-    if (!authService.validateUserAccess(id, birthDateParsed)) {
-      return authService.createUnauthorizedResponse();
+      @RequestParam LocalDate birthDate) {
+
+    if (!authService.validateUserAccess(id, birthDate)) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+          .body("Invalid ID or birth date");
     }
-    
+
     String clientId = ClientContext.getClientId();
-    return personRepository
-        .findByIdAndClientId(id, clientId)
-        .map(ResponseEntity::ok)
-        .orElse(ResponseEntity.notFound().build());
+    Optional<PersonSimple> person = personRepository.findByIdAndClientId(id, clientId);
+    if (person.isEmpty()) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+    return ResponseEntity.ok(person.get());
   }
 
-  /**
-   * Delete their own account.
-   * 
-   * Requires authentication with user ID and birth date.
-   * Only the authenticated user can delete their own account.
-   * 
-   * @param id The person ID
-   * @param birthDate Birth date for authentication (YYYY-MM-DD)
-   * @return ResponseEntity with 204 No Content if successful, 404 if not found
-   */
   @DeleteMapping("/{id}")
   @Operation(
-      summary = "Delete their own account",
-      description = "Delete the user's account permanently. "
-                   + "Requires authentication with user ID and birth date. "
-                   + "Only the authenticated user can delete their own account."
+      summary = "Delete person by ID",
+      description = "Delete a person record if it belongs to the calling client."
   )
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "204", description = "Account deleted successfully"),
-      @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid ID or birth date"),
+      @ApiResponse(responseCode = "204", description = "Deleted successfully"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid credentials"),
       @ApiResponse(responseCode = "404", description = "User not found")
   })
-  public ResponseEntity<?> deletePerson(
-      @Parameter(description = "User ID", required = true)
+  public ResponseEntity<Object> deletePerson(
+      @Parameter(description = "The person ID", required = true)
       @PathVariable Long id,
       @Parameter(description = "Birth date for authentication (YYYY-MM-DD)", required = true)
-      @RequestParam String birthDate) {
-    
-    // Authenticate user with ID and birth date
-    LocalDate birthDateParsed = LocalDate.parse(birthDate);
-    if (!authService.validateUserAccess(id, birthDateParsed)) {
-      return authService.createUnauthorizedResponse();
+      @RequestParam LocalDate birthDate) {
+
+    if (!authService.validateUserAccess(id, birthDate)) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+          .body("Invalid ID or birth date");
     }
-    
+
     String clientId = ClientContext.getClientId();
-    return personRepository
-        .findByIdAndClientId(id, clientId)
-        .map(person -> {
-          personRepository.delete(person);
-          return ResponseEntity.noContent().<Void>build();
-        })
-        .orElse(ResponseEntity.notFound().build());
+    Optional<PersonSimple> existing = personRepository.findByIdAndClientId(id, clientId);
+    if (existing.isEmpty()) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+    personRepository.deleteById(id);
+    return ResponseEntity.noContent().build();
   }
 
-  /**
-   * Perform a health check on their own account.
-   * 
-   * Return a structured JSON such as { "status": "UP", "service": "Personal Fitness Management Service" }.
-   * 
-   * @return ResponseEntity containing health status information
-   */
+  @GetMapping
+  @Operation(
+      summary = "List persons for the client",
+      description = "Return all person records belonging to the calling client."
+  )
+  public ResponseEntity<List<PersonSimple>> listPersons() {
+    String clientId = ClientContext.getClientId();
+    List<PersonSimple> persons = personRepository.findByClientId(clientId);
+    return ResponseEntity.ok(persons);
+  }
+
   @GetMapping("/health")
   @Operation(
-      summary = "Perform a health check on their own account",
-      description = "Check the health status of the Personal Fitness Management Service. "
-                   + "Returns service status and version information."
+      summary = "Service health check",
+      description = "Return service status and metadata."
   )
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Health check successful",
-          content = @Content(schema = @Schema(implementation = Map.class),
-              examples = @ExampleObject(value = """
-                  {
-                    "status": "UP",
-                    "service": "Personal Fitness Management Service",
-                    "version": "1.0.0"
-                  }
-                  """)))
-  })
-  public ResponseEntity<Map<String, String>> healthCheck() {
-    Map<String, String> response = new HashMap<>();
+  public ResponseEntity<Map<String, Object>> health() {
+    Map<String, Object> response = new HashMap<>();
     response.put("status", "UP");
     response.put("service", "Personal Fitness Management Service");
     response.put("version", "1.0.0");
     return ResponseEntity.ok(response);
   }
 
-  /**
-   * Calculate daily calorie needs based on parameters.
-   * 
-   * Calculate daily calorie requirements based on weight, height, age, gender, and training frequency.
-   * 
-   * @param weight Weight in kilograms
-   * @param height Height in centimeters
-   * @param age Age in years
-   * @param gender Gender (male/female)
-   * @param weeklyTrainingFreq Weekly training frequency
-   * @return ResponseEntity containing calorie calculation results
-   */
   @GetMapping("/calories")
   @Operation(
       summary = "Calculate daily calorie needs based on parameters",
@@ -307,9 +231,9 @@ public class PersonController {
           content = @Content(schema = @Schema(implementation = Map.class),
               examples = @ExampleObject(value = """
                   {
-                    "bmr": 1650.5,
-                    "dailyCalories": 2475.75,
-                    "weeklyTrainingFreq": 4
+                    \"bmr\": 1650.5,
+                    \"dailyCalories\": 2475.75,
+                    \"weeklyTrainingFreq\": 4
                   }
                   """))),
       @ApiResponse(responseCode = "400", description = "Invalid input parameters")
@@ -326,45 +250,35 @@ public class PersonController {
       @Parameter(description = "Weekly training frequency", required = true)
       @RequestParam Integer weeklyTrainingFreq) {
 
-      boolean isMale = "male".equalsIgnoreCase(gender);
-      Double bmr = personService.calculateBMR(weight, height, age, isMale);
-      Double dailyCalories = personService.calculateDailyCalorieNeeds(bmr, weeklyTrainingFreq);
+    boolean isMale = "male".equalsIgnoreCase(gender);
+    Double bmr = personService.calculateBMR(weight, height, age, isMale);
+    Double dailyCalories = personService.calculateDailyCalorieNeeds(bmr, weeklyTrainingFreq);
 
-      Map<String, Object> response = new HashMap<>();
-      response.put("bmr", bmr);
-      response.put("dailyCalories", dailyCalories);
-      response.put("weeklyTrainingFreq", weeklyTrainingFreq);
+    Map<String, Object> response = new HashMap<>();
+    response.put("bmr", bmr);
+    response.put("dailyCalories", dailyCalories);
+    response.put("weeklyTrainingFreq", weeklyTrainingFreq);
 
-      return ResponseEntity.ok(response);
+    return ResponseEntity.ok(response);
   }
 
-  /**
-   * Calculate BMI and return BMI category.
-   * 
-   * Calculate BMI (Body Mass Index) and return the corresponding category 
-   * ("Underweight", "Normal weight", "Overweight", "Obese").
-   * 
-   * @param weight Weight in kilograms
-   * @param height Height in centimeters
-   * @return ResponseEntity containing BMI calculation results
-   */
   @GetMapping("/bmi")
   @Operation(
       summary = "Calculate BMI and return BMI category",
       description = "Calculate Body Mass Index (BMI) from weight and height, "
                    + "and return the corresponding health category. "
                    + "BMI categories: Underweight (<18.5), Normal (18.5-24.9), "
-                   + "Overweight (25-29.9), Obese (≥30)."
+                   + "Overweight (25-29.9), Obese (>=30)."
   )
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "BMI calculation successful",
           content = @Content(schema = @Schema(implementation = Map.class),
               examples = @ExampleObject(value = """
                   {
-                    "weight": 75.5,
-                    "height": 180.0,
-                    "bmi": 23.3,
-                    "category": "Normal weight"
+                    \"weight\": 75.5,
+                    \"height\": 180.0,
+                    \"bmi\": 23.3,
+                    \"category\": \"Normal weight\"
                   }
                   """))),
       @ApiResponse(responseCode = "400", description = "Invalid input parameters")
@@ -375,33 +289,30 @@ public class PersonController {
       @Parameter(description = "Height in centimeters", required = true)
       @RequestParam Double height) {
 
-      Double bmi = personService.calculateBMI(weight, height);
+    Double bmi = personService.calculateBMI(weight, height);
 
-      Map<String, Object> response = new HashMap<>();
-      response.put("weight", weight);
-      response.put("height", height);
-      response.put("bmi", bmi);
-      response.put("category", getBMICategory(bmi));
+    Map<String, Object> response = new HashMap<>();
+    response.put("weight", weight);
+    response.put("height", height);
+    response.put("bmi", bmi);
+    response.put("category", getBMICategory(bmi));
 
-      return ResponseEntity.ok(response);
+    return ResponseEntity.ok(response);
   }
 
-
-  /**
-   * Get BMI category based on BMI value.
-   */
   private String getBMICategory(Double bmi) {
     if (bmi == null) {
-        return "Unknown";
+      return "Unknown";
     }
     if (bmi < BMI_UNDERWEIGHT) {
-        return "Underweight";
+      return "Underweight";
     } else if (bmi < BMI_NORMAL) {
-        return "Normal weight";
+      return "Normal weight";
     } else if (bmi < BMI_OVERWEIGHT) {
-        return "Overweight";
+      return "Overweight";
     } else {
-        return "Obese";
+      return "Obese";
     }
   }
 }
+

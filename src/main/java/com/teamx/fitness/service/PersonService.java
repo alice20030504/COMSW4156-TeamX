@@ -87,8 +87,8 @@ public class PersonService {
 
     /**
      * Calculate Basal Metabolic Rate (BMR) using Harris-Benedict equation.
-     * Men: BMR = 88.362 + (13.397 × weight in kg) + (4.799 × height in cm) - (5.677 × age in years)
-     * Women: BMR = 447.593 + (9.247 × weight in kg) + (3.098 × height in cm) - (4.330 × age in years)
+     * Men: BMR = 88.362 + (13.397 * weight in kg) + (4.799 * height in cm) - (5.677 * age in years)
+     * Women: BMR = 447.593 + (9.247 * weight in kg) + (3.098 * height in cm) - (4.330 * age in years)
      *
      * @param weight weight in kilograms
      * @param height height in centimeters
@@ -121,20 +121,20 @@ public class PersonService {
             return null;
         }
 
-        // Activity factor based on weekly training frequency
         double activityFactor;
         if (weeklyTrainingFreq == 0) {
-            activityFactor = ACTIVITY_SEDENTARY; 
+            activityFactor = ACTIVITY_SEDENTARY;
         } else if (weeklyTrainingFreq <= 2) {
-            activityFactor = ACTIVITY_LIGHT; 
+            activityFactor = ACTIVITY_LIGHT;
         } else if (weeklyTrainingFreq <= MAX_MODERATE_TRAINING) {
-            activityFactor = ACTIVITY_MODERATE; 
+            activityFactor = ACTIVITY_MODERATE;
         } else if (weeklyTrainingFreq <= MAX_VERY_ACTIVE_TRAINING) {
-            activityFactor = ACTIVITY_VERY; 
+            activityFactor = ACTIVITY_VERY;
         } else {
-            activityFactor = ACTIVITY_EXTRA; 
+            activityFactor = ACTIVITY_EXTRA;
         }
 
         return bmr * activityFactor;
     }
 }
+

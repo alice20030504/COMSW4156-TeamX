@@ -152,12 +152,12 @@ class PersonControllerTest {
    * Valid creation scenario demonstrating client ID assignment.
    */
   @Test
-  @DisplayName("healthCheck reports service availability metadata")
-  void healthCheckReturnsMetadata() {
-    ResponseEntity<Map<String, String>> response = personController.healthCheck();
+  @DisplayName("health reports service availability metadata")
+  void healthReturnsMetadata() {
+    ResponseEntity<Map<String, Object>> response = personController.health();
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
-    Map<String, String> body = response.getBody();
+    Map<String, Object> body = response.getBody();
     assertNotNull(body);
     assertEquals("UP", body.get("status"));
     assertEquals("Personal Fitness Management Service", body.get("service"));

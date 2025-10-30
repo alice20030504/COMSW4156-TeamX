@@ -52,8 +52,7 @@ public class PersonSimple {
   @Column(name = "birth_date", nullable = false)
   private LocalDate birthDate;
 
-  /** Client ID associated with the person. */
-  @NotBlank(message = "Client ID is required")
+  /** Client ID associated with the person. Set by the server from X-Client-ID. */
   @Column(name = "client_id", nullable = false)
   private String clientId;
 

@@ -1,5 +1,6 @@
 package com.teamx.fitness.config;
 
+import com.teamx.fitness.logging.ApiLoggingInterceptor;
 import com.teamx.fitness.security.ClientIdInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -18,8 +19,15 @@ public class WebMvcConfig implements WebMvcConfigurer {
   @Autowired
   private ClientIdInterceptor clientIdInterceptor;
 
+  /**
+   * API logging interceptor.
+   */
+  @Autowired
+  private ApiLoggingInterceptor apiLoggingInterceptor;
+
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(clientIdInterceptor).addPathPatterns("/api/**");
+    registry.addInterceptor(apiLoggingInterceptor).addPathPatterns("/api/**");
   }
 }
