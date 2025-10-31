@@ -1,6 +1,8 @@
 package com.teamx.fitness.service;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.Period;
@@ -56,6 +58,12 @@ public class PersonService {
     /** Maximum training days for very active activity. */
     private static final int MAX_VERY_ACTIVE_TRAINING = 6;
 
+    /** Maximum plausible human weight (kg) to guard against invalid inputs. */
+    private static final double MAX_PLAUSIBLE_WEIGHT_KG = 635.0; // heaviest recorded ~635kg
+
+    /** Maximum plausible human height (cm) to guard against invalid inputs. */
+    private static final double MAX_PLAUSIBLE_HEIGHT_CM = 272.0; // tallest recorded ~272cm
+
     /**
      * Calculate BMI (Body Mass Index).
      * Formula: BMI = weight(kg) / (height(m))^2
@@ -65,9 +73,27 @@ public class PersonService {
      * @return calculated BMI
      */
     public Double calculateBMI(Double weight, Double height) {
-        if (weight == null || height == null || height == 0) {
-            return null;
+        // Validate presence
+        if (weight == null || height == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "weight and height are required");
         }
+
+        // Validate positive values
+        if (weight <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "weight must be greater than 0");
+        }
+        if (height <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "height must be greater than 0");
+        }
+
+        // Validate reasonable upper bounds to catch accidental/poisonous inputs
+        if (weight > MAX_PLAUSIBLE_WEIGHT_KG) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "weight value is unreasonably large");
+        }
+        if (height > MAX_PLAUSIBLE_HEIGHT_CM) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "height value is unreasonably large");
+        }
+
         double heightInMeters = height / 100.0;
         return weight / (heightInMeters * heightInMeters);
     }

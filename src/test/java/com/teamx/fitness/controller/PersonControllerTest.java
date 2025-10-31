@@ -2,11 +2,13 @@ package com.teamx.fitness.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import com.teamx.fitness.repository.PersonRepository;
 import com.teamx.fitness.security.ClientContext;
 import com.teamx.fitness.service.PersonService;
+import java.time.LocalDate;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
@@ -19,6 +21,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import com.teamx.fitness.model.PersonSimple;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -162,5 +165,38 @@ class PersonControllerTest {
     assertEquals("UP", body.get("status"));
     assertEquals("Personal Fitness Management Service", body.get("service"));
     assertEquals("1.0.0", body.get("version"));
+  }
+
+  @Test
+  @DisplayName("createPerson rejects birthDate equal to today")
+  void createPersonRejectsBirthDateToday() {
+    PersonSimple p = new PersonSimple();
+    p.setName("Test");
+    p.setWeight(70.0);
+    p.setHeight(170.0);
+    p.setBirthDate(LocalDate.now());
+
+    when(personService.calculateBMI(70.0, 170.0)).thenReturn(24.22);
+
+    assertThrows(
+        org.springframework.web.server.ResponseStatusException.class,
+        () -> personController.createPerson(p));
+  }
+
+  @Test
+  @DisplayName("createPerson rejects negative weight")
+  void createPersonRejectsNegativeWeight() {
+    PersonSimple p = new PersonSimple();
+    p.setName("Test2");
+    p.setWeight(-10.0);
+    p.setHeight(170.0);
+    p.setBirthDate(LocalDate.of(1990, 1, 1));
+
+    when(personService.calculateBMI(-10.0, 170.0))
+        .thenThrow(new org.springframework.web.server.ResponseStatusException(HttpStatus.BAD_REQUEST, "weight must be greater than 0"));
+
+    assertThrows(
+        org.springframework.web.server.ResponseStatusException.class,
+        () -> personController.createPerson(p));
   }
 }
