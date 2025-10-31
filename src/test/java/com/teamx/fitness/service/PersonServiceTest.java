@@ -50,8 +50,23 @@ class PersonServiceTest {
         Arguments.of("Valid: typical adult metrics", 70.0, 175.0, 22.86, false),
         Arguments.of("Boundary: underweight classification", 50.0, 180.0, 15.43, false),
         Arguments.of("Boundary: overweight classification", 85.0, 178.0, 26.82, false),
-        Arguments.of("Boundary: obese classification", 110.0, 170.0, 38.06, false),
-        Arguments.of("Invalid: null height", 68.0, null, null, true));
+        Arguments.of("Boundary: obese classification", 110.0, 170.0, 38.06, false)
+    );
+  }
+
+  @DisplayName("calculateBMI throws for null inputs and invalid ranges")
+  void calculateBmiInvalidInputs() {
+    // null inputs
+    org.junit.jupiter.api.Assertions.assertThrows(org.springframework.web.server.ResponseStatusException.class, () -> personService.calculateBMI(null, 170.0));
+    org.junit.jupiter.api.Assertions.assertThrows(org.springframework.web.server.ResponseStatusException.class, () -> personService.calculateBMI(70.0, null));
+
+    // non-positive
+    org.junit.jupiter.api.Assertions.assertThrows(org.springframework.web.server.ResponseStatusException.class, () -> personService.calculateBMI(0.0, 170.0));
+    org.junit.jupiter.api.Assertions.assertThrows(org.springframework.web.server.ResponseStatusException.class, () -> personService.calculateBMI(-5.0, 170.0));
+
+    // unreasonably large
+    org.junit.jupiter.api.Assertions.assertThrows(org.springframework.web.server.ResponseStatusException.class, () -> personService.calculateBMI(10000.0, 170.0));
+    org.junit.jupiter.api.Assertions.assertThrows(org.springframework.web.server.ResponseStatusException.class, () -> personService.calculateBMI(70.0, 10000.0));
   }
 
   /**

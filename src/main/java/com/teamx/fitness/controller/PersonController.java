@@ -21,6 +21,7 @@ import java.util.Optional;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -95,6 +96,18 @@ public class PersonController {
       @Valid @RequestBody PersonSimple person) {
     String clientId = ClientContext.getClientId();
     person.setClientId(clientId);
+    // Validate basic numeric inputs (weight/height). calculateBMI will throw a
+    // ResponseStatusException with HTTP 400 for invalid values (null, <=0, too large).
+    personService.calculateBMI(person.getWeight(), person.getHeight());
+
+    // Validate birthDate: must be provided and strictly before today
+    if (person.getBirthDate() == null) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "birthDate is required");
+    }
+    if (!person.getBirthDate().isBefore(LocalDate.now())) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "birthDate must be before today");
+    }
+
     PersonSimple savedPerson = personRepository.save(person);
     return ResponseEntity.status(HttpStatus.CREATED).body(savedPerson);
   }
@@ -131,6 +144,17 @@ public class PersonController {
 
     updatedPerson.setId(id);
     updatedPerson.setClientId(clientId);
+    // Validate weight/height before saving. This will raise a 400 on invalid input.
+    personService.calculateBMI(updatedPerson.getWeight(), updatedPerson.getHeight());
+
+    // Validate birthDate for update as well
+    if (updatedPerson.getBirthDate() == null) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "birthDate is required");
+    }
+    if (!updatedPerson.getBirthDate().isBefore(LocalDate.now())) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "birthDate must be before today");
+    }
+
     PersonSimple saved = personRepository.save(updatedPerson);
     return ResponseEntity.ok(saved);
   }
@@ -250,8 +274,11 @@ public class PersonController {
       @Parameter(description = "Weekly training frequency", required = true)
       @RequestParam Integer weeklyTrainingFreq) {
 
-    boolean isMale = "male".equalsIgnoreCase(gender);
-    Double bmr = personService.calculateBMR(weight, height, age, isMale);
+  // Validate weight/height ranges using calculateBMI (throws 400 on invalid values)
+  personService.calculateBMI(weight, height);
+
+  boolean isMale = "male".equalsIgnoreCase(gender);
+  Double bmr = personService.calculateBMR(weight, height, age, isMale);
     Double dailyCalories = personService.calculateDailyCalorieNeeds(bmr, weeklyTrainingFreq);
 
     Map<String, Object> response = new HashMap<>();

@@ -749,7 +749,7 @@
               "query": [
                 {
                   "key": "weight",
-                  "value": "45"
+                  "value": "-45"
                 },
                 {
                   "key": "height",
@@ -764,10 +764,10 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Underweight scenario still returns 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Negative weight returns 400', function () { pm.response.to.have.status(400); });",
                   "const body = pm.response.json();",
-                  "pm.test('BMI indicates underweight category', function () { pm.expect(body.category).to.eql('Underweight'); });",
-                  "pm.test('BMI numeric value less than 18.5', function () { pm.expect(body.bmi).to.be.below(18.5); });"
+                  "pm.test('Error is Bad_request', function () { pm.expect(body.error).to.eql('Bad_request'); });",
+                  "pm.test('Message mentions weight > 0', function () { pm.expect(body.message).to.include('weight must be greater than 0'); });"
                 ]
               }
             }
