@@ -1,0 +1,27 @@
+# Ignore version control and IDE files
+.git/
+.vscode/
+.idea/
+.DS_Store
+
+# Ignore frontend (React)
+frontend/
+
+# Ignore build/test outputs
+target/
+logs/
+testresult/
+reports/
+database/
+postman/
+
+# Ignore node modules or temp data
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Ignore Docker Compose / test setups
+docker-compose.yml
+docker-compose.tests
+DockerCommandInstruction
