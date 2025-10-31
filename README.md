@@ -111,5 +111,33 @@ Assumptions
 
 4) Shutdown
 - `docker compose down`
+
+---
+
+## Deploy to Google Cloud Run (CI / Cloud Build)
+
+This repository includes a `cloudbuild.yaml` that builds the Docker image, deploys the service to Cloud Run and runs the Postman/Newman collection against the deployed URL.
+
+Important notes before running Cloud Build:
+- Update the Cloud Build substitutions (or pass them on the `gcloud builds submit` command):
+  - `_REGION` (default: `us-central1`)
+  - `_REPO` (Artifact Registry repo; default in the file: `fitness-repo`)
+  - `_SERVICE_NAME` (Cloud Run service name; default: `fitness-service`)
+  - `_DB_URL`, `_DB_USERNAME`, `_DB_PASSWORD` (temporary DB credentials used during deployment; for production store these in Secret Manager and reference them instead)
+
+Quick command (use Cloud Shell or local gcloud after login):
+
+```powershell
+# from repo root
+#gcloud builds submit --config cloudbuild.yaml --substitutions=_REGION="us-central1",_REPO="fitness-repo",_SERVICE_NAME="fitness-service",_DB_URL="jdbc:postgresql://<DB_IP>:5432/fitnessdb",_DB_USERNAME="fitnessuser",_DB_PASSWORD="your-pass"
+```
+
+After the build completes the pipeline will deploy to Cloud Run and automatically run the Newman collection found at `postman/fitness-api-tests.postman_collection.json` against the deployed service URL.
+
+Security note: The `cloudbuild.yaml` included is intended for demos and CI during development. For production you should:
+- Use Secret Manager for DB credentials and bind them to Cloud Build or Cloud Run.
+- Use Cloud SQL Private IP or the Cloud SQL Auth proxy with a VPC connector to avoid public DB ips.
+- Restrict Cloud Run access (remove `--allow-unauthenticated`) and front with an API gateway or IAM.
+
 ```
 
