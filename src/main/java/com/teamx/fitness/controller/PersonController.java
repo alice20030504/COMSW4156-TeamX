@@ -6,6 +6,7 @@ import com.teamx.fitness.controller.dto.PersonCreatedResponse;
 import com.teamx.fitness.controller.dto.PersonProfileResponse;
 import com.teamx.fitness.model.FitnessGoal;
 import com.teamx.fitness.model.Gender;
+import com.teamx.fitness.model.PlanStrategy;
 import com.teamx.fitness.model.PersonSimple;
 import com.teamx.fitness.repository.PersonRepository;
 import com.teamx.fitness.security.ClientContext;
@@ -73,6 +74,9 @@ public class PersonController {
 
   /** BMI threshold for overweight classification. */
   private static final double BMI_OVERWEIGHT = 30.0;
+
+  /** Rough calories required per kg of body weight change. */
+  private static final double CALORIES_PER_KG = 7700.0;
 
   @PostMapping
   @Operation(
@@ -174,6 +178,7 @@ public class PersonController {
     person.setTargetChangeKg(request.getTargetChangeKg());
     person.setTargetDurationWeeks(request.getDurationWeeks());
     person.setTrainingFrequencyPerWeek(request.getTrainingFrequencyPerWeek());
+    person.setPlanStrategy(request.getPlanStrategy());
 
     PersonSimple saved = personRepository.save(person);
     return ResponseEntity.ok(PersonProfileResponse.fromEntity(saved));
@@ -337,6 +342,20 @@ public class PersonController {
           "Set a training frequency via /api/persons/plan before requesting calories");
     }
 
+    if (person.getPlanStrategy() == null) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Select a planStrategy via /api/persons/plan");
+    }
+
+    if (person.getTargetChangeKg() == null || person.getTargetDurationWeeks() == null) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "targetChangeKg and targetDurationWeeks are required");
+    }
+    if (person.getTargetDurationWeeks() <= 0) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "targetDurationWeeks must be greater than 0");
+    }
+
     Integer age = personService.calculateAge(person.getBirthDate());
     if (age == null) {
       throw new ResponseStatusException(
@@ -356,13 +375,29 @@ public class PersonController {
           HttpStatus.BAD_REQUEST, "Unable to compute calorie needs with the stored plan");
     }
 
+    double dailyAdjustmentCalories =
+        (person.getTargetChangeKg() * CALORIES_PER_KG)
+            / (person.getTargetDurationWeeks() * 7.0);
+    if (dailyAdjustmentCalories < 0) {
+      dailyAdjustmentCalories = Math.abs(dailyAdjustmentCalories);
+    }
+
+    boolean isCut = FitnessGoal.CUT.equals(person.getGoal());
+    double recommendedCalories = isCut
+        ? Math.max(0, dailyCalories - dailyAdjustmentCalories)
+        : dailyCalories + dailyAdjustmentCalories;
+
     Map<String, Object> response = new HashMap<>();
     response.put("goal", person.getGoal());
+    response.put("planStrategy", person.getPlanStrategy());
     response.put("targetChangeKg", person.getTargetChangeKg());
     response.put("targetDurationWeeks", person.getTargetDurationWeeks());
     response.put("trainingFrequencyPerWeek", person.getTrainingFrequencyPerWeek());
     response.put("bmr", bmr);
-    response.put("dailyCalories", dailyCalories);
+    response.put("maintenanceCalories", dailyCalories);
+    response.put("calorieAdjustmentPerDay", isCut ? -dailyAdjustmentCalories : dailyAdjustmentCalories);
+    response.put("recommendedDailyCalories", recommendedCalories);
+    response.putAll(buildPlanDetails(person));
 
     return ResponseEntity.ok(response);
   }
@@ -429,8 +464,10 @@ public class PersonController {
     Map<String, Object> response = new HashMap<>();
     response.put("goal", person.getGoal());
     response.put("message", message);
+    response.put("planStrategy", person.getPlanStrategy());
     response.put("targetChangeKg", person.getTargetChangeKg());
     response.put("targetDurationWeeks", person.getTargetDurationWeeks());
+    response.putAll(buildPlanDetails(person));
     return ResponseEntity.ok(response);
   }
 
@@ -440,38 +477,131 @@ public class PersonController {
           HttpStatus.BAD_REQUEST, "A goal must be selected before configuring a plan");
     }
     if (request.getTargetChangeKg() == null || request.getDurationWeeks() == null
-        || request.getTrainingFrequencyPerWeek() == null) {
+        || request.getTrainingFrequencyPerWeek() == null || request.getPlanStrategy() == null) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST, "All plan fields are required");
     }
+  }
+
+  private Map<String, String> buildPlanDetails(PersonSimple person) {
+    Map<String, String> details = new HashMap<>();
+    PlanStrategy strategy = person.getPlanStrategy();
+    if (strategy == null) {
+      return details;
+    }
+
+    if (strategy == PlanStrategy.DIET || strategy == PlanStrategy.BOTH) {
+      details.put("dietPlan", defaultDietPlan(person));
+    }
+
+    if (strategy == PlanStrategy.WORKOUT || strategy == PlanStrategy.BOTH) {
+      details.put("workoutPlan", defaultWorkoutPlan(person));
+    }
+
+    return details;
   }
 
   private String buildRecommendation(PersonSimple person) {
     FitnessGoal goal = person.getGoal();
     Double change = person.getTargetChangeKg();
     Integer duration = person.getTargetDurationWeeks();
+    PlanStrategy strategy = person.getPlanStrategy();
+    String strategyNote = planStrategyMessage(strategy, goal);
 
+    String baseMessage;
     if (goal == FitnessGoal.BULK) {
       if (change != null && duration != null) {
-        return String.format(
+        baseMessage = String.format(
             "Keep bulking: aim to gain %.1f kg over %d weeks. Stay consistent!",
             change,
             duration);
+      } else {
+        baseMessage = "Keep bulking—focus on progressive overload and sufficient calories.";
       }
-      return "Keep bulking—focus on progressive overload and sufficient calories.";
-    }
-
-    if (goal == FitnessGoal.CUT) {
+    } else if (goal == FitnessGoal.CUT) {
       if (change != null && duration != null) {
-        return String.format(
+        baseMessage = String.format(
             "Keep cutting: target %.1f kg over %d weeks. Stay on track!",
             change,
             duration);
+      } else {
+        baseMessage = "Keep cutting—prioritize protein and maintain your calorie deficit.";
       }
-      return "Keep cutting—prioritize protein and maintain your calorie deficit.";
+    } else {
+      baseMessage = "Stay consistent with your current plan.";
     }
 
-    return "Stay consistent with your current plan.";
+    if (strategyNote.isBlank()) {
+      return baseMessage;
+    }
+    return baseMessage + " " + strategyNote;
+  }
+
+  private String planStrategyMessage(PlanStrategy strategy, FitnessGoal goal) {
+    if (strategy == null) {
+      return "";
+    }
+    switch (strategy) {
+      case WORKOUT:
+        return "Leverage structured training sessions to "
+            + (goal == FitnessGoal.CUT ? "preserve muscle while cutting." : "drive strength gains.");
+      case DIET:
+        return "Dial in your nutrition to support the goal each day.";
+      case BOTH:
+        return "Balance training and nutrition to maximise results.";
+      default:
+        return "";
+    }
+  }
+
+  private String defaultDietPlan(PersonSimple person) {
+    FitnessGoal goal = person.getGoal();
+    double adjustment = 300.0;
+    if (person.getTargetChangeKg() != null && person.getTargetDurationWeeks() != null
+        && person.getTargetDurationWeeks() > 0) {
+      adjustment = Math.abs(
+          (person.getTargetChangeKg() * CALORIES_PER_KG)
+              / (person.getTargetDurationWeeks() * 7.0));
+    }
+    adjustment = Math.round(adjustment / 10.0) * 10.0;
+
+    if (goal == null) {
+      return "Maintain a balanced meal plan with lean protein, whole grains, and plenty of vegetables.";
+    }
+
+    if (goal == FitnessGoal.CUT) {
+      return String.format(
+          "Aim for about %.0f kcal deficit per day with high-protein, veggie-rich meals and adequate hydration.",
+          adjustment);
+    }
+    return String.format(
+        "Target roughly %.0f kcal surplus daily using lean proteins, complex carbs, and healthy fats spread across meals.",
+        adjustment);
+  }
+
+  private String defaultWorkoutPlan(PersonSimple person) {
+    int frequency = person.getTrainingFrequencyPerWeek() != null
+        ? person.getTrainingFrequencyPerWeek()
+        : 4;
+    if (frequency < 1) {
+      frequency = 1;
+    }
+    FitnessGoal goal = person.getGoal();
+    if (goal == null) {
+      return String.format(
+          "Schedule %d total-body sessions each week combining strength, mobility, and light cardio.",
+          frequency);
+    }
+
+    if (goal == FitnessGoal.CUT) {
+      return String.format(
+          "Schedule %d weekly sessions mixing strength and cardio (e.g., 3 strength, %d cardio) to support fat loss.",
+          frequency,
+          Math.max(1, frequency / 2));
+    }
+    return String.format(
+        "Plan %d strength-focused sessions emphasising progressive overload, plus mobility work for recovery.",
+        frequency);
   }
 
   private String requireClientId() {

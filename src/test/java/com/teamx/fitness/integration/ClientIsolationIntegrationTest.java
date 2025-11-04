@@ -20,6 +20,7 @@ import com.teamx.fitness.controller.dto.PersonProfileResponse;
 import com.teamx.fitness.model.FitnessGoal;
 import com.teamx.fitness.model.Gender;
 import com.teamx.fitness.model.PersonSimple;
+import com.teamx.fitness.model.PlanStrategy;
 import com.teamx.fitness.repository.PersonRepository;
 import com.teamx.fitness.security.ClientContext;
 import com.teamx.fitness.service.AuthService;
@@ -251,6 +252,7 @@ class ClientIsolationIntegrationTest {
     person.setWeight(70.0);
     person.setHeight(170.0);
     person.setBirthDate(LocalDate.of(1990, 1, 1));
+    person.setPlanStrategy(PlanStrategy.BOTH);
     return person;
   }
 }

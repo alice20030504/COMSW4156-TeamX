@@ -23,5 +23,12 @@ BEGIN
     ) THEN
       ALTER TABLE persons_simple ADD COLUMN training_frequency_per_week INTEGER;
     END IF;
+
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_name = 'persons_simple' AND column_name = 'plan_strategy'
+    ) THEN
+      ALTER TABLE persons_simple ADD COLUMN plan_strategy VARCHAR(16);
+    END IF;
   END IF;
 END $$;

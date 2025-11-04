@@ -3,6 +3,7 @@ package com.teamx.fitness.controller.dto;
 import com.teamx.fitness.model.FitnessGoal;
 import com.teamx.fitness.model.Gender;
 import com.teamx.fitness.model.PersonSimple;
+import com.teamx.fitness.model.PlanStrategy;
 import java.time.LocalDate;
 
 /**
@@ -21,6 +22,7 @@ public class PersonProfileResponse {
   private Double targetChangeKg;
   private Integer targetDurationWeeks;
   private Integer trainingFrequencyPerWeek;
+  private PlanStrategy planStrategy;
 
   public static PersonProfileResponse fromEntity(PersonSimple person) {
     PersonProfileResponse response = new PersonProfileResponse();
@@ -34,6 +36,7 @@ public class PersonProfileResponse {
     response.setTargetChangeKg(person.getTargetChangeKg());
     response.setTargetDurationWeeks(person.getTargetDurationWeeks());
     response.setTrainingFrequencyPerWeek(person.getTrainingFrequencyPerWeek());
+    response.setPlanStrategy(person.getPlanStrategy());
     return response;
   }
 
@@ -115,5 +118,13 @@ public class PersonProfileResponse {
 
   public void setTrainingFrequencyPerWeek(Integer trainingFrequencyPerWeek) {
     this.trainingFrequencyPerWeek = trainingFrequencyPerWeek;
+  }
+
+  public PlanStrategy getPlanStrategy() {
+    return planStrategy;
+  }
+
+  public void setPlanStrategy(PlanStrategy planStrategy) {
+    this.planStrategy = planStrategy;
   }
 }

@@ -1,5 +1,6 @@
 package com.teamx.fitness.controller.dto;
 
+import com.teamx.fitness.model.PlanStrategy;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -22,6 +23,9 @@ public class GoalPlanRequest {
   @Min(value = 1, message = "trainingFrequencyPerWeek must be at least 1")
   @Max(value = 14, message = "trainingFrequencyPerWeek must not exceed 14")
   private Integer trainingFrequencyPerWeek;
+
+  @NotNull(message = "planStrategy is required")
+  private PlanStrategy planStrategy;
 
   public Double getTargetChangeKg() {
     return targetChangeKg;
@@ -46,5 +50,12 @@ public class GoalPlanRequest {
   public void setTrainingFrequencyPerWeek(Integer trainingFrequencyPerWeek) {
     this.trainingFrequencyPerWeek = trainingFrequencyPerWeek;
   }
-}
 
+  public PlanStrategy getPlanStrategy() {
+    return planStrategy;
+  }
+
+  public void setPlanStrategy(PlanStrategy planStrategy) {
+    this.planStrategy = planStrategy;
+  }
+}
