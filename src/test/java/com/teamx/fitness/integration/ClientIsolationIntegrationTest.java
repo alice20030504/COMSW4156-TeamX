@@ -2,6 +2,7 @@ package com.teamx.fitness.integration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doAnswer;
@@ -13,6 +14,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.mockito.MockitoAnnotations;
 
 import com.teamx.fitness.controller.PersonController;
+import com.teamx.fitness.controller.dto.PersonCreateRequest;
+import com.teamx.fitness.controller.dto.PersonCreatedResponse;
+import com.teamx.fitness.controller.dto.PersonProfileResponse;
+import com.teamx.fitness.model.FitnessGoal;
+import com.teamx.fitness.model.Gender;
 import com.teamx.fitness.model.PersonSimple;
 import com.teamx.fitness.repository.PersonRepository;
 import com.teamx.fitness.security.ClientContext;
@@ -20,6 +26,7 @@ import com.teamx.fitness.service.AuthService;
 import com.teamx.fitness.service.PersonService;
 import java.time.LocalDate;
 import java.util.Optional;
+import org.springframework.web.server.ResponseStatusException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -68,21 +75,22 @@ class ClientIsolationIntegrationTest {
    * Valid scenario: the owning client retrieves their record successfully.
    */
   @Test
-  @DisplayName("Owner can fetch their person record")
-  void getPersonById_AllowsOwner() {
-    PersonSimple stored =
-        new PersonSimple("Alice", 65.0, 170.0, LocalDate.of(1990, 5, 15), MOBILE_CLIENT_1);
-    stored.setId(1L);
-    String birthDate = "1990-05-15";
+  @DisplayName("Current client can fetch their persisted profile")
+  void getProfile_AllowsCurrentClient() {
+    PersonSimple stored = buildPerson("Alice", Gender.FEMALE, FitnessGoal.CUT, MOBILE_CLIENT_1);
+    stored.setWeight(65.0);
+    stored.setHeight(170.0);
+    stored.setBirthDate(LocalDate.of(1990, 5, 15));
 
     ClientContext.setClientId(MOBILE_CLIENT_1);
-    when(authService.validateUserAccess(1L, LocalDate.parse(birthDate))).thenReturn(true);
-    when(personRepository.findByIdAndClientId(1L, MOBILE_CLIENT_1)).thenReturn(Optional.of(stored));
+    when(personRepository.findByClientId(MOBILE_CLIENT_1)).thenReturn(Optional.of(stored));
 
-    ResponseEntity<?> response = personController.getPerson(1L, LocalDate.parse(birthDate));
+    ResponseEntity<PersonProfileResponse> response =
+        personController.getProfile();
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals("Alice", ((PersonSimple) response.getBody()).getName());
+    assertEquals(MOBILE_CLIENT_1, response.getBody().getClientId());
+    assertEquals(Gender.FEMALE, response.getBody().getGender());
   }
 
   /**
@@ -90,15 +98,13 @@ class ClientIsolationIntegrationTest {
    * record due to authentication failure.
    */
   @Test
-  @DisplayName("Different client receives 401 for invalid authentication")
-  void getPersonById_BlocksDifferentClient() {
-    String birthDate = "1990-05-15";
+  @DisplayName("Profile lookup returns 404 for unknown client")
+  void getProfile_ReturnsNotFoundForUnknownClient() {
     ClientContext.setClientId(MOBILE_CLIENT_2);
-    // Default behavior set in setUp()
+    when(personRepository.findByClientId(MOBILE_CLIENT_2)).thenReturn(Optional.empty());
 
-    ResponseEntity<?> response = personController.getPerson(1L, LocalDate.parse(birthDate));
-
-    assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    org.junit.jupiter.api.Assertions.assertThrows(
+        ResponseStatusException.class, () -> personController.getProfile());
   }
 
   /**
@@ -107,19 +113,24 @@ class ClientIsolationIntegrationTest {
   @Test
   @DisplayName("Create person assigns current client ID")
   void createPerson_AssignsClientId() {
-    ClientContext.setClientId(MOBILE_CLIENT_1);
-    PersonSimple payload =
-        new PersonSimple("Bob", 80.0, 180.0, LocalDate.of(1995, 3, 20), null);
-    PersonSimple saved =
-        new PersonSimple("Bob", 80.0, 180.0, LocalDate.of(1995, 3, 20), MOBILE_CLIENT_1);
-    saved.setId(5L);
+    PersonCreateRequest request = new PersonCreateRequest();
+    request.setName("Bob");
+    request.setWeight(80.0);
+    request.setHeight(180.0);
+    request.setBirthDate(LocalDate.of(1995, 3, 20));
+    request.setGoal(FitnessGoal.BULK);
+    request.setGender(Gender.MALE);
 
-    when(personRepository.save(any(PersonSimple.class))).thenReturn(saved);
+    when(personService.calculateBMI(80.0, 180.0)).thenReturn(24.69);
+    lenient().when(personRepository.findByClientId(any(String.class))).thenReturn(Optional.empty());
+    when(personRepository.save(any(PersonSimple.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0, PersonSimple.class));
 
-    ResponseEntity<PersonSimple> response = personController.createPerson(payload);
+    ResponseEntity<PersonCreatedResponse> response = personController.createPerson(request);
 
     assertEquals(HttpStatus.CREATED, response.getStatusCode());
-    assertEquals(MOBILE_CLIENT_1, response.getBody().getClientId());
+    String clientId = response.getBody().getClientId();
+    assertTrue(clientId.startsWith(ClientContext.MOBILE_PREFIX));
     verify(personRepository).save(any(PersonSimple.class));
   }
 
@@ -130,17 +141,26 @@ class ClientIsolationIntegrationTest {
   @DisplayName("Update respects client ownership")
   void updatePerson_RespectsOwnership() {
     ClientContext.setClientId(MOBILE_CLIENT_1);
-    PersonSimple existing =
-        new PersonSimple("Carol", 70.0, 172.0, LocalDate.of(1992, 7, 10), MOBILE_CLIENT_1);
+    PersonSimple existing = buildPerson("Carol", Gender.FEMALE, FitnessGoal.CUT, MOBILE_CLIENT_1);
+    existing.setWeight(70.0);
+    existing.setHeight(172.0);
+    existing.setBirthDate(LocalDate.of(1992, 7, 10));
     existing.setId(9L);
     String birthDate = "1992-07-10";
 
-    PersonSimple update =
-        new PersonSimple("Carol Updated", 72.0, 172.0, existing.getBirthDate(), null);
+    PersonSimple update = new PersonSimple();
+    update.setName("Carol Updated");
+    update.setWeight(72.0);
+    update.setHeight(172.0);
+    update.setBirthDate(existing.getBirthDate());
+    update.setGoal(FitnessGoal.CUT);
+    update.setGender(Gender.FEMALE);
+    update.setClientId(MOBILE_CLIENT_1);
     update.setId(9L);
 
     when(authService.validateUserAccess(9L, LocalDate.parse(birthDate))).thenReturn(true);
     when(personRepository.findByIdAndClientId(9L, MOBILE_CLIENT_1)).thenReturn(Optional.of(existing));
+    when(personService.calculateBMI(72.0, 172.0)).thenReturn(24.34);
     doAnswer(invocation -> {
         PersonSimple savedPerson = invocation.getArgument(0);
         savedPerson.setName("Carol Updated");
@@ -164,11 +184,16 @@ class ClientIsolationIntegrationTest {
     ClientContext.setClientId(MOBILE_CLIENT_2);
     // Default behavior set in setUp()
 
+    PersonSimple updateAttempt = new PersonSimple();
+    updateAttempt.setName("Carol Updated");
+    updateAttempt.setWeight(72.0);
+    updateAttempt.setHeight(172.0);
+    updateAttempt.setBirthDate(LocalDate.of(1992, 7, 10));
+    updateAttempt.setGoal(FitnessGoal.CUT);
+    updateAttempt.setGender(Gender.FEMALE);
+
     ResponseEntity<?> response =
-        personController.updatePerson(
-            9L,
-            LocalDate.parse(birthDate),
-            new PersonSimple("Carol Updated", 72.0, 172.0, LocalDate.of(1992, 7, 10), null));
+        personController.updatePerson(9L, LocalDate.parse(birthDate), updateAttempt);
 
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     verify(personRepository, never()).save(any(PersonSimple.class));
@@ -181,8 +206,10 @@ class ClientIsolationIntegrationTest {
   @DisplayName("Delete removes record for owner and clears context")
   void deletePerson_AllowsOwnerAndClearsContext() {
     ClientContext.setClientId(MOBILE_CLIENT_1);
-    PersonSimple existing =
-        new PersonSimple("Dana", 68.0, 168.0, LocalDate.of(1991, 1, 1), MOBILE_CLIENT_1);
+    PersonSimple existing = buildPerson("Dana", Gender.FEMALE, FitnessGoal.BULK, MOBILE_CLIENT_1);
+    existing.setWeight(68.0);
+    existing.setHeight(168.0);
+    existing.setBirthDate(LocalDate.of(1991, 1, 1));
     existing.setId(4L);
     String birthDate = "1991-01-01";
 
@@ -215,4 +242,15 @@ class ClientIsolationIntegrationTest {
     verify(personRepository, never()).deleteById(any());
   }
 
+  private PersonSimple buildPerson(String name, Gender gender, FitnessGoal goal, String clientId) {
+    PersonSimple person = new PersonSimple();
+    person.setName(name);
+    person.setGender(gender);
+    person.setGoal(goal);
+    person.setClientId(clientId);
+    person.setWeight(70.0);
+    person.setHeight(170.0);
+    person.setBirthDate(LocalDate.of(1990, 1, 1));
+    return person;
+  }
 }

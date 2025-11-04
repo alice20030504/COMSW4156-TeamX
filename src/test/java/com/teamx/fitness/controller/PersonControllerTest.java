@@ -3,13 +3,22 @@ package com.teamx.fitness.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
+import com.teamx.fitness.controller.dto.PersonCreateRequest;
+import com.teamx.fitness.controller.dto.PersonCreatedResponse;
+import com.teamx.fitness.model.FitnessGoal;
+import com.teamx.fitness.model.Gender;
+import com.teamx.fitness.model.PersonSimple;
 import com.teamx.fitness.repository.PersonRepository;
 import com.teamx.fitness.security.ClientContext;
 import com.teamx.fitness.service.PersonService;
 import java.time.LocalDate;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,16 +30,15 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import com.teamx.fitness.model.PersonSimple;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
- * Focused unit tests for {@link PersonController} covering core calculation and client-scoped
- * behaviors with mocked collaborators.
+ * Focused unit tests for {@link PersonController} covering core behavior with mocked collaborators.
  */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("PersonController basic calculations")
+@DisplayName("PersonController")
 class PersonControllerTest {
 
   @Mock private PersonService personService;
@@ -44,77 +52,91 @@ class PersonControllerTest {
     ClientContext.clear();
   }
 
-  /**
-   * Ensures the BMI endpoint returns consistent payloads across representative inputs.
-   */
-  @ParameterizedTest
-  @MethodSource("calculateBmiScenarios")
-  @DisplayName("calculateBMI handles valid, boundary, and invalid scenarios")
-  void calculateBMIHandlesScenarios(
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("bmiScenarios")
+  @DisplayName("calculateBMI uses stored profile data")
+  void calculateBMIUsesStoredData(
       String description,
-      Double weight,
-      Double height,
-      Double serviceResult,
+      PersonSimple storedPerson,
+      Double bmiValue,
       String expectedCategory) {
 
-    when(personService.calculateBMI(weight, height)).thenReturn(serviceResult);
+    ClientContext.setClientId(storedPerson.getClientId());
+    when(personRepository.findByClientId(storedPerson.getClientId()))
+        .thenReturn(Optional.of(storedPerson));
+    when(personService.calculateBMI(storedPerson.getWeight(), storedPerson.getHeight()))
+        .thenReturn(bmiValue);
 
-    ResponseEntity<Map<String, Object>> response = personController.calculateBMI(weight, height);
+    ResponseEntity<Map<String, Object>> response = personController.calculateBMI();
 
     assertEquals(HttpStatus.OK, response.getStatusCode(), description);
     Map<String, Object> body = response.getBody();
     assertNotNull(body, description);
-    assertEquals(weight, body.get("weight"), description);
-    assertEquals(height, body.get("height"), description);
-    assertEquals(serviceResult, body.get("bmi"), description);
-    assertEquals(expectedCategory, body.get("category"), description);
+    assertEquals(storedPerson.getClientId(), body.get("clientId"));
+    assertEquals(storedPerson.getWeight(), body.get("weight"));
+    assertEquals(storedPerson.getHeight(), body.get("height"));
+    assertEquals(bmiValue, body.get("bmi"));
+    assertEquals(expectedCategory, body.get("category"));
   }
 
-  private static Stream<Arguments> calculateBmiScenarios() {
+  private static Stream<Arguments> bmiScenarios() {
+    PersonSimple normal =
+        new PersonSimple(
+            "Normal",
+            70.0,
+            175.0,
+            LocalDate.of(1990, 1, 1),
+            Gender.MALE,
+            FitnessGoal.CUT,
+            "mobile-normal");
+    PersonSimple underweight =
+        new PersonSimple(
+            "Under",
+            50.0,
+            180.0,
+            LocalDate.of(1992, 2, 2),
+            Gender.FEMALE,
+            FitnessGoal.BULK,
+            "mobile-under");
+    PersonSimple overweight =
+        new PersonSimple(
+            "Over",
+            85.0,
+            178.0,
+            LocalDate.of(1988, 3, 3),
+            Gender.MALE,
+            FitnessGoal.CUT,
+            "mobile-over");
+    PersonSimple obese =
+        new PersonSimple(
+            "Obese",
+            110.0,
+            170.0,
+            LocalDate.of(1985, 4, 4),
+            Gender.FEMALE,
+            FitnessGoal.BULK,
+            "mobile-obese");
     return Stream.of(
-        Arguments.of("Valid: normal BMI", 70.0, 175.0, 22.86, "Normal weight"),
-        Arguments.of("Boundary: underweight classification", 50.0, 180.0, 15.43, "Underweight"),
-        Arguments.of("Boundary: overweight classification", 85.0, 178.0, 26.82, "Overweight"),
-        Arguments.of("Boundary: obese classification", 110.0, 170.0, 38.06, "Obese"),
-        Arguments.of("Invalid: service returns null BMI", 70.0, 0.0, null, "Unknown"));
+        Arguments.of("Normal category", normal, 22.86, "Normal weight"),
+        Arguments.of("Underweight category", underweight, 15.43, "Underweight"),
+        Arguments.of("Overweight category", overweight, 26.82, "Overweight"),
+        Arguments.of("Obese category", obese, 38.06, "Obese"),
+        Arguments.of("Unknown BMI when service returns null", normal, null, "Unknown"));
   }
 
-  /**
-   * Confirms the calorie endpoint composes BMR and activity factors while honoring null guards.
-   */
-  @ParameterizedTest
-  @MethodSource("calculateDailyCalorieNeedsScenarios")
-  @DisplayName("calculateDailyCalorieNeeds composes BMR and activity factor")
-  void calculateDailyCalorieNeedsHandlesScenarios(
-      String description,
-      Double weight,
-      Double height,
-      Integer age,
-      String gender,
-      Integer weeklyTrainingFreq,
-      Double bmrResult,
-      Double caloriesResult) {
+  @Test
+  @DisplayName("calculateBMI throws 404 when profile not found")
+  void calculateBMIThrowsWhenProfileMissing() {
+    ClientContext.setClientId("mobile-missing");
+    when(personRepository.findByClientId("mobile-missing")).thenReturn(Optional.empty());
 
-    boolean isMale = "male".equalsIgnoreCase(gender);
-    when(personService.calculateBMR(weight, height, age, isMale)).thenReturn(bmrResult);
-    when(personService.calculateDailyCalorieNeeds(bmrResult, weeklyTrainingFreq))
-        .thenReturn(caloriesResult);
-
-    ResponseEntity<Map<String, Object>> response =
-        personController.calculateDailyCalories(weight, height, age, gender, weeklyTrainingFreq);
-
-    assertEquals(HttpStatus.OK, response.getStatusCode(), description);
-    Map<String, Object> body = response.getBody();
-    assertNotNull(body, description);
-    assertEquals(bmrResult, body.get("bmr"), description);
-    assertEquals(caloriesResult, body.get("dailyCalories"), description);
-    assertEquals(weeklyTrainingFreq, body.get("weeklyTrainingFreq"), description);
+    assertThrows(ResponseStatusException.class, () -> personController.calculateBMI());
   }
-
-  private static Stream<Arguments> calculateDailyCalorieNeedsScenarios() {
+  
+  private static Stream<Arguments> calorieScenarios() {
     return Stream.of(
         Arguments.of(
-            "Valid: male moderate activity",
+            "Male moderate activity",
             70.0,
             175.0,
             30,
@@ -123,7 +145,7 @@ class PersonControllerTest {
             1680.0,
             2604.0),
         Arguments.of(
-            "Boundary: sedentary frequency",
+            "Sedentary frequency",
             70.0,
             175.0,
             30,
@@ -132,7 +154,7 @@ class PersonControllerTest {
             1680.0,
             2016.0),
         Arguments.of(
-            "Boundary: uppercase gender handled as male",
+            "Uppercase gender handled",
             70.0,
             175.0,
             30,
@@ -141,7 +163,7 @@ class PersonControllerTest {
             1680.0,
             2604.0),
         Arguments.of(
-            "Invalid: missing BMR prevents calorie calculation",
+            "Missing BMR prevents calorie calculation",
             70.0,
             175.0,
             30,
@@ -150,10 +172,7 @@ class PersonControllerTest {
             null,
             null));
   }
-  
-  /**
-   * Valid creation scenario demonstrating client ID assignment.
-   */
+
   @Test
   @DisplayName("health reports service availability metadata")
   void healthReturnsMetadata() {
@@ -164,39 +183,65 @@ class PersonControllerTest {
     assertNotNull(body);
     assertEquals("UP", body.get("status"));
     assertEquals("Personal Fitness Management Service", body.get("service"));
-    assertEquals("1.0.0", body.get("version"));
+    assertEquals("1.1.0", body.get("version"));
   }
 
   @Test
   @DisplayName("createPerson rejects birthDate equal to today")
   void createPersonRejectsBirthDateToday() {
-    PersonSimple p = new PersonSimple();
-    p.setName("Test");
-    p.setWeight(70.0);
-    p.setHeight(170.0);
-    p.setBirthDate(LocalDate.now());
+    PersonCreateRequest request = new PersonCreateRequest();
+    request.setName("Test");
+    request.setWeight(70.0);
+    request.setHeight(170.0);
+    request.setBirthDate(LocalDate.now());
+    request.setGoal(FitnessGoal.CUT);
+    request.setGender(Gender.MALE);
 
     when(personService.calculateBMI(70.0, 170.0)).thenReturn(24.22);
 
-    assertThrows(
-        org.springframework.web.server.ResponseStatusException.class,
-        () -> personController.createPerson(p));
+    assertThrows(ResponseStatusException.class, () -> personController.createPerson(request));
   }
 
   @Test
-  @DisplayName("createPerson rejects negative weight")
-  void createPersonRejectsNegativeWeight() {
-    PersonSimple p = new PersonSimple();
-    p.setName("Test2");
-    p.setWeight(-10.0);
-    p.setHeight(170.0);
-    p.setBirthDate(LocalDate.of(1990, 1, 1));
+  @DisplayName("createPerson rejects invalid weight")
+  void createPersonRejectsInvalidWeight() {
+    PersonCreateRequest request = new PersonCreateRequest();
+    request.setName("Test2");
+    request.setWeight(-10.0);
+    request.setHeight(170.0);
+    request.setBirthDate(LocalDate.of(1990, 1, 1));
+    request.setGoal(FitnessGoal.BULK);
+    request.setGender(Gender.FEMALE);
 
     when(personService.calculateBMI(-10.0, 170.0))
-        .thenThrow(new org.springframework.web.server.ResponseStatusException(HttpStatus.BAD_REQUEST, "weight must be greater than 0"));
+        .thenThrow(
+            new ResponseStatusException(HttpStatus.BAD_REQUEST, "weight must be greater than 0"));
 
-    assertThrows(
-        org.springframework.web.server.ResponseStatusException.class,
-        () -> personController.createPerson(p));
+    assertThrows(ResponseStatusException.class, () -> personController.createPerson(request));
+  }
+
+  @Test
+  @DisplayName("createPerson returns generated client identifier")
+  void createPersonReturnsClientId() {
+    PersonCreateRequest request = new PersonCreateRequest();
+    request.setName("Valid");
+    request.setWeight(70.0);
+    request.setHeight(170.0);
+    request.setBirthDate(LocalDate.of(1990, 1, 1));
+    request.setGoal(FitnessGoal.CUT);
+    request.setGender(Gender.MALE);
+
+    when(personService.calculateBMI(70.0, 170.0)).thenReturn(24.22);
+    lenient().when(personRepository.findByClientId(anyString())).thenReturn(Optional.empty());
+    when(personRepository.save(any(PersonSimple.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0, PersonSimple.class));
+
+    ResponseEntity<PersonCreatedResponse> response = personController.createPerson(request);
+
+    assertEquals(HttpStatus.CREATED, response.getStatusCode());
+    PersonCreatedResponse body = response.getBody();
+    assertNotNull(body);
+    assertNotNull(body.getClientId());
+    assertEquals(true, body.getClientId().startsWith(ClientContext.MOBILE_PREFIX));
   }
 }

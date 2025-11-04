@@ -25,7 +25,15 @@ public interface PersonRepository extends JpaRepository<PersonSimple, Long> {
    * @param clientId the client ID
    * @return list of persons belonging to the client
    */
-  List<PersonSimple> findByClientId(String clientId);
+  List<PersonSimple> findAllByClientId(String clientId);
+
+  /**
+   * Finds a person by unique client identifier.
+   *
+   * @param clientId the client ID
+   * @return optional person
+   */
+  Optional<PersonSimple> findByClientId(String clientId);
 
   /**
    * Finds a specific person by ID and client ID.

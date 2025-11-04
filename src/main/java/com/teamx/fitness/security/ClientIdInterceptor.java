@@ -30,13 +30,18 @@ public class ClientIdInterceptor implements HandlerInterceptor {
   @Override
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
       throws Exception {
-    // Skip validation for health check, Swagger UI, and actuator endpoints
+    // Skip validation for health check, Swagger UI, actuator endpoints, and open person creation
     String requestUri = request.getRequestURI();
     if (requestUri.startsWith("/swagger-ui")
         || requestUri.startsWith("/v3/api-docs")
         || requestUri.startsWith("/actuator")
         || requestUri.equals("/health")
         || requestUri.equals("/")) {
+      return true;
+    }
+
+    if ("POST".equalsIgnoreCase(request.getMethod())
+        && ("/api/persons".equals(requestUri) || "/api/persons/".equals(requestUri))) {
       return true;
     }
 
