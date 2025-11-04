@@ -1,5 +1,12 @@
 package com.teamx.fitness.controller;
 
+import com.teamx.fitness.controller.dto.GoalPlanRequest;
+import com.teamx.fitness.controller.dto.PersonCreateRequest;
+import com.teamx.fitness.controller.dto.PersonCreatedResponse;
+import com.teamx.fitness.controller.dto.PersonProfileResponse;
+import com.teamx.fitness.model.FitnessGoal;
+import com.teamx.fitness.model.Gender;
+import com.teamx.fitness.model.PlanStrategy;
 import com.teamx.fitness.model.PersonSimple;
 import com.teamx.fitness.repository.PersonRepository;
 import com.teamx.fitness.security.ClientContext;
@@ -7,21 +14,21 @@ import com.teamx.fitness.service.AuthService;
 import com.teamx.fitness.service.PersonService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -33,13 +40,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Personal Controller - Endpoints for managing personal accounts and health metrics.
  *
  * <p>This controller provides endpoints for normal users (mobile clients) to manage their own
- * personal fitness data. All endpoints require authentication using user ID and birth date.
- * Users can only access, create, update, or delete their own data.</p>
+ * personal fitness data. Users authenticate with the generated client identifier.</p>
  */
 @RestController
 @RequestMapping("/api/persons")
@@ -50,75 +57,149 @@ import org.springframework.web.bind.annotation.RestController;
         + "Only the authenticated user can view or modify their own data.")
 public class PersonController {
 
-  /** Service for handling person-related business logic */
+  /** Service for handling person-related business logic. */
   @Autowired private PersonService personService;
-  
-  /** Repository for person data persistence */
+
+  /** Repository for person data persistence. */
   @Autowired private PersonRepository personRepository;
-  
-  /** Service for handling authentication and authorization */
+
+  /** Service for handling authentication and authorization. */
   @Autowired private AuthService authService;
 
-  /** BMI threshold for underweight classification */
+  /** BMI threshold for underweight classification. */
   private static final double BMI_UNDERWEIGHT = 18.5;
-  
-  /** BMI threshold for normal weight classification */
+
+  /** BMI threshold for normal weight classification. */
   private static final double BMI_NORMAL = 25.0;
-  
-  /** BMI threshold for overweight classification */
+
+  /** BMI threshold for overweight classification. */
   private static final double BMI_OVERWEIGHT = 30.0;
+
+  /** Rough calories required per kg of body weight change. */
+  private static final double CALORIES_PER_KG = 7700.0;
 
   @PostMapping
   @Operation(
-      summary = "Create a new user account",
-      description = "Register a new user with personal information including name, weight, height, "
-                   + "and birth date. The system automatically handles client ID assignment for "
-                   + "data isolation."
-  )
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "201", description = "User created successfully",
-          content = @Content(schema = @Schema(implementation = PersonSimple.class),
-              examples = @ExampleObject(value = """
-                  {
-                    \"id\": 1,
-                    \"name\": \"John Doe\",
-                    \"weight\": 75.5,
-                    \"height\": 180.0,
-                    \"birthDate\": \"1990-05-15\",
-                    \"clientId\": \"mobile-app1\"
-                  }
-                  """))),
-      @ApiResponse(responseCode = "400", description = "Invalid input data"),
-      @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid client ID")
+      summary = "Create a new person profile",
+      description = "Registers a new person with name, weight, height, birth date, gender, and goal. "
+          + "Returns the generated client identifier to use for subsequent requests."
+          + " This is the only personal endpoint that does not require the `X-Client-ID` header.")
+  @ApiResponses({
+      @ApiResponse(
+          responseCode = "201",
+          description = "Person created successfully",
+          content = @Content(
+              schema = @Schema(implementation = PersonCreatedResponse.class),
+              examples = @ExampleObject(
+                  value = """
+                      {
+                        "clientId": "mobile-3f2a4b1cd8e94bceb8c0b6a7dd5f1e92"
+                      }
+                      """))),
+      @ApiResponse(responseCode = "400", description = "Invalid input data")
   })
-  public ResponseEntity<PersonSimple> createPerson(
-      @Parameter(description = "User information including name, weight, height, and birth date", required = true)
-      @Valid @RequestBody PersonSimple person) {
-    String clientId = ClientContext.getClientId();
-    person.setClientId(clientId);
-    // Validate basic numeric inputs (weight/height). calculateBMI will throw a
-    // ResponseStatusException with HTTP 400 for invalid values (null, <=0, too large).
-    personService.calculateBMI(person.getWeight(), person.getHeight());
+  public ResponseEntity<PersonCreatedResponse> createPerson(
+      @Valid @RequestBody PersonCreateRequest request) {
 
-    // Validate birthDate: must be provided and strictly before today
-    if (person.getBirthDate() == null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "birthDate is required");
+    personService.calculateBMI(request.getWeight(), request.getHeight());
+
+    if (!request.getBirthDate().isBefore(LocalDate.now())) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "birthDate must be before today");
     }
-    if (!person.getBirthDate().isBefore(LocalDate.now())) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "birthDate must be before today");
+    if (request.getGender() == null) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "gender must be either MALE or FEMALE");
     }
 
-    PersonSimple savedPerson = personRepository.save(person);
-    return ResponseEntity.status(HttpStatus.CREATED).body(savedPerson);
+    PersonSimple person = new PersonSimple();
+    person.setName(request.getName().trim());
+    person.setWeight(request.getWeight());
+    person.setHeight(request.getHeight());
+    person.setBirthDate(request.getBirthDate());
+    person.setGender(request.getGender());
+    person.setGoal(request.getGoal());
+    person.setClientId(generateClientId());
+
+    PersonSimple saved = personRepository.save(person);
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(new PersonCreatedResponse(saved.getClientId()));
+  }
+
+  @GetMapping("/me")
+  @Operation(
+      summary = "Get the current client profile",
+      description = "Returns the persisted profile for the supplied X-Client-ID header.",
+      parameters = {
+          @Parameter(
+              name = "X-Client-ID",
+              in = ParameterIn.HEADER,
+              required = true,
+              description = "Client identifier returned by POST /api/persons",
+              example = "mobile-id1")
+      })
+  @ApiResponses({
+      @ApiResponse(
+          responseCode = "200",
+          description = "Profile retrieved successfully",
+          content = @Content(schema = @Schema(implementation = PersonProfileResponse.class))),
+      @ApiResponse(responseCode = "404", description = "Profile not found")
+  })
+  public ResponseEntity<PersonProfileResponse> getProfile() {
+    PersonSimple person = requirePersonForClient(requireClientId());
+    return ResponseEntity.ok(PersonProfileResponse.fromEntity(person));
+  }
+
+  @PostMapping("/plan")
+  @Operation(
+      summary = "Configure goal plan details",
+      description = "Saves the target change, duration, and training frequency for the active goal.",
+      parameters = {
+          @Parameter(
+              name = "X-Client-ID",
+              in = ParameterIn.HEADER,
+              required = true,
+              description = "Client identifier returned by POST /api/persons",
+              example = "mobile-id1")
+      })
+  @ApiResponses({
+      @ApiResponse(
+          responseCode = "200",
+          description = "Plan stored successfully",
+          content = @Content(schema = @Schema(implementation = PersonProfileResponse.class))),
+      @ApiResponse(responseCode = "400", description = "Invalid plan details")
+  })
+  public ResponseEntity<PersonProfileResponse> configureGoalPlan(
+      @Valid @RequestBody GoalPlanRequest request) {
+    PersonSimple person = requirePersonForClient(requireClientId());
+
+    validatePlanRequest(person.getGoal(), request);
+
+    person.setTargetChangeKg(request.getTargetChangeKg());
+    person.setTargetDurationWeeks(request.getDurationWeeks());
+    person.setTrainingFrequencyPerWeek(request.getTrainingFrequencyPerWeek());
+    person.setPlanStrategy(request.getPlanStrategy());
+
+    PersonSimple saved = personRepository.save(person);
+    return ResponseEntity.ok(PersonProfileResponse.fromEntity(saved));
   }
 
   @PutMapping("/{id}")
   @Operation(
       summary = "Update existing user information",
-      description = "Allow editing of height, weight, and birth date. Requires authentication."
-  )
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "User updated successfully",
+      description = "Allow editing of height, weight, and birth date. Requires authentication.",
+      parameters = {
+          @Parameter(
+              name = "X-Client-ID",
+              in = ParameterIn.HEADER,
+              required = true,
+              description = "Client identifier returned by POST /api/persons",
+              example = "mobile-id1")
+      })
+  @ApiResponses({
+      @ApiResponse(
+          responseCode = "200",
+          description = "User updated successfully",
           content = @Content(schema = @Schema(implementation = PersonSimple.class))),
       @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid credentials"),
       @ApiResponse(responseCode = "404", description = "User not found")
@@ -136,7 +217,7 @@ public class PersonController {
           .body("Invalid ID or birth date");
     }
 
-    String clientId = ClientContext.getClientId();
+    String clientId = requireClientId();
     Optional<PersonSimple> existing = personRepository.findByIdAndClientId(id, clientId);
     if (existing.isEmpty()) {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -144,57 +225,32 @@ public class PersonController {
 
     updatedPerson.setId(id);
     updatedPerson.setClientId(clientId);
-    // Validate weight/height before saving. This will raise a 400 on invalid input.
     personService.calculateBMI(updatedPerson.getWeight(), updatedPerson.getHeight());
 
-    // Validate birthDate for update as well
-    if (updatedPerson.getBirthDate() == null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "birthDate is required");
-    }
     if (!updatedPerson.getBirthDate().isBefore(LocalDate.now())) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "birthDate must be before today");
+    }
+    if (updatedPerson.getGender() == null) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "gender is required");
     }
 
     PersonSimple saved = personRepository.save(updatedPerson);
     return ResponseEntity.ok(saved);
   }
 
-  @GetMapping("/{id}")
-  @Operation(
-      summary = "Get person by ID",
-      description = "Retrieve a person record by ID if it belongs to the calling client."
-  )
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Person retrieved",
-          content = @Content(schema = @Schema(implementation = PersonSimple.class))),
-      @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid credentials"),
-      @ApiResponse(responseCode = "404", description = "User not found")
-  })
-  public ResponseEntity<?> getPerson(
-      @Parameter(description = "The person ID", required = true)
-      @PathVariable Long id,
-      @Parameter(description = "Birth date for authentication (YYYY-MM-DD)", required = true)
-      @RequestParam LocalDate birthDate) {
-
-    if (!authService.validateUserAccess(id, birthDate)) {
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body("Invalid ID or birth date");
-    }
-
-    String clientId = ClientContext.getClientId();
-    Optional<PersonSimple> person = personRepository.findByIdAndClientId(id, clientId);
-    if (person.isEmpty()) {
-      return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-    }
-    return ResponseEntity.ok(person.get());
-  }
-
   @DeleteMapping("/{id}")
   @Operation(
       summary = "Delete person by ID",
-      description = "Delete a person record if it belongs to the calling client."
-  )
-  @ApiResponses(value = {
+      description = "Delete a person record if it belongs to the calling client.",
+      parameters = {
+          @Parameter(
+              name = "X-Client-ID",
+              in = ParameterIn.HEADER,
+              required = true,
+              description = "Client identifier returned by POST /api/persons",
+              example = "mobile-id1")
+      })
+  @ApiResponses({
       @ApiResponse(responseCode = "204", description = "Deleted successfully"),
       @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid credentials"),
       @ApiResponse(responseCode = "404", description = "User not found")
@@ -210,7 +266,7 @@ public class PersonController {
           .body("Invalid ID or birth date");
     }
 
-    String clientId = ClientContext.getClientId();
+    String clientId = requireClientId();
     Optional<PersonSimple> existing = personRepository.findByIdAndClientId(id, clientId);
     if (existing.isEmpty()) {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -222,24 +278,30 @@ public class PersonController {
   @GetMapping
   @Operation(
       summary = "List persons for the client",
-      description = "Return all person records belonging to the calling client."
-  )
+      description = "Return all person records belonging to the calling client.",
+      parameters = {
+          @Parameter(
+              name = "X-Client-ID",
+              in = ParameterIn.HEADER,
+              required = true,
+              description = "Client identifier returned by POST /api/persons",
+              example = "mobile-id1")
+      })
   public ResponseEntity<List<PersonSimple>> listPersons() {
-    String clientId = ClientContext.getClientId();
-    List<PersonSimple> persons = personRepository.findByClientId(clientId);
+    String clientId = requireClientId();
+    List<PersonSimple> persons = personRepository.findAllByClientId(clientId);
     return ResponseEntity.ok(persons);
   }
 
   @GetMapping("/health")
   @Operation(
       summary = "Service health check",
-      description = "Return service status and metadata."
-  )
+      description = "Return service status and metadata.")
   public ResponseEntity<Map<String, Object>> health() {
     Map<String, Object> response = new HashMap<>();
     response.put("status", "UP");
     response.put("service", "Personal Fitness Management Service");
-    response.put("version", "1.0.0");
+    response.put("version", "1.1.0");
     return ResponseEntity.ok(response);
   }
 
@@ -247,84 +309,329 @@ public class PersonController {
   @Operation(
       summary = "Calculate daily calorie needs based on parameters",
       description = "Calculate daily calorie requirements based on personal metrics including "
-                   + "weight, height, age, gender, and weekly training frequency. "
-                   + "Uses BMR (Basal Metabolic Rate) calculation with activity multiplier."
-  )
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Calorie calculation successful",
+          + "weight, height, age, gender, and weekly training frequency. "
+          + "Uses BMR (Basal Metabolic Rate) calculation with activity multiplier.",
+      parameters = {
+          @Parameter(
+              name = "X-Client-ID",
+              in = ParameterIn.HEADER,
+              required = true,
+              description = "Client identifier returned by POST /api/persons",
+              example = "mobile-id1")
+      })
+  @ApiResponses({
+      @ApiResponse(
+          responseCode = "200",
+          description = "Calorie calculation successful",
           content = @Content(schema = @Schema(implementation = Map.class),
               examples = @ExampleObject(value = """
                   {
-                    \"bmr\": 1650.5,
-                    \"dailyCalories\": 2475.75,
-                    \"weeklyTrainingFreq\": 4
+                    "bmr": 1650.5,
+                    "dailyCalories": 2475.75,
+                    "weeklyTrainingFreq": 4
                   }
                   """))),
       @ApiResponse(responseCode = "400", description = "Invalid input parameters")
   })
-  public ResponseEntity<Map<String, Object>> calculateDailyCalories(
-      @Parameter(description = "Weight in kilograms", required = true)
-      @RequestParam Double weight,
-      @Parameter(description = "Height in centimeters", required = true)
-      @RequestParam Double height,
-      @Parameter(description = "Age in years", required = true)
-      @RequestParam Integer age,
-      @Parameter(description = "Gender (male/female)", required = true)
-      @RequestParam String gender,
-      @Parameter(description = "Weekly training frequency", required = true)
-      @RequestParam Integer weeklyTrainingFreq) {
+  public ResponseEntity<Map<String, Object>> calculateDailyCalories() {
+    PersonSimple person = requirePersonForClient(requireClientId());
 
-  // Validate weight/height ranges using calculateBMI (throws 400 on invalid values)
-  personService.calculateBMI(weight, height);
+    if (person.getTrainingFrequencyPerWeek() == null) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST,
+          "Set a training frequency via /api/persons/plan before requesting calories");
+    }
 
-  boolean isMale = "male".equalsIgnoreCase(gender);
-  Double bmr = personService.calculateBMR(weight, height, age, isMale);
-    Double dailyCalories = personService.calculateDailyCalorieNeeds(bmr, weeklyTrainingFreq);
+    if (person.getPlanStrategy() == null) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Select a planStrategy via /api/persons/plan");
+    }
+
+    if (person.getTargetChangeKg() == null || person.getTargetDurationWeeks() == null) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "targetChangeKg and targetDurationWeeks are required");
+    }
+    if (person.getTargetDurationWeeks() <= 0) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "targetDurationWeeks must be greater than 0");
+    }
+
+    Integer age = personService.calculateAge(person.getBirthDate());
+    if (age == null) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "birthDate is required to compute calorie targets");
+    }
+
+    boolean isMale = Gender.MALE.equals(person.getGender());
+    Double bmr = personService.calculateBMR(person.getWeight(), person.getHeight(), age, isMale);
+    if (bmr == null) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Unable to compute BMR with the stored profile data");
+    }
+    Double dailyCalories = personService.calculateDailyCalorieNeeds(
+        bmr, person.getTrainingFrequencyPerWeek());
+    if (dailyCalories == null) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Unable to compute calorie needs with the stored plan");
+    }
+
+    double dailyAdjustmentCalories =
+        (person.getTargetChangeKg() * CALORIES_PER_KG)
+            / (person.getTargetDurationWeeks() * 7.0);
+    if (dailyAdjustmentCalories < 0) {
+      dailyAdjustmentCalories = Math.abs(dailyAdjustmentCalories);
+    }
+
+    boolean isCut = FitnessGoal.CUT.equals(person.getGoal());
+    double recommendedCalories = isCut
+        ? Math.max(0, dailyCalories - dailyAdjustmentCalories)
+        : dailyCalories + dailyAdjustmentCalories;
 
     Map<String, Object> response = new HashMap<>();
+    response.put("goal", person.getGoal());
+    response.put("planStrategy", person.getPlanStrategy());
+    response.put("targetChangeKg", person.getTargetChangeKg());
+    response.put("targetDurationWeeks", person.getTargetDurationWeeks());
+    response.put("trainingFrequencyPerWeek", person.getTrainingFrequencyPerWeek());
     response.put("bmr", bmr);
-    response.put("dailyCalories", dailyCalories);
-    response.put("weeklyTrainingFreq", weeklyTrainingFreq);
+    response.put("maintenanceCalories", dailyCalories);
+    response.put("calorieAdjustmentPerDay", isCut ? -dailyAdjustmentCalories : dailyAdjustmentCalories);
+    response.put("recommendedDailyCalories", recommendedCalories);
+    response.putAll(buildPlanDetails(person));
 
     return ResponseEntity.ok(response);
   }
 
   @GetMapping("/bmi")
   @Operation(
-      summary = "Calculate BMI and return BMI category",
-      description = "Calculate Body Mass Index (BMI) from weight and height, "
-                   + "and return the corresponding health category. "
-                   + "BMI categories: Underweight (<18.5), Normal (18.5-24.9), "
-                   + "Overweight (25-29.9), Obese (>=30)."
-  )
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "BMI calculation successful",
+      summary = "Get BMI using stored profile metrics",
+      description = "Retrieves the BMI for the current client using the stored height and weight.",
+      parameters = {
+          @Parameter(
+              name = "X-Client-ID",
+              in = ParameterIn.HEADER,
+              required = true,
+              description = "Client identifier returned by POST /api/persons",
+              example = "mobile-id1")
+      })
+  @ApiResponses({
+      @ApiResponse(
+          responseCode = "200",
+          description = "BMI retrieved successfully",
           content = @Content(schema = @Schema(implementation = Map.class),
               examples = @ExampleObject(value = """
                   {
-                    \"weight\": 75.5,
-                    \"height\": 180.0,
-                    \"bmi\": 23.3,
-                    \"category\": \"Normal weight\"
+                    "clientId": "mobile-3f2a4b1cd8e94bceb8c0b6a7dd5f1e92",
+                    "weight": 75.5,
+                    "height": 180.0,
+                    "bmi": 23.3,
+                    "category": "Normal weight"
                   }
                   """))),
-      @ApiResponse(responseCode = "400", description = "Invalid input parameters")
+      @ApiResponse(responseCode = "404", description = "Profile not found")
   })
-  public ResponseEntity<Map<String, Object>> calculateBMI(
-      @Parameter(description = "Weight in kilograms", required = true)
-      @RequestParam Double weight,
-      @Parameter(description = "Height in centimeters", required = true)
-      @RequestParam Double height) {
-
-    Double bmi = personService.calculateBMI(weight, height);
+  public ResponseEntity<Map<String, Object>> calculateBMI() {
+    PersonSimple person = requirePersonForClient(requireClientId());
+    Double bmi = personService.calculateBMI(person.getWeight(), person.getHeight());
 
     Map<String, Object> response = new HashMap<>();
-    response.put("weight", weight);
-    response.put("height", height);
+    response.put("clientId", person.getClientId());
+    response.put("weight", person.getWeight());
+    response.put("height", person.getHeight());
     response.put("bmi", bmi);
     response.put("category", getBMICategory(bmi));
 
     return ResponseEntity.ok(response);
+  }
+
+  @GetMapping("/recommendation")
+  @Operation(
+      summary = "Provide a simple goal recommendation",
+      description = "Returns a short motivational message based on the stored goal and plan.",
+      parameters = {
+          @Parameter(
+              name = "X-Client-ID",
+              in = ParameterIn.HEADER,
+              required = true,
+              description = "Client identifier returned by POST /api/persons",
+              example = "mobile-id1")
+      })
+  public ResponseEntity<Map<String, Object>> provideRecommendation() {
+    PersonSimple person = requirePersonForClient(requireClientId());
+
+    String message = buildRecommendation(person);
+
+    Map<String, Object> response = new HashMap<>();
+    response.put("goal", person.getGoal());
+    response.put("message", message);
+    response.put("planStrategy", person.getPlanStrategy());
+    response.put("targetChangeKg", person.getTargetChangeKg());
+    response.put("targetDurationWeeks", person.getTargetDurationWeeks());
+    response.putAll(buildPlanDetails(person));
+    return ResponseEntity.ok(response);
+  }
+
+  private void validatePlanRequest(FitnessGoal goal, GoalPlanRequest request) {
+    if (goal == null) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "A goal must be selected before configuring a plan");
+    }
+    if (request.getTargetChangeKg() == null || request.getDurationWeeks() == null
+        || request.getTrainingFrequencyPerWeek() == null || request.getPlanStrategy() == null) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "All plan fields are required");
+    }
+  }
+
+  private Map<String, String> buildPlanDetails(PersonSimple person) {
+    Map<String, String> details = new HashMap<>();
+    PlanStrategy strategy = person.getPlanStrategy();
+    if (strategy == null) {
+      return details;
+    }
+
+    if (strategy == PlanStrategy.DIET || strategy == PlanStrategy.BOTH) {
+      details.put("dietPlan", defaultDietPlan(person));
+    }
+
+    if (strategy == PlanStrategy.WORKOUT || strategy == PlanStrategy.BOTH) {
+      details.put("workoutPlan", defaultWorkoutPlan(person));
+    }
+
+    return details;
+  }
+
+  private String buildRecommendation(PersonSimple person) {
+    FitnessGoal goal = person.getGoal();
+    Double change = person.getTargetChangeKg();
+    Integer duration = person.getTargetDurationWeeks();
+    PlanStrategy strategy = person.getPlanStrategy();
+    String strategyNote = planStrategyMessage(strategy, goal);
+
+    String baseMessage;
+    if (goal == FitnessGoal.BULK) {
+      if (change != null && duration != null) {
+        baseMessage = String.format(
+            "Keep bulking: aim to gain %.1f kg over %d weeks. Stay consistent!",
+            change,
+            duration);
+      } else {
+        baseMessage = "Keep bulking—focus on progressive overload and sufficient calories.";
+      }
+    } else if (goal == FitnessGoal.CUT) {
+      if (change != null && duration != null) {
+        baseMessage = String.format(
+            "Keep cutting: target %.1f kg over %d weeks. Stay on track!",
+            change,
+            duration);
+      } else {
+        baseMessage = "Keep cutting—prioritize protein and maintain your calorie deficit.";
+      }
+    } else {
+      baseMessage = "Stay consistent with your current plan.";
+    }
+
+    if (strategyNote.isBlank()) {
+      return baseMessage;
+    }
+    return baseMessage + " " + strategyNote;
+  }
+
+  private String planStrategyMessage(PlanStrategy strategy, FitnessGoal goal) {
+    if (strategy == null) {
+      return "";
+    }
+    switch (strategy) {
+      case WORKOUT:
+        return "Leverage structured training sessions to "
+            + (goal == FitnessGoal.CUT ? "preserve muscle while cutting." : "drive strength gains.");
+      case DIET:
+        return "Dial in your nutrition to support the goal each day.";
+      case BOTH:
+        return "Balance training and nutrition to maximise results.";
+      default:
+        return "";
+    }
+  }
+
+  private String defaultDietPlan(PersonSimple person) {
+    FitnessGoal goal = person.getGoal();
+    double adjustment = 300.0;
+    if (person.getTargetChangeKg() != null && person.getTargetDurationWeeks() != null
+        && person.getTargetDurationWeeks() > 0) {
+      adjustment = Math.abs(
+          (person.getTargetChangeKg() * CALORIES_PER_KG)
+              / (person.getTargetDurationWeeks() * 7.0));
+    }
+    adjustment = Math.round(adjustment / 10.0) * 10.0;
+
+    if (goal == null) {
+      return "Maintain a balanced meal plan with lean protein, whole grains, and plenty of vegetables.";
+    }
+
+    if (goal == FitnessGoal.CUT) {
+      return String.format(
+          "Aim for about %.0f kcal deficit per day with high-protein, veggie-rich meals and adequate hydration.",
+          adjustment);
+    }
+    return String.format(
+        "Target roughly %.0f kcal surplus daily using lean proteins, complex carbs, and healthy fats spread across meals.",
+        adjustment);
+  }
+
+  private String defaultWorkoutPlan(PersonSimple person) {
+    int frequency = person.getTrainingFrequencyPerWeek() != null
+        ? person.getTrainingFrequencyPerWeek()
+        : 4;
+    if (frequency < 1) {
+      frequency = 1;
+    }
+    FitnessGoal goal = person.getGoal();
+    if (goal == null) {
+      return String.format(
+          "Schedule %d total-body sessions each week combining strength, mobility, and light cardio.",
+          frequency);
+    }
+
+    if (goal == FitnessGoal.CUT) {
+      return String.format(
+          "Schedule %d weekly sessions mixing strength and cardio (e.g., 3 strength, %d cardio) to support fat loss.",
+          frequency,
+          Math.max(1, frequency / 2));
+    }
+    return String.format(
+        "Plan %d strength-focused sessions emphasising progressive overload, plus mobility work for recovery.",
+        frequency);
+  }
+
+  private String requireClientId() {
+    String clientId = ClientContext.getClientId();
+    if (clientId == null || clientId.isBlank()) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "X-Client-ID header is required");
+    }
+    return clientId;
+  }
+
+  private PersonSimple requirePersonForClient(String clientId) {
+    return personRepository
+        .findByClientId(clientId)
+        .orElseThrow(
+            () ->
+                new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "No person profile found for supplied clientId"));
+  }
+
+  private String generateClientId() {
+    final int maxAttempts = 1000;
+    for (int suffix = 1; suffix <= maxAttempts; suffix++) {
+      String candidate = ClientContext.MOBILE_PREFIX + "id" + suffix;
+      if (personRepository.findByClientId(candidate).isEmpty()) {
+        return candidate;
+      }
+    }
+    throw new ResponseStatusException(
+        HttpStatus.INTERNAL_SERVER_ERROR, "Unable to generate a unique client identifier");
   }
 
   private String getBMICategory(Double bmi) {
@@ -342,4 +649,3 @@ public class PersonController {
     }
   }
 }
-

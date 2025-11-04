@@ -64,7 +64,6 @@ COMSW4156-TeamX/
         service/
       resources/
         application.yml
-        data.sql
     test/
       java/com/teamx/fitness/
         controller/
