@@ -25,6 +25,60 @@ http://localhost:8080/swagger-ui/index.html
 
 ---
 
+## Demo Client
+
+`DemoClient.java` is a standalone Java CLI that drives the Personal Fitness Management Service API. It issues HTTP requests with the required `X-Client-ID` header so you can register users, configure plans, and retrieve BMI/calorie guidance.
+
+### Prerequisites
+
+- Java 17+
+
+### Build and Run
+
+```
+javac DemoClient.java
+java DemoClient demo
+```
+
+The `demo` command registers a sample profile (when no client ID is supplied), stores a goal plan, and fetches profile/BMI/calorie summaries.
+
+### Common Commands
+
+- Register (open endpoint, returns a generated client ID):
+
+  ```
+  java DemoClient register --name "Ava Stone" --weight 68.5 --height 172 \
+      --birth-date 1995-03-18 --goal CUT --gender FEMALE
+  ```
+
+- Use the returned ID for authenticated commands (either pass `--client-id` or set `FITNESS_CLIENT_ID`):
+
+  ```
+  java DemoClient plan --client-id mobile-id1 \
+      --target-change 3.5 --duration-weeks 6 --training-frequency 4 --plan-strategy BOTH
+  java DemoClient bmi --client-id mobile-id1
+  java DemoClient calories --client-id mobile-id1
+  java DemoClient recommendation --client-id mobile-id1
+  ```
+
+### Multiple Concurrent Clients
+
+Each instance isolates requests using the supplied `X-Client-ID`, which the service stores in `ClientContext`. Run parallel terminals with different IDs to simulate multiple clients:
+
+```
+export FITNESS_CLIENT_ID=mobile-id1   # Windows PowerShell: $env:FITNESS_CLIENT_ID="mobile-id1"
+java DemoClient profile
+```
+
+```
+export FITNESS_CLIENT_ID=mobile-id2
+java DemoClient profile
+```
+
+Because the backend intercepts every request via `ClientIdInterceptor`, state remains separated per ID even when instances run simultaneously.
+
+---
+
 ## Build, Test, and Run
 
 Prerequisites:
@@ -155,14 +209,13 @@ Security note: The `cloudbuild.yaml` included is intended for demos and CI durin
 - Use Cloud SQL Private IP or the Cloud SQL Auth proxy with a VPC connector to avoid public DB ips.
 - Restrict Cloud Run access (remove `--allow-unauthenticated`) and front with an API gateway or IAM.
 
-
-
 ## Project Management
+
 - Tool: JIRA([COMS4156 Scrum Board](https://columbia-teamx-coms4156.atlassian.net/jira/software/projects/SCRUM/boards/1)).
 
 ## Tags
+
 - **Iteration 1 focus:** Designing and integrating **secure and meaningful data operations** (beyond basic CRUD),
   implementing **fitness calculators**, **research dashboards**, and **SpringDoc-powered API documentation**.
 
-- **Iteration 1 Demo focus:** Ready for iteration 1 demo **.
-
+- **Iteration 1 Demo focus:** Ready for iteration 1 demo \*\*.
