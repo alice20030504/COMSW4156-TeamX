@@ -83,6 +83,16 @@ Because the backend intercepts every request via `ClientIdInterceptor`, state re
 
 A modern web-based client is available in the `frontend/` directory. This provides a user-friendly browser interface to interact with the fitness service API.
 
+### Run with Docker (backend + frontend)
+
+In the project root:
+
+```bash
+docker-compose up --build
+# Backend: http://localhost:8080
+# Frontend: http://localhost:3000
+```
+
 ### Location
 
 The frontend client code is located in: **`frontend/`**
