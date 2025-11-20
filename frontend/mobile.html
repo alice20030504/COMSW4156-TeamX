@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Personal Fitness Management - Mobile User</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>🏋️ Personal Fitness Management</h1>
+        <p class="subtitle">Mobile User Dashboard</p>
+        <a href="landing.html" style="color: white; text-decoration: underline; font-size: 0.9em;">← Back to Home</a>
+      </header>
+
+      <!-- Client ID Display -->
+      <div id="clientInfo" class="client-info" style="display: none">
+        <div class="client-id-display">
+          <strong>Client ID:</strong> <span id="clientIdDisplay"></span>
+          <button id="clearClientBtn" class="btn-secondary">
+            Clear & Register New
+          </button>
+        </div>
+      </div>
+
+      <!-- Registration Form -->
+      <section id="registrationSection" class="section">
+        <h2>Register New Profile</h2>
+        <form id="registerForm" class="form">
+          <div class="form-group">
+            <label for="name">Name *</label>
+            <input type="text" id="name" name="name" required />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="weight">Weight (kg) *</label>
+              <input
+                type="number"
+                id="weight"
+                name="weight"
+                step="0.1"
+                min="0"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="height">Height (cm) *</label>
+              <input
+                type="number"
+                id="height"
+                name="height"
+                step="0.1"
+                min="0"
+                required
+              />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="birthDate">Birth Date *</label>
+              <input type="date" id="birthDate" name="birthDate" required />
+            </div>
+            <div class="form-group">
+              <label for="gender">Gender *</label>
+              <select id="gender" name="gender" required>
+                <option value="">Select...</option>
+                <option value="MALE">Male</option>
+                <option value="FEMALE">Female</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="goal">Fitness Goal *</label>
+            <select id="goal" name="goal" required>
+              <option value="">Select...</option>
+              <option value="CUT">Cut (Weight Loss)</option>
+              <option value="BULK">Bulk (Weight Gain)</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-primary">Register</button>
+        </form>
+      </section>
+
+      <!-- Authenticated Actions -->
+      <section id="authenticatedSection" class="section" style="display: none">
+        <h2>Your Fitness Dashboard</h2>
+
+        <!-- Profile Display -->
+        <div class="card">
+          <h3>Profile Information</h3>
+          <div id="profileContent" class="profile-content">
+            <button id="loadProfileBtn" class="btn-primary">
+              Load Profile
+            </button>
+          </div>
+        </div>
+
+        <!-- Goal Plan Configuration -->
+        <div class="card">
+          <h3>Configure Goal Plan</h3>
+          <form id="planForm" class="form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="targetChangeKg">Target Change (kg) *</label>
+                <input
+                  type="number"
+                  id="targetChangeKg"
+                  name="targetChangeKg"
+                  step="0.1"
+                  min="0.1"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="durationWeeks">Duration (weeks) *</label>
+                <input
+                  type="number"
+                  id="durationWeeks"
+                  name="durationWeeks"
+                  min="1"
+                  required
+                />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="trainingFrequencyPerWeek"
+                  >Training Frequency (per week) *</label
+                >
+                <input
+                  type="number"
+                  id="trainingFrequencyPerWeek"
+                  name="trainingFrequencyPerWeek"
+                  min="1"
+                  max="14"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="planStrategy">Plan Strategy *</label>
+                <select id="planStrategy" name="planStrategy" required>
+                  <option value="">Select...</option>
+                  <option value="DIET">Diet Only</option>
+                  <option value="WORKOUT">Workout Only</option>
+                  <option value="BOTH">Both Diet & Workout</option>
+                </select>
+              </div>
+            </div>
+            <button type="submit" class="btn-primary">Save Plan</button>
+          </form>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+          <h3>Quick Actions</h3>
+          <div class="action-buttons">
+            <button id="getBmiBtn" class="btn-action">Get BMI</button>
+            <button id="getCaloriesBtn" class="btn-action">Get Calories</button>
+            <button id="getRecommendationBtn" class="btn-action">
+              Get Recommendation
+            </button>
+            <button id="listProfilesBtn" class="btn-action">
+              List All Profiles
+            </button>
+          </div>
+        </div>
+
+        <!-- Results Display -->
+        <div class="card">
+          <h3>Results</h3>
+          <div id="resultsContent" class="results-content">
+            <p class="placeholder">Results will appear here...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Status Messages -->
+      <div
+        id="statusMessage"
+        class="status-message"
+        style="display: none"
+      ></div>
+    </div>
+
+    <script src="mobile.js"></script>
+  </body>
+</html>
+

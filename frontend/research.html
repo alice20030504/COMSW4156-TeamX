@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Personal Fitness Management - Researcher</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>🔬 Personal Fitness Management</h1>
+        <p class="subtitle">Researcher Dashboard</p>
+        <a href="landing.html" style="color: white; text-decoration: underline; font-size: 0.9em;">← Back to Home</a>
+      </header>
+
+      <!-- Client ID Display -->
+      <div id="clientInfo" class="client-info" style="display: none">
+        <div class="client-id-display">
+          <strong>Client ID:</strong> <span id="clientIdDisplay"></span>
+          <button id="clearClientBtn" class="btn-secondary">
+            Clear & Register New
+          </button>
+        </div>
+      </div>
+
+      <!-- Registration Form -->
+      <section id="registrationSection" class="section">
+        <h2>Register as Researcher</h2>
+        <form id="registerForm" class="form">
+          <div class="form-group">
+            <label for="name">Name *</label>
+            <input type="text" id="name" name="name" required />
+          </div>
+          <div class="form-group">
+            <label for="email">Email Address *</label>
+            <input type="email" id="email" name="email" required />
+          </div>
+          <button type="submit" class="btn-primary">Register</button>
+        </form>
+      </section>
+
+      <!-- Authenticated Actions -->
+      <section id="authenticatedSection" class="section" style="display: none">
+        <h2>Research Dashboard</h2>
+
+        <!-- Profile Display -->
+        <div class="card">
+          <h3>Researcher Profile</h3>
+          <div id="profileContent" class="profile-content">
+            <p class="placeholder">Profile information will appear here after registration.</p>
+          </div>
+        </div>
+
+        <!-- Research Actions -->
+        <div class="card">
+          <h3>Research Analytics</h3>
+          <div class="action-buttons">
+            <button id="getDemographicsBtn" class="btn-action">Demographics</button>
+            <button id="getPopulationHealthBtn" class="btn-action">Population Health</button>
+          </div>
+        </div>
+
+        <!-- Results Display -->
+        <div class="card">
+          <h3>Research Results</h3>
+          <div id="resultsContent" class="results-content">
+            <p class="placeholder">Research results will appear here...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Status Messages -->
+      <div
+        id="statusMessage"
+        class="status-message"
+        style="display: none"
+      ></div>
+    </div>
+
+    <script src="research.js"></script>
+  </body>
+</html>
+
