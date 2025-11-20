@@ -9,6 +9,7 @@ import com.teamx.fitness.model.FitnessGoal;
 import com.teamx.fitness.model.Gender;
 import com.teamx.fitness.model.PersonSimple;
 import com.teamx.fitness.repository.PersonRepository;
+import com.teamx.fitness.repository.ResearcherRepository;
 import com.teamx.fitness.security.ClientContext;
 import com.teamx.fitness.service.PersonService;
 import java.time.LocalDate;
@@ -31,12 +32,14 @@ import org.springframework.web.server.ResponseStatusException;
 class ResearchControllerTest {
 
   @Mock private PersonRepository personRepository;
+  
+  @Mock private ResearcherRepository researcherRepository;
 
   private ResearchController controller;
 
   @BeforeEach
   void setup() {
-    controller = new ResearchController(personRepository, new PersonService());
+    controller = new ResearchController(personRepository, new PersonService(), researcherRepository);
   }
 
   @AfterEach

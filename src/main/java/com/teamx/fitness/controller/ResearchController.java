@@ -1,9 +1,12 @@
 package com.teamx.fitness.controller;
 
+import com.teamx.fitness.controller.dto.ResearcherCreateRequest;
+import com.teamx.fitness.controller.dto.ResearcherCreatedResponse;
 import com.teamx.fitness.model.FitnessGoal;
-import com.teamx.fitness.model.Gender;
 import com.teamx.fitness.model.PersonSimple;
+import com.teamx.fitness.model.Researcher;
 import com.teamx.fitness.repository.PersonRepository;
+import com.teamx.fitness.repository.ResearcherRepository;
 import com.teamx.fitness.security.ClientContext;
 import com.teamx.fitness.service.PersonService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,6 +18,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +29,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
@@ -41,15 +47,76 @@ import org.springframework.web.server.ResponseStatusException;
         + " Research clients only.")
 public class ResearchController {
 
+  /** Repository for person data persistence. */
   private final PersonRepository personRepository;
+  
+  /** Service for handling person-related business logic. */
   private final PersonService personService;
+  
+  /** Repository for researcher data persistence. */
+  private final ResearcherRepository researcherRepository;
 
-  public ResearchController(PersonRepository personRepository, PersonService personService) {
+  public ResearchController(
+      PersonRepository personRepository,
+      PersonService personService,
+      ResearcherRepository researcherRepository) {
     this.personRepository = personRepository;
     this.personService = personService;
+    this.researcherRepository = researcherRepository;
   }
 
+  /** Minimum sample size required for research metrics. */
   private static final int MIN_SAMPLE_SIZE = 3;
+
+  @PostMapping
+  @Operation(
+      summary = "Register a new researcher profile",
+      description = "Registers a new researcher with name and email. "
+          + "Returns the generated client identifier to use for subsequent requests."
+          + " This is the only research endpoint that does not require the `X-Client-ID` header.")
+  @ApiResponses({
+      @ApiResponse(
+          responseCode = "201",
+          description = "Researcher created successfully",
+          content = @Content(
+              schema = @Schema(implementation = ResearcherCreatedResponse.class),
+              examples = @ExampleObject(
+                  value = """
+                      {
+                        "clientId": "research-3f2a4b1cd8e94bceb8c0b6a7dd5f1e92"
+                      }
+                      """))),
+      @ApiResponse(responseCode = "400", description = "Invalid input data or email already exists")
+  })
+  public ResponseEntity<ResearcherCreatedResponse> registerResearcher(
+      @Valid @RequestBody ResearcherCreateRequest request) {
+
+    if (researcherRepository.existsByEmail(request.getEmail())) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Email already registered");
+    }
+
+    Researcher researcher = new Researcher();
+    researcher.setName(request.getName().trim());
+    researcher.setEmail(request.getEmail().trim().toLowerCase());
+    researcher.setClientId(generateResearchClientId());
+
+    Researcher saved = researcherRepository.save(researcher);
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(new ResearcherCreatedResponse(saved.getClientId()));
+  }
+
+  private String generateResearchClientId() {
+    final int maxAttempts = 1000;
+    for (int suffix = 1; suffix <= maxAttempts; suffix++) {
+      String candidate = ClientContext.RESEARCH_PREFIX + "id" + suffix;
+      if (researcherRepository.findByClientId(candidate).isEmpty()) {
+        return candidate;
+      }
+    }
+    throw new ResponseStatusException(
+        HttpStatus.INTERNAL_SERVER_ERROR, "Unable to generate a unique client identifier");
+  }
 
   private void validateResearchAccess() {
     String clientId = ClientContext.getClientId();
