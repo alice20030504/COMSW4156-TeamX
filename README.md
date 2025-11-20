@@ -79,6 +79,93 @@ Because the backend intercepts every request via `ClientIdInterceptor`, state re
 
 ---
 
+## Frontend Web Client
+
+A modern web-based client is available in the `frontend/` directory. This provides a user-friendly browser interface to interact with the fitness service API.
+
+### Location
+
+The frontend client code is located in: **`frontend/`**
+
+See `frontend/README.md` for detailed documentation.
+
+### What It Does
+
+The frontend web client provides:
+
+- **User Registration**: Register new fitness profiles through a web form
+- **Profile Management**: View and manage your fitness profile
+- **Goal Plan Configuration**: Set up personalized fitness plans with target changes, duration, and training frequency
+- **Fitness Metrics**:
+  - Calculate and view BMI (Body Mass Index)
+  - Get daily calorie recommendations
+  - Receive personalized fitness recommendations
+- **Multiple Client Support**: Each browser tab/window can maintain its own client session independently
+
+### How to Build and Run
+
+**Prerequisites:**
+
+- A modern web browser (Chrome, Firefox, Safari, Edge)
+- The backend service running (see "Build, Test, and Run" section below)
+
+**Quick Start:**
+
+1. Ensure the backend service is running on `http://localhost:8080`
+2. Open `frontend/index.html` in your web browser
+   - **Windows**: Double-click `frontend/index.html` or right-click → "Open with" → your browser
+   - **Mac/Linux**: Open from file manager or use `open frontend/index.html` (Mac) / `xdg-open frontend/index.html` (Linux)
+
+**Using a Local Web Server (Recommended):**
+
+```bash
+# Python 3
+cd frontend
+python -m http.server 3000
+# Then open: http://localhost:3000
+
+# Or using Node.js http-server
+cd frontend
+npx http-server -p 3000
+# Then open: http://localhost:3000
+```
+
+### Connecting to the Service
+
+1. The frontend connects to the backend API using the `X-Client-ID` header for authentication
+2. Default API URL is `http://localhost:8080` (configurable in the web UI)
+3. After registration, your client ID is stored in browser localStorage
+4. All authenticated requests automatically include your client ID
+
+### Multiple Client Instances
+
+The service supports multiple simultaneous client instances through the `X-Client-ID` header mechanism:
+
+**How It Works:**
+
+1. **Client Identification**: Each client instance is identified by a unique `X-Client-ID` header (e.g., `mobile-id1`, `mobile-id2`)
+2. **Request Interception**: The backend's `ClientIdInterceptor` intercepts every API request (except open endpoints like registration)
+3. **Context Storage**: The client ID is stored in `ClientContext` (thread-local) for the request lifecycle
+4. **Data Isolation**: Database queries are filtered by client ID, ensuring each client only sees/modifies their own data
+5. **Concurrent Support**: Multiple clients can run simultaneously without interference
+
+**Testing Multiple Clients:**
+
+- **Different Browser Tabs**: Each tab can have a different client ID in localStorage
+- **Different Browsers**: Each browser maintains separate localStorage
+- **Different Machines**: Multiple machines can connect to the same backend simultaneously
+- **Different Client IDs**: Each instance uses its own `X-Client-ID` header, and the backend routes requests to the correct data based on this header
+
+**Example:**
+
+- Tab 1: Client ID `mobile-id1` → sees only profiles created with `mobile-id1`
+- Tab 2: Client ID `mobile-id2` → sees only profiles created with `mobile-id2`
+- Both tabs can run simultaneously, making requests to the same backend, and data remains isolated
+
+For more details, see `frontend/README.md`.
+
+---
+
 ## Build, Test, and Run
 
 Prerequisites:

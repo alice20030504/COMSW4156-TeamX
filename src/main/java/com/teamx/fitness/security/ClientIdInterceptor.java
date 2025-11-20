@@ -30,6 +30,11 @@ public class ClientIdInterceptor implements HandlerInterceptor {
   @Override
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
       throws Exception {
+    // Allow OPTIONS requests for CORS preflight
+    if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+      return true;
+    }
+    
     // Skip validation for health check, Swagger UI, actuator endpoints, and open person creation
     String requestUri = request.getRequestURI();
     if (requestUri.startsWith("/swagger-ui")
@@ -42,6 +47,11 @@ public class ClientIdInterceptor implements HandlerInterceptor {
 
     if ("POST".equalsIgnoreCase(request.getMethod())
         && ("/api/persons".equals(requestUri) || "/api/persons/".equals(requestUri))) {
+      return true;
+    }
+
+    if ("POST".equalsIgnoreCase(request.getMethod())
+        && ("/api/research".equals(requestUri) || "/api/research/".equals(requestUri))) {
       return true;
     }
 
