@@ -33,3 +33,17 @@ services:
     volumes:
       - ./logs:/app/logs
     restart: unless-stopped
+
+  frontend:
+    image: python:3.12-alpine
+    container_name: fitness-frontend
+    working_dir: /app/frontend
+    command: sh -c "python -m http.server 3000"
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app:ro
+    depends_on:
+      app:
+        condition: service_started
+    restart: unless-stopped
