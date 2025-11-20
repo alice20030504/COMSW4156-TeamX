@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Personal Fitness Management - Welcome</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .landing-container {
+        max-width: 600px;
+        margin: 100px auto;
+        text-align: center;
+      }
+      .user-type-cards {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-top: 40px;
+      }
+      .user-type-card {
+        background: white;
+        border-radius: 12px;
+        padding: 40px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+        transition: all 0.3s;
+        border: 3px solid transparent;
+      }
+      .user-type-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        border-color: var(--primary-color);
+      }
+      .user-type-card h3 {
+        margin-top: 20px;
+        color: var(--text-primary);
+      }
+      .user-type-card p {
+        color: var(--text-secondary);
+        margin-top: 10px;
+      }
+      .icon {
+        font-size: 4em;
+      }
+      @media (max-width: 600px) {
+        .user-type-cards {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="landing-container">
+        <header>
+          <h1>🏋️ Personal Fitness Management</h1>
+          <p class="subtitle">Welcome to the Fitness Service</p>
+        </header>
+
+        <div class="user-type-cards">
+          <div class="user-type-card" onclick="window.location.href='mobile.html'">
+            <div class="icon">📱</div>
+            <h3>Mobile User</h3>
+            <p>
+              Track your personal fitness goals, calculate BMI, manage calorie
+              intake, and get personalized recommendations.
+            </p>
+          </div>
+
+          <div class="user-type-card" onclick="window.location.href='research.html'">
+            <div class="icon">🔬</div>
+            <h3>Researcher</h3>
+            <p>
+              Access aggregated, anonymized population-level analytics and
+              research insights.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+
