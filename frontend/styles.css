@@ -55,6 +55,34 @@ header h1 {
     opacity: 0.9;
 }
 
+.api-endpoint-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 24px;
+    background: #eef2ff;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.95em;
+    gap: 15px;
+}
+
+.api-endpoint-banner .endpoint-label {
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.api-endpoint-banner .endpoint-value {
+    font-family: 'Courier New', monospace;
+    color: var(--primary-color);
+    word-break: break-all;
+}
+
+.api-endpoint-banner[data-state="error"] .endpoint-value {
+    color: var(--danger-color);
+}
+
 .client-info {
     background: #e8f4f8;
     padding: 15px 30px;
@@ -335,4 +363,3 @@ header h1 {
     40% { content: '..'; }
     60%, 100% { content: '...'; }
 }
-

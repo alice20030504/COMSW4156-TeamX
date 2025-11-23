@@ -1,5 +1,11 @@
 // API Configuration
+const API_CONFIG_KEY = 'fitness_api_base_url';
 const CLIENT_ID_KEY = 'fitness_research_client_id';
+const DEFAULT_API_BASE_URL = 'http://localhost:8080';
+const REMOTE_DEFAULT_PORT = '8080';
+
+let cachedAutoApiBaseUrl = '';
+let autoDetectPromise = null;
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
@@ -10,6 +16,22 @@ function initializeApp() {
     // Check if using file:// protocol
     if (window.location.protocol === 'file:') {
         showStatus('Warning: Using file:// protocol may cause CORS issues. Please use a local web server. See frontend/README.md', 'error');
+    }
+
+    const queryApiUrl = getQueryParamApiUrl();
+    if (queryApiUrl) {
+        localStorage.setItem(API_CONFIG_KEY, queryApiUrl);
+        showStatus(`API endpoint set to ${queryApiUrl}`, 'info');
+        updateApiEndpointDisplay(queryApiUrl, 'query parameter');
+    } else {
+        const savedUrl = localStorage.getItem(API_CONFIG_KEY);
+        if (savedUrl) {
+            updateApiEndpointDisplay(savedUrl, 'saved configuration');
+        } else {
+            detectAutoApiBaseUrl()
+                .then((url) => updateApiEndpointDisplay(url, 'auto-detected'))
+                .catch(() => updateApiEndpointDisplay('', 'error'));
+        }
     }
 
     // Load saved client ID
@@ -36,8 +58,16 @@ function setupEventListeners() {
     document.getElementById('clearClientBtn').addEventListener('click', clearClient);
 }
 
-function getApiBaseUrl() {
-    return 'http://localhost:8080';
+async function getApiBaseUrl() {
+    const savedUrl = localStorage.getItem(API_CONFIG_KEY);
+    if (savedUrl) {
+        updateApiEndpointDisplay(savedUrl, 'saved configuration');
+        return savedUrl;
+    }
+
+    const detected = await detectAutoApiBaseUrl();
+    updateApiEndpointDisplay(detected, 'auto-detected');
+    return detected;
 }
 
 function getClientId() {
@@ -135,7 +165,7 @@ function displayResults(title, response) {
 }
 
 async function apiCall(method, path, body, requireAuth) {
-    const baseUrl = getApiBaseUrl();
+    const baseUrl = await getApiBaseUrl();
     const url = baseUrl + path;
     
     // Check if we're using file:// protocol (which causes CORS issues)
@@ -211,3 +241,178 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+function getQueryParamApiUrl() {
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const queryUrl = params.get('apiBaseUrl') || params.get('api');
+        return normalizeBaseUrl(queryUrl);
+    } catch (error) {
+        return '';
+    }
+}
+
+function normalizeBaseUrl(url) {
+    if (!url || typeof url !== 'string') {
+        return '';
+    }
+    return url.trim().replace(/\/+$/, '');
+}
+
+function isLocalhostHost(hostname) {
+    return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
+}
+
+async function detectAutoApiBaseUrl() {
+    if (cachedAutoApiBaseUrl) {
+        return cachedAutoApiBaseUrl;
+    }
+
+    if (autoDetectPromise) {
+        return autoDetectPromise;
+    }
+
+    autoDetectPromise = (async () => {
+        const globalOverride = readGlobalApiBaseUrlOverride();
+        if (globalOverride) {
+            return globalOverride;
+        }
+
+        const queryOverride = getQueryParamApiUrl();
+        if (queryOverride) {
+            return queryOverride;
+        }
+
+        if (!window.location.protocol.startsWith('http')) {
+            return DEFAULT_API_BASE_URL;
+        }
+
+        if (isLocalhostHost(window.location.hostname)) {
+            return DEFAULT_API_BASE_URL;
+        }
+
+        const sameOrigin = window.location.origin;
+        if (await backendRespondsToHealth(sameOrigin)) {
+            return sameOrigin;
+        }
+
+        const remotePort = getRemotePortHint();
+        if (remotePort) {
+            const candidate = `${window.location.protocol}//${window.location.hostname}:${remotePort}`;
+            if (await backendRespondsToHealth(candidate)) {
+                return candidate;
+            }
+            return candidate;
+        }
+
+        return DEFAULT_API_BASE_URL;
+    })();
+
+    try {
+        const detected = await autoDetectPromise;
+        cachedAutoApiBaseUrl = detected || DEFAULT_API_BASE_URL;
+        try {
+            localStorage.setItem(API_CONFIG_KEY, cachedAutoApiBaseUrl);
+        } catch (error) {
+            // ignore storage errors (private mode, etc.)
+        }
+        return cachedAutoApiBaseUrl;
+    } finally {
+        autoDetectPromise = null;
+    }
+}
+
+function readGlobalApiBaseUrlOverride() {
+    if (window.__FITNESS_API_BASE_URL__) {
+        return normalizeBaseUrl(window.__FITNESS_API_BASE_URL__);
+    }
+
+    const metaTag = document.querySelector('meta[name="fitness-api-base-url"]');
+    if (metaTag && metaTag.content) {
+        return normalizeBaseUrl(metaTag.content);
+    }
+
+    if (document.body && document.body.dataset && document.body.dataset.apiBaseUrl) {
+        return normalizeBaseUrl(document.body.dataset.apiBaseUrl);
+    }
+
+    const root = document.documentElement;
+    if (root && root.dataset && root.dataset.apiBaseUrl) {
+        return normalizeBaseUrl(root.dataset.apiBaseUrl);
+    }
+
+    return '';
+}
+
+function getRemotePortHint() {
+    if (window.__FITNESS_API_PORT__) {
+        return `${window.__FITNESS_API_PORT__}`.trim();
+    }
+
+    const metaTag = document.querySelector('meta[name="fitness-api-port"]');
+    if (metaTag && metaTag.content) {
+        return metaTag.content.trim();
+    }
+
+    if (document.body && document.body.dataset && document.body.dataset.fitnessApiPort) {
+        return document.body.dataset.fitnessApiPort.trim();
+    }
+
+    const root = document.documentElement;
+    if (root && root.dataset && root.dataset.fitnessApiPort) {
+        return root.dataset.fitnessApiPort.trim();
+    }
+
+    return REMOTE_DEFAULT_PORT;
+}
+
+async function backendRespondsToHealth(baseUrl) {
+    try {
+        const response = await fetch(baseUrl + '/health', { method: 'GET', cache: 'no-store' });
+        if (!response.ok) {
+            return false;
+        }
+        const contentType = response.headers.get('content-type') || '';
+        return !contentType.includes('text/html');
+    } catch (error) {
+        return false;
+    }
+}
+
+function updateApiEndpointDisplay(baseUrl, source = '') {
+    const banner = document.getElementById('apiEndpointBanner');
+    const valueEl = document.getElementById('apiEndpointDisplay');
+    if (!valueEl) {
+        return;
+    }
+
+    const readableSource = formatSourceLabel(source);
+    const suffix = baseUrl && readableSource ? ` (${readableSource})` : '';
+    if (baseUrl) {
+        valueEl.textContent = baseUrl + suffix;
+        valueEl.title = readableSource ? `API base set via ${readableSource}` : 'API base URL';
+        if (banner) {
+            banner.dataset.state = 'ok';
+        }
+    } else {
+        valueEl.textContent = readableSource === 'error' ? 'Detection failed' : 'Not detected';
+        valueEl.title = 'Backend URL not detected yet';
+        if (banner) {
+            banner.dataset.state = 'error';
+        }
+    }
+}
+
+function formatSourceLabel(source) {
+    switch (source) {
+        case 'query parameter':
+            return 'query parameter';
+        case 'saved configuration':
+            return 'saved configuration';
+        case 'auto-detected':
+            return 'auto-detected';
+        case 'error':
+            return 'error';
+        default:
+            return source || '';
+    }
+}
