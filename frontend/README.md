@@ -96,19 +96,21 @@ php -S localhost:3000
 
 ### API Base URL
 
-By default, the client connects to `http://localhost:8080`. To change this:
+The frontend now determines which backend to talk to in the following order:
 
-1. Enter the new API URL in the "API Configuration" section at the bottom of the page
-2. Click "Save"
-3. The URL is stored in your browser's localStorage and will persist across sessions
+1. **URL override** – append `?apiBaseUrl=<url>` (or `?api=<url>`) to `mobile.html`/`research.html`/`landing.html`. Example: `mobile.html?apiBaseUrl=http://35.188.26.134:8080`. The value is normalized, stored in localStorage, and reused on refresh.
+2. **Saved configuration** – if you previously saved a URL (via the "API Configuration" panel on the main dashboard) it is loaded from localStorage.
+3. **HTML/JS override** – set `window.__FITNESS_API_BASE_URL__ = '<url>'` before the client script runs, or add `<meta name="fitness-api-base-url" content="https://api.example.com">` (optionally pair with `data-fitness-api-port` / `window.__FITNESS_API_PORT__`). This is handy when templating HTML during deployment.
+4. **Auto-detection** – when no override exists, the client pings `/health` on the current origin. If that endpoint responds, the origin is used; otherwise it automatically retries the same hostname on port `8080` (or the provided port hint) which covers split static/frontend hosting on a VM such as `http://35.188.26.134:8080`.
+5. **Fallback** – if none of the above apply, the client uses `http://localhost:8080` for local development.
+
+You can still change the value at any time from the "API Configuration" area, which updates localStorage for that browser/tab.
+
+Each dashboard displays the currently resolved backend URL (and how it was derived) directly under the page header so you can immediately confirm which host/port is in use when debugging VM deployments.
 
 ### Connecting to Remote Services
 
-If your backend is deployed (e.g., on Google Cloud Run), update the API Base URL to your service URL:
-
-```
-https://your-service-url.run.app
-```
+If your backend is deployed remotely (GCP VM, Cloud Run, etc.), either rely on the auto-detection (same host, different port) or set one of the overrides above (`?apiBaseUrl=…`, `<meta name="fitness-api-base-url">`, `window.__FITNESS_API_BASE_URL__`). Port-specific hints can be supplied with `<meta name="fitness-api-port" content="8081">` or `data-fitness-api-port="9090"` on the `<body>`/`<html>` tags. Every option persists per browser, so you only need to configure it once.
 
 ## Usage
 
@@ -209,4 +211,3 @@ frontend/
 ├── app.js          # Application logic and API calls
 └── README.md       # This file
 ```
-
