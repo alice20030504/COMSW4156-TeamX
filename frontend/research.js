@@ -1,5 +1,7 @@
 // API Configuration
+const API_CONFIG_KEY = 'fitness_api_base_url';
 const CLIENT_ID_KEY = 'fitness_research_client_id';
+const DEFAULT_API_BASE_URL = 'http://localhost:8080';
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
@@ -10,6 +12,12 @@ function initializeApp() {
     // Check if using file:// protocol
     if (window.location.protocol === 'file:') {
         showStatus('Warning: Using file:// protocol may cause CORS issues. Please use a local web server. See frontend/README.md', 'error');
+    }
+
+    const queryApiUrl = getQueryParamApiUrl();
+    if (queryApiUrl) {
+        localStorage.setItem(API_CONFIG_KEY, queryApiUrl);
+        showStatus(`API endpoint set to ${queryApiUrl}`, 'info');
     }
 
     // Load saved client ID
@@ -37,7 +45,18 @@ function setupEventListeners() {
 }
 
 function getApiBaseUrl() {
-    return 'http://localhost:8080';
+    const queryUrl = getQueryParamApiUrl();
+    if (queryUrl) {
+        localStorage.setItem(API_CONFIG_KEY, queryUrl);
+        return queryUrl;
+    }
+
+    const savedUrl = localStorage.getItem(API_CONFIG_KEY);
+    if (savedUrl) {
+        return savedUrl;
+    }
+
+    return detectAutoApiBaseUrl();
 }
 
 function getClientId() {
@@ -211,3 +230,30 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+function detectAutoApiBaseUrl() {
+    if (window.location.protocol.startsWith('http') && !isLocalhostHost(window.location.hostname)) {
+        return window.location.origin;
+    }
+    return DEFAULT_API_BASE_URL;
+}
+
+function getQueryParamApiUrl() {
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const queryUrl = params.get('apiBaseUrl') || params.get('api');
+        return normalizeBaseUrl(queryUrl);
+    } catch (error) {
+        return '';
+    }
+}
+
+function normalizeBaseUrl(url) {
+    if (!url || typeof url !== 'string') {
+        return '';
+    }
+    return url.trim().replace(/\/+$/, '');
+}
+
+function isLocalhostHost(hostname) {
+    return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
+}

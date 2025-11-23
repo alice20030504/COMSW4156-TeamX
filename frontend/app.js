@@ -1,6 +1,7 @@
 // API Configuration
 const API_CONFIG_KEY = 'fitness_api_base_url';
 const CLIENT_ID_KEY = 'fitness_client_id';
+const DEFAULT_API_BASE_URL = 'http://localhost:8080';
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
@@ -13,10 +14,19 @@ function initializeApp() {
         showStatus('Warning: Using file:// protocol may cause CORS issues. Please use a local web server. See frontend/README.md', 'error');
     }
     
-    // Load saved API URL
-    const savedApiUrl = localStorage.getItem(API_CONFIG_KEY);
-    if (savedApiUrl) {
-        document.getElementById('apiBaseUrl').value = savedApiUrl;
+    // Load saved API URL or auto detect
+    const apiInput = document.getElementById('apiBaseUrl');
+    const queryApiUrl = getQueryParamApiUrl();
+    if (queryApiUrl) {
+        localStorage.setItem(API_CONFIG_KEY, queryApiUrl);
+        apiInput.value = queryApiUrl;
+    } else {
+        const savedApiUrl = localStorage.getItem(API_CONFIG_KEY);
+        if (savedApiUrl) {
+            apiInput.value = savedApiUrl;
+        } else {
+            apiInput.placeholder = detectAutoApiBaseUrl();
+        }
     }
 
     // Load saved client ID
@@ -62,7 +72,20 @@ function setupEventListeners() {
 }
 
 function getApiBaseUrl() {
-    return document.getElementById('apiBaseUrl').value || 'http://localhost:8080';
+    const apiInput = document.getElementById('apiBaseUrl');
+    const manualUrl = normalizeBaseUrl(apiInput.value);
+    if (manualUrl) {
+        return manualUrl;
+    }
+
+    const savedApiUrl = localStorage.getItem(API_CONFIG_KEY);
+    if (savedApiUrl) {
+        return savedApiUrl;
+    }
+
+    const autoDetected = detectAutoApiBaseUrl();
+    apiInput.placeholder = autoDetected;
+    return autoDetected;
 }
 
 function getClientId() {
@@ -70,8 +93,14 @@ function getClientId() {
 }
 
 function saveApiUrl() {
-    const url = document.getElementById('apiBaseUrl').value;
+    const inputEl = document.getElementById('apiBaseUrl');
+    const url = normalizeBaseUrl(inputEl.value);
+    if (!url) {
+        showStatus('Please provide a valid API base URL (e.g., http://35.188.26.134:8080)', 'error');
+        return;
+    }
     localStorage.setItem(API_CONFIG_KEY, url);
+    inputEl.value = url;
     showStatus('API URL saved!', 'success');
 }
 
@@ -303,6 +332,40 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+function detectAutoApiBaseUrl() {
+    const queryUrl = getQueryParamApiUrl();
+    if (queryUrl) {
+        return queryUrl;
+    }
+
+    if (window.location.protocol.startsWith('http') && !isLocalhostHost(window.location.hostname)) {
+        return window.location.origin;
+    }
+
+    return DEFAULT_API_BASE_URL;
+}
+
+function getQueryParamApiUrl() {
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const queryUrl = params.get('apiBaseUrl') || params.get('api');
+        return normalizeBaseUrl(queryUrl);
+    } catch (error) {
+        return '';
+    }
+}
+
+function normalizeBaseUrl(url) {
+    if (!url || typeof url !== 'string') {
+        return '';
+    }
+    return url.trim().replace(/\/+$/, '');
+}
+
+function isLocalhostHost(hostname) {
+    return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
+}
+
 async function testConnection() {
     const statusEl = document.getElementById('connectionStatus');
     const statusText = document.getElementById('connectionStatusText');
@@ -333,4 +396,3 @@ async function testConnection() {
         }
     }
 }
-

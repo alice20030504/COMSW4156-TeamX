@@ -96,19 +96,18 @@ php -S localhost:3000
 
 ### API Base URL
 
-By default, the client connects to `http://localhost:8080`. To change this:
+The frontend now determines which backend to talk to in the following order:
 
-1. Enter the new API URL in the "API Configuration" section at the bottom of the page
-2. Click "Save"
-3. The URL is stored in your browser's localStorage and will persist across sessions
+1. **URL override** – append `?apiBaseUrl=<url>` (or `?api=<url>`) to `mobile.html`/`research.html`/`landing.html`. Example: `mobile.html?apiBaseUrl=http://35.188.26.134:8080`. The value is normalized, stored in localStorage, and reused on refresh.
+2. **Saved configuration** – if you previously saved a URL (via the "API Configuration" panel on the main dashboard) it is loaded from localStorage.
+3. **Auto-detection** – when the page is hosted on anything other than `localhost`/`127.0.0.1`, the frontend automatically targets the same origin (`window.location.origin`). This covers VM deployments such as `http://35.188.26.134:8080` with no manual steps.
+4. **Fallback** – if none of the above apply, the client uses `http://localhost:8080` for local development.
+
+You can still change the value at any time from the "API Configuration" area, which updates localStorage for that browser/tab.
 
 ### Connecting to Remote Services
 
-If your backend is deployed (e.g., on Google Cloud Run), update the API Base URL to your service URL:
-
-```
-https://your-service-url.run.app
-```
+If your backend is deployed remotely (GCP VM, Cloud Run, etc.), either rely on the auto-detection (when the static files are served from the same host/port) or pass the `apiBaseUrl` query parameter when serving the static files from another domain. The override is persistent, so you only need to set it once per browser.
 
 ## Usage
 
@@ -209,4 +208,3 @@ frontend/
 ├── app.js          # Application logic and API calls
 └── README.md       # This file
 ```
-
