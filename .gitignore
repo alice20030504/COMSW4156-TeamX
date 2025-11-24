@@ -34,3 +34,9 @@ testresult/**
 # Env files / local overrides
 .env
 *.local.properties
+
+# Python / Gradio app temporary files
+audio_cache/
+app_stdout.log
+app_stderr.log
+app_output.log
