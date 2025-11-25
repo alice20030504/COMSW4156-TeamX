@@ -24,7 +24,7 @@
 
 ## Manual Verification
 - Swagger UI (`/swagger-ui.html`) spot-tested for BMI and health-check endpoints.
-- H2 console inspected to confirm test-created records and automatic cleanup after deletions.
+- PostgreSQL `fitnessdb` instance inspected via `psql` to confirm test-created records and automatic cleanup after deletions.
 
 ## Reports
 - JaCoCo coverage report: `reports/test-coverage-10232025.png`

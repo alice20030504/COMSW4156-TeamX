@@ -12,19 +12,24 @@ import java.time.LocalDate;
  */
 public class PersonCreateRequest {
 
+  /** Display name entered by the client. */
   @NotBlank(message = "name is required")
   private String name;
 
+  /** Body weight in kilograms. */
   @NotNull(message = "weight is required")
   private Double weight;
 
+  /** Height in centimeters. */
   @NotNull(message = "height is required")
   private Double height;
 
+  /** Date of birth used for age computations. */
   @NotNull(message = "birthDate is required")
   @Past(message = "birthDate must be in the past")
   private LocalDate birthDate;
 
+  /** Desired goal (cut, bulk, etc.). */
   @NotNull(message = "goal is required")
   private FitnessGoal goal;
 

@@ -11,19 +11,23 @@ import jakarta.validation.constraints.Positive;
  */
 public class GoalPlanRequest {
 
+  /** Target change in kilograms for the plan. */
   @NotNull(message = "targetChangeKg is required")
   @Positive(message = "targetChangeKg must be greater than 0")
   private Double targetChangeKg;
 
+  /** Number of weeks allotted to reach the target. */
   @NotNull(message = "durationWeeks is required")
   @Positive(message = "durationWeeks must be greater than 0")
   private Integer durationWeeks;
 
+  /** Weekly training sessions supporting the plan. */
   @NotNull(message = "trainingFrequencyPerWeek is required")
   @Min(value = 1, message = "trainingFrequencyPerWeek must be at least 1")
   @Max(value = 14, message = "trainingFrequencyPerWeek must not exceed 14")
   private Integer trainingFrequencyPerWeek;
 
+  /** Strategy (workout, diet, or both) used to execute the plan. */
   @NotNull(message = "planStrategy is required")
   private PlanStrategy planStrategy;
 

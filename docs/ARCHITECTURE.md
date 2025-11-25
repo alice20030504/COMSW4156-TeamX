@@ -17,7 +17,7 @@
 4. Security
    - `ClientIdInterceptor` enforces presence and format of `X-Client-ID` headers and stores context in `ClientContext`.
 5. Persistence
-   - `PersonRepository` is a Spring Data JPA repository backed by an H2 database (development) or PostgreSQL (production).
+   - `PersonRepository` stores data in PostgreSQL (local via `database/docker-compose.yml` or any configured external instance) for all environments.
 
 ## Data Flow
 1. Client sends HTTP request with `X-Client-ID`.

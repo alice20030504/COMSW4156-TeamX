@@ -91,6 +91,7 @@ public class PersonSimple {
 
   public PersonSimple() { }
 
+  @SuppressWarnings("checkstyle:ParameterNumber")
   public PersonSimple(
       String name,
       Double weight,
