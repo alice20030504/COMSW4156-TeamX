@@ -242,47 +242,6 @@
           ]
         },
         {
-          "name": "Get Person - invalid birth date",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-Client-ID",
-                "value": "{{mobileClient}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/persons/{{personIdTypical}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "persons",
-                "{{personIdTypical}}"
-              ],
-              "query": [
-                {
-                  "key": "birthDate",
-                  "value": "1990-01-01"
-                }
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Wrong birth date rejected with 401', function () { pm.response.to.have.status(401); });",
-                  "pm.test('Unauthorized message returned', function () { pm.expect(pm.response.text()).to.include('Invalid ID or birth date'); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
           "name": "Update Person - typical",
           "request": {
             "method": "PUT",
@@ -297,20 +256,14 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/persons/{{personIdTypical}}",
+              "raw": "{{baseUrl}}/api/persons/me",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "persons",
-                "{{personIdTypical}}"
-              ],
-              "query": [
-                {
-                  "key": "birthDate",
-                  "value": "{{personBirthDateTypical}}"
-                }
+                "me"
               ]
             },
             "body": {
@@ -353,20 +306,14 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/persons/{{personIdAtypical}}",
+              "raw": "{{baseUrl}}/api/persons/me",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "persons",
-                "{{personIdAtypical}}"
-              ],
-              "query": [
-                {
-                  "key": "birthDate",
-                  "value": "{{personBirthDateAtypical}}"
-                }
+                "me"
               ]
             },
             "body": {
@@ -409,20 +356,14 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/persons/{{personIdTypical}}",
+              "raw": "{{baseUrl}}/api/persons/me",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "persons",
-                "{{personIdTypical}}"
-              ],
-              "query": [
-                {
-                  "key": "birthDate",
-                  "value": "{{personBirthDateTypical}}"
-                }
+                "me"
               ]
             },
             "body": {
@@ -458,20 +399,14 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/persons/{{personIdAtypical}}",
+              "raw": "{{baseUrl}}/api/persons/me",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "persons",
-                "{{personIdAtypical}}"
-              ],
-              "query": [
-                {
-                  "key": "birthDate",
-                  "value": "{{personBirthDateAtypical}}"
-                }
+                "me"
               ]
             }
           },
@@ -481,7 +416,9 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Delete atypical person succeeds', function () { pm.response.to.have.status(204); });"
+                  "pm.test('Delete atypical person succeeds', function () { pm.response.to.have.status(200); });",
+                  "const body = pm.response.json();",
+                  "pm.test('Success message returned', function () { pm.expect(body.message).to.include('deleted'); });"
                 ]
               }
             }
@@ -498,20 +435,14 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/persons/{{personIdTypical}}",
+              "raw": "{{baseUrl}}/api/persons/me",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "persons",
-                "{{personIdTypical}}"
-              ],
-              "query": [
-                {
-                  "key": "birthDate",
-                  "value": "{{personBirthDateTypical}}"
-                }
+                "me"
               ]
             }
           },
@@ -521,7 +452,9 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Delete typical person succeeds', function () { pm.response.to.have.status(204); });"
+                  "pm.test('Delete typical person succeeds', function () { pm.response.to.have.status(200); });",
+                  "const body = pm.response.json();",
+                  "pm.test('Success message returned', function () { pm.expect(body.message).to.include('deleted'); });"
                 ]
               }
             }
@@ -538,142 +471,31 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/persons/{{personIdTypical}}",
+              "raw": "{{baseUrl}}/api/persons/me",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "persons",
-                "{{personIdTypical}}"
-              ],
-              "query": [
-                {
-                  "key": "birthDate",
-                  "value": "{{personBirthDateTypical}}"
+                "me"
+              ]
+            }
+          },
+          "event": [
+            {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Re-deleting already removed record yields 404', function () { pm.response.to.have.status(404); });",
+                      "const body = pm.response.json();",
+                      "pm.test('Failure message returned', function () { pm.expect(body.message).to.include('No profile'); });"
+                    ]
+                  }
                 }
               ]
             }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Re-deleting already removed record yields 401', function () { pm.response.to.have.status(401); });"
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "Health Endpoint",
-      "item": [
-        {
-          "name": "Health Check - typical mobile client",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-Client-ID",
-                "value": "{{mobileClient}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/persons/health",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "persons",
-                "health"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Health check returns 200', function () { pm.response.to.have.status(200); });",
-                  "const body = pm.response.json();",
-                  "pm.test('Service status is UP', function () { pm.expect(body.status).to.eql('UP'); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Health Check - research client",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-Client-ID",
-                "value": "{{researchClient}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/persons/health",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "persons",
-                "health"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Research client can hit health endpoint', function () { pm.response.to.have.status(200); });",
-                  "const body = pm.response.json();",
-                  "pm.test('Health payload includes service name', function () { pm.expect(body.service).to.include('Personal Fitness Management Service'); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Health Check - missing client header",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/persons/health",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "persons",
-                "health"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Missing header triggers 400', function () { pm.response.to.have.status(400); });",
-                  "pm.test('Validation message references client header', function () { pm.expect(pm.response.text()).to.include('X-Client-ID'); });"
-                ]
-              }
-            }
-          ]
-        }
       ]
     },
     {
@@ -1706,10 +1528,9 @@
             "method": "PUT",
             "header": [ { "key": "Content-Type", "value": "application/json" } ],
             "url": {
-              "raw": "{{baseUrl}}/api/persons/{{personIdTypical}}?birthDate={{personBirthDateTypical}}",
+              "raw": "{{baseUrl}}/api/persons/me",
               "host": ["{{baseUrl}}"],
-              "path": ["api","persons","{{personIdTypical}}"],
-              "query": [ { "key": "birthDate", "value": "{{personBirthDateTypical}}" } ]
+              "path": ["api","persons","me"]
             },
             "body": { "mode": "raw", "raw": "{\n  \"weight\": 70.0,\n  \"height\": 175.0,\n  \"birthDate\": \"1990-01-01\"\n}" }
           },

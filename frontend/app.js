@@ -228,10 +228,10 @@ async function getRecommendation() {
 
 async function listProfiles() {
     try {
-        const response = await apiCall('GET', '/api/persons', null, true);
-        displayResults('All Profiles', response);
+        const response = await apiCall('GET', '/api/persons/me', null, true);
+        displayResults('Stored Profile', response);
     } catch (error) {
-        showStatus('Failed to list profiles: ' + error.message, 'error');
+        showStatus('Failed to load stored profile from /api/persons/me: ' + error.message, 'error');
     }
 }
 
@@ -317,7 +317,7 @@ async function apiCall(method, path, body, requireAuth) {
         return text;
     } catch (error) {
         if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-            const diagnosticMsg = `Cannot connect to API at ${baseUrl}. ` +
+            const diagnosticMsg = `Cannot connect to API via ${method} ${url}. ` +
                 `Please check: 1) Backend is running (try: mvn spring-boot:run), ` +
                 `2) Using a web server (not file://), ` +
                 `3) API URL is correct. ` +

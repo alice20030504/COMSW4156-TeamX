@@ -10,7 +10,6 @@ import com.teamx.fitness.model.PlanStrategy;
 import com.teamx.fitness.model.PersonSimple;
 import com.teamx.fitness.repository.PersonRepository;
 import com.teamx.fitness.security.ClientContext;
-import com.teamx.fitness.service.AuthService;
 import com.teamx.fitness.service.PersonService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -24,9 +23,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -62,9 +59,6 @@ public class PersonController {
 
   /** Repository for person data persistence. */
   @Autowired private PersonRepository personRepository;
-
-  /** Service for handling authentication and authorization. */
-  @Autowired private AuthService authService;
 
   /** BMI threshold for underweight classification. */
   private static final double BMI_UNDERWEIGHT = 18.5;
@@ -184,10 +178,10 @@ public class PersonController {
     return ResponseEntity.ok(PersonProfileResponse.fromEntity(saved));
   }
 
-  @PutMapping("/{id}")
+  @PutMapping("/me")
   @Operation(
-      summary = "Update existing user information",
-      description = "Allow editing of height, weight, and birth date. Requires authentication.",
+      summary = "Update current profile information",
+      description = "Allow editing of stored metrics using only the X-Client-ID header.",
       parameters = {
           @Parameter(
               name = "X-Client-ID",
@@ -201,30 +195,14 @@ public class PersonController {
           responseCode = "200",
           description = "User updated successfully",
           content = @Content(schema = @Schema(implementation = PersonSimple.class))),
-      @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid credentials"),
       @ApiResponse(responseCode = "404", description = "User not found")
   })
-  public ResponseEntity<Object> updatePerson(
-      @Parameter(description = "The person ID", required = true)
-      @PathVariable Long id,
-      @Parameter(description = "Birth date for authentication (YYYY-MM-DD)", required = true)
-      @RequestParam LocalDate birthDate,
+  public ResponseEntity<PersonSimple> updatePerson(
       @Parameter(description = "Updated user data", required = true)
       @Valid @RequestBody PersonSimple updatedPerson) {
 
-    if (!authService.validateUserAccess(id, birthDate)) {
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body("Invalid ID or birth date");
-    }
+    PersonSimple existing = requirePersonForClient(requireClientId());
 
-    String clientId = requireClientId();
-    Optional<PersonSimple> existing = personRepository.findByIdAndClientId(id, clientId);
-    if (existing.isEmpty()) {
-      return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-    }
-
-    updatedPerson.setId(id);
-    updatedPerson.setClientId(clientId);
     personService.calculateBMI(updatedPerson.getWeight(), updatedPerson.getHeight());
 
     if (!updatedPerson.getBirthDate().isBefore(LocalDate.now())) {
@@ -234,14 +212,26 @@ public class PersonController {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "gender is required");
     }
 
-    PersonSimple saved = personRepository.save(updatedPerson);
+    String trimmedName = updatedPerson.getName() != null ? updatedPerson.getName().trim() : existing.getName();
+    existing.setName(trimmedName);
+    existing.setWeight(updatedPerson.getWeight());
+    existing.setHeight(updatedPerson.getHeight());
+    existing.setBirthDate(updatedPerson.getBirthDate());
+    existing.setGender(updatedPerson.getGender());
+    existing.setGoal(updatedPerson.getGoal());
+    existing.setTargetChangeKg(updatedPerson.getTargetChangeKg());
+    existing.setTargetDurationWeeks(updatedPerson.getTargetDurationWeeks());
+    existing.setTrainingFrequencyPerWeek(updatedPerson.getTrainingFrequencyPerWeek());
+    existing.setPlanStrategy(updatedPerson.getPlanStrategy());
+
+    PersonSimple saved = personRepository.save(existing);
     return ResponseEntity.ok(saved);
   }
 
-  @DeleteMapping("/{id}")
+  @DeleteMapping("/me")
   @Operation(
-      summary = "Delete person by ID",
-      description = "Delete a person record if it belongs to the calling client.",
+      summary = "Delete current profile",
+      description = "Delete the person record bound to the supplied X-Client-ID.",
       parameters = {
           @Parameter(
               name = "X-Client-ID",
@@ -251,58 +241,28 @@ public class PersonController {
               example = "mobile-id1")
       })
   @ApiResponses({
-      @ApiResponse(responseCode = "204", description = "Deleted successfully"),
-      @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid credentials"),
+      @ApiResponse(responseCode = "200", description = "Deleted successfully"),
       @ApiResponse(responseCode = "404", description = "User not found")
   })
-  public ResponseEntity<Object> deletePerson(
-      @Parameter(description = "The person ID", required = true)
-      @PathVariable Long id,
-      @Parameter(description = "Birth date for authentication (YYYY-MM-DD)", required = true)
-      @RequestParam LocalDate birthDate) {
-
-    if (!authService.validateUserAccess(id, birthDate)) {
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body("Invalid ID or birth date");
-    }
-
+  public ResponseEntity<Map<String, String>> deletePerson() {
     String clientId = requireClientId();
-    Optional<PersonSimple> existing = personRepository.findByIdAndClientId(id, clientId);
-    if (existing.isEmpty()) {
-      return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-    }
-    personRepository.deleteById(id);
-    return ResponseEntity.noContent().build();
-  }
-
-  @GetMapping
-  @Operation(
-      summary = "List persons for the client",
-      description = "Return all person records belonging to the calling client.",
-      parameters = {
-          @Parameter(
-              name = "X-Client-ID",
-              in = ParameterIn.HEADER,
-              required = true,
-              description = "Client identifier returned by POST /api/persons",
-              example = "mobile-id1")
-      })
-  public ResponseEntity<List<PersonSimple>> listPersons() {
-    String clientId = requireClientId();
-    List<PersonSimple> persons = personRepository.findAllByClientId(clientId);
-    return ResponseEntity.ok(persons);
-  }
-
-  @GetMapping("/health")
-  @Operation(
-      summary = "Service health check",
-      description = "Return service status and metadata.")
-  public ResponseEntity<Map<String, Object>> health() {
-    Map<String, Object> response = new HashMap<>();
-    response.put("status", "UP");
-    response.put("service", "Personal Fitness Management Service");
-    response.put("version", "1.1.0");
-    return ResponseEntity.ok(response);
+    return personRepository
+        .findByClientId(clientId)
+        .map(
+            existing -> {
+              personRepository.delete(existing);
+              Map<String, String> body = new HashMap<>();
+              body.put("message", "Profile deleted successfully");
+              body.put("clientId", clientId);
+              return ResponseEntity.ok(body);
+            })
+        .orElseGet(
+            () -> {
+              Map<String, String> body = new HashMap<>();
+              body.put("message", "No profile found for supplied client ID");
+              body.put("clientId", clientId);
+              return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+            });
   }
 
   @GetMapping("/calories")

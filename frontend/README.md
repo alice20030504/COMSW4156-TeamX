@@ -146,7 +146,7 @@ Use the quick action buttons:
 - **Get BMI**: Calculate your Body Mass Index
 - **Get Calories**: Get daily calorie recommendations based on your plan
 - **Get Recommendation**: Receive personalized motivational recommendations
-- **List All Profiles**: View all profiles associated with your client ID
+- **View Stored Profile**: Retrieve and inspect the saved profile JSON for the active client ID
 
 ## Multiple Client Testing
 

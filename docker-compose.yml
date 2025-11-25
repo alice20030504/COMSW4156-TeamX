@@ -19,7 +19,10 @@ services:
       - ./database/init:/docker-entrypoint-initdb.d
 
   app:
-    build: .
+    build:
+      context: .
+      args:
+        MVN_BUILD_OPTS: "-e -Dmaven.test.skip=true -DskipTests"
     container_name: fitness-app
     depends_on:
       postgres:

@@ -14,7 +14,6 @@
    - `ResearchController` delivers anonymized analytics reserved for research clients.
 3. Service Layer
    - `PersonService` calculates BMI, BMR, and calorie requirements.
-   - `AuthService` validates identity using repository lookups and encapsulates unauthorized responses.
 4. Security
    - `ClientIdInterceptor` enforces presence and format of `X-Client-ID` headers and stores context in `ClientContext`.
 5. Persistence
@@ -72,4 +71,3 @@ COMSW4156-TeamX/
         service/
   .gitignore
 ```
-

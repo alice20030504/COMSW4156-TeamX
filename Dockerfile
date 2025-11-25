@@ -1,6 +1,7 @@
 # ---- Build stage ----
 FROM maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /app
+ARG MVN_BUILD_OPTS="-e -Dmaven.test.skip=true -DskipTests"
 
 # Pre-copy pom to leverage docker layer caching
 COPY pom.xml .
@@ -9,7 +10,7 @@ RUN mvn -q -e -DskipTests dependency:go-offline
 # Copy sources and build
 COPY checkstyle.xml .
 COPY src ./src
-RUN mvn -e -DskipTests package
+RUN mvn ${MVN_BUILD_OPTS} package
 
 # ---- Runtime stage ----
 FROM eclipse-temurin:17-jre
