@@ -210,9 +210,32 @@ Load Postman files from `postman/`:
 
 ## Testing
 
+### Unit, Integration, and System Tests
+
 - Unit and integration: JUnit 5, Mockito, Spring Test (via `mvn test`).
 - System/API: Postman collection executed with Newman.
 - Coverage: JaCoCo reports written to `target/site/jacoco/index.html`.
+
+### End-to-End Client/Service Tests
+
+Manual end-to-end (E2E) tests verify that the client application exercises all functionality of the backend service. These tests include:
+
+- **11 comprehensive test cases** covering mobile client, research client, cross-client, and API integration scenarios
+- **Detailed step-by-step instructions** with exact inputs, expected outcomes, and manual verification checklists
+- **Multiple client instance testing** to verify data isolation and concurrent request handling
+- **Error handling validation** to ensure graceful API error responses
+
+**For complete E2E test documentation and how to run tests:**
+
+**See `docs/E2E_TESTING.md`**
+
+This document includes:
+
+- Test environment setup instructions
+- Manual test procedures with verification checklists
+- Instructions on how to manually test API error cases (using browser console or Postman)
+- Re-run procedures for consistent test reproducibility
+- Storage architecture and bug fix documentation
 
 ---
 
