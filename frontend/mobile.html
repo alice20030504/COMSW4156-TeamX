@@ -11,13 +11,12 @@
       <header>
         <h1>🏋️ Personal Fitness Management</h1>
         <p class="subtitle">Mobile User Dashboard</p>
-        <a href="landing.html" style="color: white; text-decoration: underline; font-size: 0.9em;">← Back to Home</a>
+        <a
+          href="landing.html"
+          style="color: white; text-decoration: underline; font-size: 0.9em"
+          >← Back to Home</a
+        >
       </header>
-
-      <div class="api-endpoint-banner" id="apiEndpointBanner">
-        <span class="endpoint-label">Backend</span>
-        <span id="apiEndpointDisplay" class="endpoint-value">Detecting...</span>
-      </div>
 
       <!-- Client ID Display -->
       <div id="clientInfo" class="client-info" style="display: none">
@@ -85,12 +84,20 @@
           </div>
           <button type="submit" class="btn-primary">Register</button>
         </form>
-        <div class="card" style="margin-top: 20px;">
+        <div class="card" style="margin-top: 20px">
           <h3>Returning user?</h3>
-          <p class="helper-text">Enter an existing client ID to resume where you left off.</p>
+          <p class="helper-text">
+            Enter an existing client ID to resume where you left off.
+          </p>
           <div class="existing-client">
-            <input type="text" id="existingClientId" placeholder="mobile-id123" />
-            <button id="useExistingClientBtn" class="btn-secondary">Use Existing Client ID</button>
+            <input
+              type="text"
+              id="existingClientId"
+              placeholder="mobile-id123"
+            />
+            <button id="useExistingClientBtn" class="btn-secondary">
+              Use Existing Client ID
+            </button>
           </div>
         </div>
       </section>
@@ -113,7 +120,12 @@
         <div class="card">
           <div class="card-header">
             <h3>Configure Goal Plan</h3>
-            <button class="btn-secondary collapse-toggle" data-target="planFormWrapper">Edit</button>
+            <button
+              class="btn-secondary collapse-toggle"
+              data-target="planFormWrapper"
+            >
+              Edit
+            </button>
           </div>
           <div id="planFormWrapper" class="collapse-content">
             <form id="planForm" class="form">
@@ -173,7 +185,12 @@
         <div class="card">
           <div class="card-header">
             <h3>Update Personal Information</h3>
-            <button class="btn-secondary collapse-toggle" data-target="updateFormWrapper">Edit</button>
+            <button
+              class="btn-secondary collapse-toggle"
+              data-target="updateFormWrapper"
+            >
+              Edit
+            </button>
           </div>
           <div id="updateFormWrapper" class="collapse-content">
             <form id="updateProfileForm" class="form">
@@ -184,11 +201,23 @@
               <div class="form-row">
                 <div class="form-group">
                   <label for="updateWeight">Weight (kg) *</label>
-                  <input type="number" step="0.1" id="updateWeight" min="0" required />
+                  <input
+                    type="number"
+                    step="0.1"
+                    id="updateWeight"
+                    min="0"
+                    required
+                  />
                 </div>
                 <div class="form-group">
                   <label for="updateHeight">Height (cm) *</label>
-                  <input type="number" step="0.1" id="updateHeight" min="0" required />
+                  <input
+                    type="number"
+                    step="0.1"
+                    id="updateHeight"
+                    min="0"
+                    required
+                  />
                 </div>
               </div>
               <div class="form-row">
@@ -225,8 +254,15 @@
               </div>
               <div class="form-row">
                 <div class="form-group">
-                  <label for="updateTrainingFrequency">Training Frequency (per week)</label>
-                  <input type="number" id="updateTrainingFrequency" min="1" max="14" />
+                  <label for="updateTrainingFrequency"
+                    >Training Frequency (per week)</label
+                  >
+                  <input
+                    type="number"
+                    id="updateTrainingFrequency"
+                    min="1"
+                    max="14"
+                  />
                 </div>
                 <div class="form-group">
                   <label for="updatePlanStrategy">Plan Strategy</label>
