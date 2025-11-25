@@ -1,1433 +1,970 @@
 {
   "info": {
-    "_postman_id": "c40174a5-0720-4ee1-bc95-28a522c11f07",
-    "name": "Fitness Management Service API Tests",
+    "_postman_id": "86482170-1c7f-46e5-8685-2d977e5ace6e",
+    "name": "Fitness API Regression",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "System-level API tests covering personal and research endpoints with typical, atypical, and invalid scenarios."
+    "description": "Updated tests covering active endpoints with normal, boundary, and invalid scenarios."
   },
   "item": [
     {
       "name": "Personal Endpoints",
       "item": [
         {
-          "name": "Create Person - typical",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
+          "name": "Personal - Create Profile (POST /api/persons)",
+          "item": [
+            {
+              "name": "Create Profile - normal input",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/persons",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "persons"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Alex Runner\",\n  \"weight\": 72.3,\n  \"height\": 178.0,\n  \"birthDate\": \"1990-04-15\",\n  \"gender\": \"MALE\",\n  \"goal\": \"CUT\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
               },
-              {
-                "key": "X-Client-ID",
-                "value": "{{mobileClient}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/persons",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "persons"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Laura Runner\",\n  \"weight\": 68.2,\n  \"height\": 172.0,\n  \"birthDate\": \"1992-04-15\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 201 for typical create', function () { pm.response.to.have.status(201); });",
-                  "const body = pm.response.json();",
-                  "pm.test('Response includes numeric id', function () { pm.expect(body.id).to.be.a('number'); });",
-                  "pm.test('Client ID matches mobile header', function () { pm.expect(body.clientId).to.eql(pm.environment.get('mobileClient')); });",
-                  "pm.environment.set('personIdTypical', body.id);",
-                  "pm.environment.set('personBirthDateTypical', body.birthDate);",
-                  "pm.environment.set('personNameTypical', body.name);"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Create Person - atypical height",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-Client-ID",
-                "value": "{{mobileClient}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/persons",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "persons"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Marathon Joe\",\n  \"weight\": 49.0,\n  \"height\": 199.0,\n  \"birthDate\": \"1985-11-30\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 201 for atypical create', function () { pm.response.to.have.status(201); });",
-                  "const body = pm.response.json();",
-                  "pm.test('Client ID persisted for atypical create', function () { pm.expect(body.clientId).to.eql(pm.environment.get('mobileClient')); });",
-                  "pm.environment.set('personIdAtypical', body.id);",
-                  "pm.environment.set('personBirthDateAtypical', body.birthDate);",
-                  "pm.environment.set('personNameAtypical', body.name);"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Create Person - missing client header",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/persons",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "persons"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Unauthorized User\",\n  \"weight\": 70.0,\n  \"height\": 175.0,\n  \"birthDate\": \"1990-01-01\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Missing client header returns 400', function () { pm.response.to.have.status(400); });",
-                  "pm.test('Error mentions X-Client-ID header', function () { pm.expect(pm.response.text()).to.include('X-Client-ID'); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Get Person - typical",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-Client-ID",
-                "value": "{{mobileClient}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/persons/{{personIdTypical}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "persons",
-                "{{personIdTypical}}"
-              ],
-              "query": [
+              "event": [
                 {
-                  "key": "birthDate",
-                  "value": "{{personBirthDateTypical}}"
-                }
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Fetch typical person returns 200', function () { pm.response.to.have.status(200); });",
-                  "const body = pm.response.json();",
-                  "pm.test('Fetched person matches stored id', function () { pm.expect(body.id).to.eql(parseInt(pm.environment.get('personIdTypical'))); });",
-                  "pm.test('Client ID preserved across fetch', function () { pm.expect(body.clientId).to.eql(pm.environment.get('mobileClient')); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Get Person - atypical",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-Client-ID",
-                "value": "{{mobileClient}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/persons/{{personIdAtypical}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "persons",
-                "{{personIdAtypical}}"
-              ],
-              "query": [
-                {
-                  "key": "birthDate",
-                  "value": "{{personBirthDateAtypical}}"
-                }
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Fetch atypical person still succeeds', function () { pm.response.to.have.status(200); });",
-                  "const body = pm.response.json();",
-                  "pm.test('Atypical height preserved', function () { pm.expect(body.height).to.eql(199.0); });",
-                  "pm.test('Client isolation maintained', function () { pm.expect(body.clientId).to.eql(pm.environment.get('mobileClient')); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Update Person - typical",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-Client-ID",
-                "value": "{{mobileClient}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/persons/me",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "persons",
-                "me"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Laura Runner\",\n  \"weight\": 70.5,\n  \"height\": 172.0,\n  \"birthDate\": \"{{personBirthDateTypical}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Update typical person returns 200', function () { pm.response.to.have.status(200); });",
-                  "const body = pm.response.json();",
-                  "pm.test('Updated weight applied', function () { pm.expect(body.weight).to.eql(70.5); });",
-                  "pm.test('Client remains the same after update', function () { pm.expect(body.clientId).to.eql(pm.environment.get('mobileClient')); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Update Person - atypical",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-Client-ID",
-                "value": "{{mobileClient}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/persons/me",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "persons",
-                "me"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Marathon Joe\",\n  \"weight\": 41.0,\n  \"height\": 201.0,\n  \"birthDate\": \"{{personBirthDateAtypical}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Update atypical person succeeds', function () { pm.response.to.have.status(200); });",
-                  "const body = pm.response.json();",
-                  "pm.test('Height remains atypical boundary', function () { pm.expect(body.height).to.eql(201.0); });",
-                  "pm.test('Weight updated to lightweight boundary', function () { pm.expect(body.weight).to.eql(41.0); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Update Person - invalid client",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-Client-ID",
-                "value": "{{mobileClientSecondary}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/persons/me",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "persons",
-                "me"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Laura Runner\",\n  \"weight\": 72.0,\n  \"height\": 175.0,\n  \"birthDate\": \"{{personBirthDateTypical}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Cross-client update blocked with 404', function () { pm.response.to.have.status(404); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Delete Person - atypical",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "X-Client-ID",
-                "value": "{{mobileClient}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/persons/me",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "persons",
-                "me"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Delete atypical person succeeds', function () { pm.response.to.have.status(200); });",
-                  "const body = pm.response.json();",
-                  "pm.test('Success message returned', function () { pm.expect(body.message).to.include('deleted'); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Delete Person - typical",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "X-Client-ID",
-                "value": "{{mobileClient}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/persons/me",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "persons",
-                "me"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Delete typical person succeeds', function () { pm.response.to.have.status(200); });",
-                  "const body = pm.response.json();",
-                  "pm.test('Success message returned', function () { pm.expect(body.message).to.include('deleted'); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Delete Person - already removed",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "X-Client-ID",
-                "value": "{{mobileClient}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/persons/me",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "persons",
-                "me"
-              ]
-            }
-          },
-          "event": [
-            {
                   "listen": "test",
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "pm.test('Re-deleting already removed record yields 404', function () { pm.response.to.have.status(404); });",
-                      "const body = pm.response.json();",
-                      "pm.test('Failure message returned', function () { pm.expect(body.message).to.include('No profile'); });"
+                      "pm.test('Status 201 for normal create', function () { pm.response.to.have.status(201); });",
+                      "const json = pm.response.json();",
+                      "pm.test('Client id issued', function () { pm.expect(json.clientId).to.match(/^mobile-/); });",
+                      "pm.environment.set('mobileClientPrimary', json.clientId);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Create Profile - boundary anthropometrics",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/persons",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "persons"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Tall Boundary\",\n  \"weight\": 45.0,\n  \"height\": 205.0,\n  \"birthDate\": \"1988-02-20\",\n  \"gender\": \"FEMALE\",\n  \"goal\": \"BULK\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201 for boundary create', function () { pm.response.to.have.status(201); });",
+                      "const json = pm.response.json();",
+                      "pm.environment.set('mobileClientBoundary', json.clientId);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Create Profile - invalid future birth date",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/persons",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "persons"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Time Traveler\",\n  \"weight\": 70.0,\n  \"height\": 175.0,\n  \"birthDate\": \"2999-01-01\",\n  \"gender\": \"MALE\",\n  \"goal\": \"CUT\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Future birth date rejected', function () { pm.response.to.have.status(400); });"
                     ]
                   }
                 }
               ]
             }
-      ]
-    },
-    {
-      "name": "BMI Endpoint",
-      "item": [
+          ]
+        },
         {
-          "name": "Calculate BMI - typical",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-Client-ID",
-                "value": "{{mobileClient}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/persons/bmi",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "persons",
-                "bmi"
-              ],
-              "query": [
+          "name": "Personal - Get Profile (GET /api/persons/me)",
+          "item": [
+            {
+              "name": "Get Profile - normal",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "X-Client-ID",
+                    "value": "{{mobileClientPrimary}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/persons/me",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "persons",
+                    "me"
+                  ]
+                }
+              },
+              "event": [
                 {
-                  "key": "weight",
-                  "value": "70"
-                },
-                {
-                  "key": "height",
-                  "value": "175"
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Profile fetch returns 200', function () { pm.response.to.have.status(200); });",
+                      "const body = pm.response.json();",
+                      "pm.test('Client id matches stored primary', function () { pm.expect(body.clientId).to.eql(pm.environment.get('mobileClientPrimary')); });"
+                    ]
+                  }
                 }
               ]
-            }
-          },
-          "event": [
+            },
             {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('BMI request returns 200', function () { pm.response.to.have.status(200); });",
-                  "const body = pm.response.json();",
-                  "pm.test('BMI calculated value present', function () { pm.expect(body.bmi).to.be.closeTo(22.86, 0.05); });",
-                  "pm.test('Category is normal weight', function () { pm.expect(body.category).to.eql('Normal weight'); });"
-                ]
-              }
+              "name": "Get Profile - boundary client",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "X-Client-ID",
+                    "value": "{{mobileClientBoundary}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/persons/me",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "persons",
+                    "me"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Boundary client profile loads', function () { pm.response.to.have.status(200); });",
+                      "const body = pm.response.json();",
+                      "pm.test('Goal preserved for boundary client', function () { pm.expect(body.goal).to.eql('BULK'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get Profile - missing client header",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/persons/me",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "persons",
+                    "me"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Missing header yields 400', function () { pm.response.to.have.status(400); });"
+                    ]
+                  }
+                }
+              ]
             }
           ]
         },
         {
-          "name": "Calculate BMI - atypical underweight",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-Client-ID",
-                "value": "{{mobileClient}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/persons/bmi",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "persons",
-                "bmi"
-              ],
-              "query": [
-                {
-                  "key": "weight",
-                  "value": "-45"
+          "name": "Personal - Configure Plan (POST /api/persons/plan)",
+          "item": [
+            {
+              "name": "Plan Configuration - normal",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Client-ID",
+                    "value": "{{mobileClientPrimary}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/persons/plan",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "persons",
+                    "plan"
+                  ]
                 },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"targetChangeKg\": 2.0,\n  \"durationWeeks\": 8,\n  \"trainingFrequencyPerWeek\": 4,\n  \"planStrategy\": \"DIET\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
                 {
-                  "key": "height",
-                  "value": "180"
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Plan saved with 200', function () { pm.response.to.have.status(200); });",
+                      "const body = pm.response.json();",
+                      "pm.test('Plan strategy echoes DIET', function () { pm.expect(body.planStrategy).to.eql('DIET'); });"
+                    ]
+                  }
                 }
               ]
-            }
-          },
-          "event": [
+            },
             {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Negative weight returns 400', function () { pm.response.to.have.status(400); });",
-                  "const body = pm.response.json();",
-                  "pm.test('Error is Bad_request', function () { pm.expect(body.error).to.eql('Bad_request'); });",
-                  "pm.test('Message mentions weight > 0', function () { pm.expect(body.message).to.include('weight must be greater than 0'); });"
-                ]
-              }
+              "name": "Plan Configuration - boundary frequency",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Client-ID",
+                    "value": "{{mobileClientPrimary}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/persons/plan",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "persons",
+                    "plan"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"targetChangeKg\": 5.0,\n  \"durationWeeks\": 10,\n  \"trainingFrequencyPerWeek\": 14,\n  \"planStrategy\": \"BOTH\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Boundary frequency accepted', function () { pm.response.to.have.status(200); });",
+                      "const body = pm.response.json();",
+                      "pm.test('Training frequency stored at 14', function () { pm.expect(body.trainingFrequencyPerWeek).to.eql(14); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Plan Configuration - invalid payload",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Client-ID",
+                    "value": "{{mobileClientPrimary}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/persons/plan",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "persons",
+                    "plan"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"targetChangeKg\": 2.0,\n  \"durationWeeks\": 8,\n  \"trainingFrequencyPerWeek\": 4\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Missing plan strategy rejected', function () { pm.response.to.have.status(400); });"
+                    ]
+                  }
+                }
+              ]
             }
           ]
         },
         {
-          "name": "Calculate BMI - missing height",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-Client-ID",
-                "value": "{{mobileClient}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/persons/bmi",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "persons",
-                "bmi"
-              ],
-              "query": [
+          "name": "Personal - Update Profile (PUT /api/persons/me)",
+          "item": [
+            {
+              "name": "Update Profile - normal",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Client-ID",
+                    "value": "{{mobileClientPrimary}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/persons/me",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "persons",
+                    "me"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"  Alex Updated  \",\n  \"weight\": 74.0,\n  \"height\": 179.0,\n  \"birthDate\": \"1990-04-15\",\n  \"gender\": \"MALE\",\n  \"goal\": \"CUT\",\n  \"targetChangeKg\": 2.0,\n  \"targetDurationWeeks\": 8,\n  \"trainingFrequencyPerWeek\": 4,\n  \"planStrategy\": \"DIET\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
                 {
-                  "key": "weight",
-                  "value": "70"
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Update returns 200', function () { pm.response.to.have.status(200); });",
+                      "const body = pm.response.json();",
+                      "pm.test('Name trimmed after update', function () { pm.expect(body.name).to.eql('Alex Updated'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Update Profile - boundary metrics",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Client-ID",
+                    "value": "{{mobileClientPrimary}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/persons/me",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "persons",
+                    "me"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Alex Boundary\",\n  \"weight\": 38.0,\n  \"height\": 150.0,\n  \"birthDate\": \"1990-04-15\",\n  \"gender\": \"MALE\",\n  \"goal\": \"CUT\",\n  \"targetChangeKg\": 5.0,\n  \"targetDurationWeeks\": 10,\n  \"trainingFrequencyPerWeek\": 14,\n  \"planStrategy\": \"BOTH\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Boundary metrics accepted', function () { pm.response.to.have.status(200); });",
+                      "const body = pm.response.json();",
+                      "pm.test('Weight updated to 38', function () { pm.expect(body.weight).to.eql(38.0); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Update Profile - invalid birth date",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Client-ID",
+                    "value": "{{mobileClientPrimary}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/persons/me",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "persons",
+                    "me"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Alex Invalid\",\n  \"weight\": 70.0,\n  \"height\": 175.0,\n  \"birthDate\": \"2099-12-31\",\n  \"gender\": \"MALE\",\n  \"goal\": \"CUT\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Future birth date rejected on update', function () { pm.response.to.have.status(400); });"
+                    ]
+                  }
                 }
               ]
             }
-          },
-          "event": [
+          ]
+        },
+        {
+          "name": "Personal - BMI (GET /api/persons/bmi)",
+          "item": [
             {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Missing height parameter returns 400', function () { pm.response.to.have.status(400); });"
-                ]
-              }
+              "name": "Get BMI - normal",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "X-Client-ID",
+                    "value": "{{mobileClientPrimary}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/persons/bmi",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "persons",
+                    "bmi"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('BMI request returns 200', function () { pm.response.to.have.status(200); });",
+                      "const body = pm.response.json();",
+                      "pm.test('BMI numeric value returned', function () { pm.expect(body.bmi).to.be.a('number'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get BMI - boundary underweight profile",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "X-Client-ID",
+                    "value": "{{mobileClientBoundary}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/persons/bmi",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "persons",
+                    "bmi"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Boundary BMI request returns 200', function () { pm.response.to.have.status(200); });",
+                      "const body = pm.response.json();",
+                      "pm.test('Category indicates underweight', function () { pm.expect(body.category).to.eql('Underweight'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get BMI - missing header",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/persons/bmi",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "persons",
+                    "bmi"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Missing header on BMI yields 400', function () { pm.response.to.have.status(400); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Personal - Calories (GET /api/persons/calories)",
+          "item": [
+            {
+              "name": "Get Calories - normal",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "X-Client-ID",
+                    "value": "{{mobileClientPrimary}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/persons/calories",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "persons",
+                    "calories"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Calories request succeeds', function () { pm.response.to.have.status(200); });",
+                      "const body = pm.response.json();",
+                      "pm.test('Recommended calories present', function () { pm.expect(body).to.have.property('recommendedDailyCalories'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get Calories - boundary frequency",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "X-Client-ID",
+                    "value": "{{mobileClientPrimary}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/persons/calories",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "persons",
+                    "calories"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Boundary calorie request succeeds', function () { pm.response.to.have.status(200); });",
+                      "const body = pm.response.json();",
+                      "pm.test('Training frequency preserved at 14', function () { pm.expect(body.trainingFrequencyPerWeek).to.eql(14); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get Calories - missing header",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/persons/calories",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "persons",
+                    "calories"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Missing header yields 400 for calories endpoint', function () { pm.response.to.have.status(400); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Personal - Recommendation (GET /api/persons/recommendation)",
+          "item": [
+            {
+              "name": "Recommendation - normal",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "X-Client-ID",
+                    "value": "{{mobileClientPrimary}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/persons/recommendation",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "persons",
+                    "recommendation"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Recommendation request succeeds', function () { pm.response.to.have.status(200); });",
+                      "const body = pm.response.json();",
+                      "pm.test('Message contains guidance', function () { pm.expect(body.message).to.include('Keep'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Recommendation - boundary bulk profile",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "X-Client-ID",
+                    "value": "{{mobileClientBoundary}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/persons/recommendation",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "persons",
+                    "recommendation"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Boundary recommendation succeeds', function () { pm.response.to.have.status(200); });",
+                      "const body = pm.response.json();",
+                      "pm.test('Bulk strategy message present', function () { pm.expect(body.message).to.include('bulking'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Recommendation - missing header",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/persons/recommendation",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "persons",
+                    "recommendation"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Missing header yields 400 on recommendation', function () { pm.response.to.have.status(400); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Personal - Delete Profile (DELETE /api/persons/me)",
+          "item": [
+            {
+              "name": "Delete Profile - normal",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "X-Client-ID",
+                    "value": "{{mobileClientBoundary}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/persons/me",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "persons",
+                    "me"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Delete boundary profile succeeds', function () { pm.response.to.have.status(200); });",
+                      "const body = pm.response.json();",
+                      "pm.test('Delete message returned', function () { pm.expect(body.message).to.include('deleted'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Delete Profile - already deleted",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "X-Client-ID",
+                    "value": "{{mobileClientBoundary}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/persons/me",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "persons",
+                    "me"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Re-delete yields 404', function () { pm.response.to.have.status(404); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Delete Profile - missing header",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/persons/me",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "persons",
+                    "me"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Missing header yields 400 on delete', function () { pm.response.to.have.status(400); });"
+                    ]
+                  }
+                }
+              ]
             }
           ]
         }
       ]
     },
     {
-      "name": "Calorie Endpoint",
+      "name": "Service Health (GET /health)",
       "item": [
         {
-          "name": "Calorie Needs - typical",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-Client-ID",
-                "value": "{{mobileClient}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/persons/calories",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "persons",
-                "calories"
-              ],
-              "query": [
-                {
-                  "key": "weight",
-                  "value": "70"
-                },
-                {
-                  "key": "height",
-                  "value": "175"
-                },
-                {
-                  "key": "age",
-                  "value": "30"
-                },
-                {
-                  "key": "gender",
-                  "value": "male"
-                },
-                {
-                  "key": "weeklyTrainingFreq",
-                  "value": "3"
-                }
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Calorie calculation returns 200', function () { pm.response.to.have.status(200); });",
-                  "const body = pm.response.json();",
-                  "pm.test('Daily calories greater than BMR for active scenario', function () { pm.expect(body.dailyCalories).to.be.above(body.bmr); });",
-                  "pm.test('Weekly frequency echoed', function () { pm.expect(body.weeklyTrainingFreq).to.eql(3); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Calorie Needs - sedentary atypical",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-Client-ID",
-                "value": "{{mobileClient}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/persons/calories",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "persons",
-                "calories"
-              ],
-              "query": [
-                {
-                  "key": "weight",
-                  "value": "55"
-                },
-                {
-                  "key": "height",
-                  "value": "165"
-                },
-                {
-                  "key": "age",
-                  "value": "28"
-                },
-                {
-                  "key": "gender",
-                  "value": "female"
-                },
-                {
-                  "key": "weeklyTrainingFreq",
-                  "value": "0"
-                }
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Sedentary case returns 200', function () { pm.response.to.have.status(200); });",
-                  "const body = pm.response.json();",
-                  "pm.test('Daily calories equals sedentary multiplier', function () { pm.expect(body.dailyCalories).to.be.closeTo(body.bmr * 1.2, 0.5); });",
-                  "pm.test('Weekly frequency captured as zero', function () { pm.expect(body.weeklyTrainingFreq).to.eql(0); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Calorie Needs - missing age",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-Client-ID",
-                "value": "{{mobileClient}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/persons/calories",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "persons",
-                "calories"
-              ],
-              "query": [
-                {
-                  "key": "weight",
-                  "value": "70"
-                },
-                {
-                  "key": "height",
-                  "value": "175"
-                },
-                {
-                  "key": "gender",
-                  "value": "male"
-                },
-                {
-                  "key": "weeklyTrainingFreq",
-                  "value": "3"
-                }
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Missing age parameter returns 400', function () { pm.response.to.have.status(400); });"
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "Research Endpoints",
-      "item": [
-        {
-          "name": "Research Persons - typical",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-Client-ID",
-                "value": "{{researchClient}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/research/persons",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "research",
-                "persons"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Research persons endpoint returns 200', function () { pm.response.to.have.status(200); });",
-                  "const body = pm.response.json();",
-                  "pm.test('Total users present', function () { pm.expect(body.totalUsers).to.be.above(0); });",
-                  "pm.test('Response anonymized flag set', function () { pm.expect(body.dataAnonymized).to.be.true; });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Research Persons - secondary client",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-Client-ID",
-                "value": "{{researchClientSecondary}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/research/persons",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "research",
-                "persons"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Alternate research client allowed', function () { pm.response.to.have.status(200); });",
-                  "const body = pm.response.json();",
-                  "pm.test('Access level flagged for research', function () { pm.expect(body.accessLevel).to.eql('RESEARCH_ONLY'); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Research Persons - mobile forbidden",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-Client-ID",
-                "value": "{{mobileClient}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/research/persons",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "research",
-                "persons"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Mobile client forbidden from research data', function () { pm.response.to.have.status(403); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Research Demographics - typical",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-Client-ID",
-                "value": "{{researchClient}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/research/demographics",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "research",
-                "demographics"
-              ],
-              "query": [
-                {
-                  "key": "ageRange",
-                  "value": "25-34"
-                },
-                {
-                  "key": "gender",
-                  "value": "ALL"
-                }
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Demographics endpoint returns 200', function () { pm.response.to.have.status(200); });",
-                  "const body = pm.response.json();",
-                  "pm.test('Cohort consists of requested age range', function () { pm.expect(body.cohort.ageRange).to.eql('25-34'); });",
-                  "pm.test('Sample size meets minimum threshold', function () { pm.expect(body.cohort.sampleSize).to.be.at.least(10); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Research Demographics - atypical cohort",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-Client-ID",
-                "value": "{{researchClientSecondary}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/research/demographics",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "research",
-                "demographics"
-              ],
-              "query": [
-                {
-                  "key": "ageRange",
-                  "value": "65-74"
-                },
-                {
-                  "key": "gender",
-                  "value": "FEMALE"
-                }
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Alternate cohort query works', function () { pm.response.to.have.status(200); });",
-                  "const body = pm.response.json();",
-                  "pm.test('Cohort age range matches atypical query', function () { pm.expect(body.cohort.ageRange).to.eql('65-74'); });",
-                  "pm.test('Data anonymized remains true', function () { pm.expect(body.dataAnonymized).to.be.true; });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Research Demographics - mobile forbidden",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-Client-ID",
-                "value": "{{mobileClient}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/research/demographics",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "research",
-                "demographics"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Mobile client denied demographics data', function () { pm.response.to.have.status(403); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Research Workout Patterns - typical",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-Client-ID",
-                "value": "{{researchClient}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/research/workout-patterns",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "research",
-                "workout-patterns"
-              ],
-              "query": [
-                {
-                  "key": "ageRange",
-                  "value": "25-34"
-                }
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Workout patterns endpoint returns 200', function () { pm.response.to.have.status(200); });",
-                  "const body = pm.response.json();",
-                  "pm.test('Exercise distribution contains aerobic key', function () { pm.expect(body.exerciseDistribution).to.have.property('AEROBIC'); });",
-                  "pm.test('Sample size reported', function () { pm.expect(body.sampleSize).to.be.above(0); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Research Workout Patterns - no filter",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-Client-ID",
-                "value": "{{researchClientSecondary}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/research/workout-patterns",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "research",
-                "workout-patterns"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Workout patterns without age filter still works', function () { pm.response.to.have.status(200); });",
-                  "const body = pm.response.json();",
-                  "pm.test('Privacy flag true', function () { pm.expect(body.privacyProtected).to.be.true; });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Research Workout Patterns - mobile forbidden",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-Client-ID",
-                "value": "{{mobileClient}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/research/workout-patterns",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "research",
-                "workout-patterns"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Mobile client rejected from workout patterns', function () { pm.response.to.have.status(403); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Research Nutrition Trends - bulk",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-Client-ID",
-                "value": "{{researchClient}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/research/nutrition-trends",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "research",
-                "nutrition-trends"
-              ],
-              "query": [
-                {
-                  "key": "objective",
-                  "value": "BULK"
-                }
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Nutrition trends endpoint returns 200', function () { pm.response.to.have.status(200); });",
-                  "const body = pm.response.json();",
-                  "pm.test('Objective echoes BULK', function () { pm.expect(body.objective).to.eql('BULK'); });",
-                  "pm.test('Macro distribution contains protein', function () { pm.expect(body.macroDistribution).to.have.property('protein'); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Research Nutrition Trends - default",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-Client-ID",
-                "value": "{{researchClientSecondary}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/research/nutrition-trends",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "research",
-                "nutrition-trends"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Nutrition trends default objective works', function () { pm.response.to.have.status(200); });",
-                  "const body = pm.response.json();",
-                  "pm.test('Default objective reported as ALL', function () { pm.expect(body.objective).to.eql('ALL'); });",
-                  "pm.test('ContainsPII flag remains false', function () { pm.expect(body.containsPII).to.be.false; });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Research Nutrition Trends - mobile forbidden",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-Client-ID",
-                "value": "{{mobileClient}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/research/nutrition-trends",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "research",
-                "nutrition-trends"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Mobile client blocked from nutrition trends', function () { pm.response.to.have.status(403); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Research Population Health - typical",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-Client-ID",
-                "value": "{{researchClient}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/research/population-health",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "research",
-                "population-health"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Population health endpoint returns 200', function () { pm.response.to.have.status(200); });",
-                  "const body = pm.response.json();",
-                  "pm.test('Population size reported', function () { pm.expect(body.totalPopulation).to.be.above(0); });",
-                  "pm.test('Goal metrics include weight loss', function () { pm.expect(body.goalMetrics).to.have.property('weightLossSuccessRate'); });",
-                  "pm.test('BMI distribution includes normal bucket', function () { pm.expect(body.bmiDistribution).to.have.property('normal'); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Research Population Health - secondary client",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-Client-ID",
-                "value": "{{researchClientSecondary}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/research/population-health",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "research",
-                "population-health"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Secondary research client accesses population health', function () { pm.response.to.have.status(200); });",
-                  "const body = pm.response.json();",
-                  "pm.test('Population total consistent', function () { pm.expect(body.totalPopulation).to.be.above(0); });",
-                  "pm.test('Goal metrics include maintenance adherence', function () { pm.expect(body.goalMetrics).to.have.property('maintenanceAdherence'); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Research Population Health - mobile forbidden",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-Client-ID",
-                "value": "{{mobileClient}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/research/population-health",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "research",
-                "population-health"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Mobile client cannot access population health', function () { pm.response.to.have.status(403); });"
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "Health (Actuator)",
-      "item": [
-        {
-          "name": "Actuator Health - service UP",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/actuator/health",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "actuator",
-                "health"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Actuator health returns 200', function () { pm.response.to.have.status(200); });",
-                  "const body = pm.response.json();",
-                  "pm.test('Status is UP', function () { pm.expect(body.status).to.eql('UP'); });"
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "Service Health (root)",
-      "item": [
-        {
-          "name": "Root Health - service UP",
+          "name": "Service Health - normal",
           "request": {
             "method": "GET",
             "header": [],
@@ -1447,100 +984,71 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Root health returns 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Health endpoint returns 200', function () { pm.response.to.have.status(200); });",
                   "const body = pm.response.json();",
-                  "pm.test('Status is UP', function () { pm.expect(body.status).to.eql('UP'); });"
+                  "pm.test('Service reports UP', function () { pm.expect(body.status).to.eql('UP'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Service Health - metadata boundary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Health endpoint exposes metadata', function () { pm.response.to.have.status(200); });",
+                  "const body = pm.response.json();",
+                  "pm.test('Service name present', function () { pm.expect(body.service).to.eql('Personal Fitness Management Service'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Service Health - invalid method",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('POST to health not allowed', function () { pm.response.to.have.status(405); });"
                 ]
               }
             }
           ]
         }
       ]
-    },
-    {
-      "name": "Negative and Boundary Tests",
-      "item": [
-        {
-          "name": "Create Person - invalid client header format",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "X-Client-ID", "value": "invalid-app" }
-            ],
-            "url": { "raw": "{{baseUrl}}/api/persons", "host": ["{{baseUrl}}"], "path": ["api","persons"] },
-            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Bad Header\",\n  \"weight\": 70.0,\n  \"height\": 175.0,\n  \"birthDate\": \"1990-01-01\"\n}" }
-          },
-          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [
-            "pm.test('Invalid client header returns 400', function () { pm.response.to.have.status(400); });"
-          ] } } ]
-        },
-        {
-          "name": "Create Person - missing required field (name)",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "X-Client-ID", "value": "{{mobileClient}}" }
-            ],
-            "url": { "raw": "{{baseUrl}}/api/persons", "host": ["{{baseUrl}}"], "path": ["api","persons"] },
-            "body": { "mode": "raw", "raw": "{\n  \"weight\": 70.0,\n  \"height\": 175.0,\n  \"birthDate\": \"1990-01-01\"\n}" }
-          },
-          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [
-            "pm.test('Missing required field returns 400', function () { pm.response.to.have.status(400); });"
-          ] } } ]
-        },
-        {
-          "name": "Get Person - invalid birthDate format",
-          "request": {
-            "method": "GET",
-            "header": [ { "key": "X-Client-ID", "value": "{{mobileClient}}" } ],
-            "url": {
-              "raw": "{{baseUrl}}/api/persons/123?birthDate=1990/01/01",
-              "host": ["{{baseUrl}}"],
-              "path": ["api","persons","123"],
-              "query": [ { "key": "birthDate", "value": "1990/01/01" } ]
-            }
-          },
-          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [
-            "pm.test('Invalid birthDate format returns 400', function () { pm.response.to.have.status(400); });"
-          ] } } ]
-        },
-        {
-          "name": "Get Person - nonexistent id unauthorized",
-          "request": {
-            "method": "GET",
-            "header": [ { "key": "X-Client-ID", "value": "{{mobileClient}}" } ],
-            "url": {
-              "raw": "{{baseUrl}}/api/persons/999999?birthDate=1990-01-01",
-              "host": ["{{baseUrl}}"],
-              "path": ["api","persons","999999"],
-              "query": [ { "key": "birthDate", "value": "1990-01-01" } ]
-            }
-          },
-          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [
-            "pm.test('Nonexistent id yields 401', function () { pm.response.to.have.status(401); });"
-          ] } } ]
-        },
-        {
-          "name": "Update Person - missing client header",
-          "request": {
-            "method": "PUT",
-            "header": [ { "key": "Content-Type", "value": "application/json" } ],
-            "url": {
-              "raw": "{{baseUrl}}/api/persons/me",
-              "host": ["{{baseUrl}}"],
-              "path": ["api","persons","me"]
-            },
-            "body": { "mode": "raw", "raw": "{\n  \"weight\": 70.0,\n  \"height\": 175.0,\n  \"birthDate\": \"1990-01-01\"\n}" }
-          },
-          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [
-            "pm.test('Missing client header on update returns 400', function () { pm.response.to.have.status(400); });"
-          ] } } ]
-        }
-      ]
     }
-  ],
-  "event": [],
-  "variable": []
+  ]
 }

@@ -105,5 +105,45 @@ class ApiLoggingInterceptorTest {
     Assertions.assertNotNull(ua);
     Assertions.assertTrue(ua.length() <= 200, "User-Agent should be trimmed to <= 200 characters");
   }
+
+  @Test
+  void forwardedForHeader_isPreferredForIp() throws Exception {
+    ApiLoggingInterceptor interceptor = new ApiLoggingInterceptor();
+    Logger logger = (Logger) LoggerFactory.getLogger("API_LOG");
+    ListAppender<ILoggingEvent> appender = new ListAppender<>();
+    appender.start();
+    logger.addAppender(appender);
+
+    MockHttpServletRequest req = new MockHttpServletRequest("GET", "/api/persons");
+    req.addHeader("X-Forwarded-For", "10.0.0.1, 10.0.0.2");
+    MockHttpServletResponse res = new MockHttpServletResponse();
+    res.setStatus(200);
+
+    interceptor.preHandle(req, res, new Object());
+    interceptor.afterCompletion(req, res, new Object(), null);
+
+    Map<String, Object> json =
+        mapper.readValue(appender.list.get(0).getFormattedMessage(), new TypeReference<>() {});
+    Assertions.assertEquals("10.0.0.1", json.get("ip"));
+  }
+
+  @Test
+  void missingStartTime_recordsNegativeDuration() throws Exception {
+    ApiLoggingInterceptor interceptor = new ApiLoggingInterceptor();
+    Logger logger = (Logger) LoggerFactory.getLogger("API_LOG");
+    ListAppender<ILoggingEvent> appender = new ListAppender<>();
+    appender.start();
+    logger.addAppender(appender);
+
+    MockHttpServletRequest req = new MockHttpServletRequest("GET", "/api/persons");
+    MockHttpServletResponse res = new MockHttpServletResponse();
+    res.setStatus(200);
+
+    interceptor.afterCompletion(req, res, new Object(), null);
+
+    Map<String, Object> json =
+        mapper.readValue(appender.list.get(0).getFormattedMessage(), new TypeReference<>() {});
+    Assertions.assertEquals(-1, json.get("durationMs"));
+  }
 }
 

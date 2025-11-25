@@ -5,6 +5,7 @@ package com.teamx.fitness.controller.dto;
  */
 public class PersonCreatedResponse {
 
+  /** Identifier mobile clients use for subsequent API calls. */
   private final String clientId;
 
   public PersonCreatedResponse(String clientId) {
@@ -15,4 +16,3 @@ public class PersonCreatedResponse {
     return clientId;
   }
 }
-

@@ -30,12 +30,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -71,6 +69,21 @@ public class PersonController {
 
   /** Rough calories required per kg of body weight change. */
   private static final double CALORIES_PER_KG = 7700.0;
+
+  /** Number of days per week used when averaging calorie adjustments. */
+  private static final double DAYS_PER_WEEK = 7.0;
+
+  /** Default calorie adjustment when plan metrics are missing. */
+  private static final double DEFAULT_PLAN_ADJUSTMENT = 300.0;
+
+  /** Rounding step used for diet suggestions. */
+  private static final double CALORIE_ROUNDING_STEP = 10.0;
+
+  /** Default workouts per week when plan data is absent. */
+  private static final int DEFAULT_WEEKLY_WORKOUTS = 4;
+
+  /** Minimum workouts allowed per week. */
+  private static final int MIN_WEEKLY_WORKOUTS = 1;
 
   @PostMapping
   @Operation(
@@ -337,7 +350,7 @@ public class PersonController {
 
     double dailyAdjustmentCalories =
         (person.getTargetChangeKg() * CALORIES_PER_KG)
-            / (person.getTargetDurationWeeks() * 7.0);
+            / (person.getTargetDurationWeeks() * DAYS_PER_WEEK);
     if (dailyAdjustmentCalories < 0) {
       dailyAdjustmentCalories = Math.abs(dailyAdjustmentCalories);
     }
@@ -516,14 +529,14 @@ public class PersonController {
 
   private String defaultDietPlan(PersonSimple person) {
     FitnessGoal goal = person.getGoal();
-    double adjustment = 300.0;
+    double adjustment = DEFAULT_PLAN_ADJUSTMENT;
     if (person.getTargetChangeKg() != null && person.getTargetDurationWeeks() != null
         && person.getTargetDurationWeeks() > 0) {
       adjustment = Math.abs(
           (person.getTargetChangeKg() * CALORIES_PER_KG)
-              / (person.getTargetDurationWeeks() * 7.0));
+              / (person.getTargetDurationWeeks() * DAYS_PER_WEEK));
     }
-    adjustment = Math.round(adjustment / 10.0) * 10.0;
+    adjustment = Math.round(adjustment / CALORIE_ROUNDING_STEP) * CALORIE_ROUNDING_STEP;
 
     if (goal == null) {
       return "Maintain a balanced meal plan with lean protein, whole grains, and plenty of vegetables.";
@@ -535,16 +548,17 @@ public class PersonController {
           adjustment);
     }
     return String.format(
-        "Target roughly %.0f kcal surplus daily using lean proteins, complex carbs, and healthy fats spread across meals.",
+        "Target roughly %.0f kcal surplus daily using lean proteins, complex carbs, "
+            + "and healthy fats spread across meals.",
         adjustment);
   }
 
   private String defaultWorkoutPlan(PersonSimple person) {
     int frequency = person.getTrainingFrequencyPerWeek() != null
         ? person.getTrainingFrequencyPerWeek()
-        : 4;
-    if (frequency < 1) {
-      frequency = 1;
+        : DEFAULT_WEEKLY_WORKOUTS;
+    if (frequency < MIN_WEEKLY_WORKOUTS) {
+      frequency = MIN_WEEKLY_WORKOUTS;
     }
     FitnessGoal goal = person.getGoal();
     if (goal == null) {

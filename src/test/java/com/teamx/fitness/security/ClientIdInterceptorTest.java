@@ -40,6 +40,48 @@ class ClientIdInterceptorTest {
     assertEquals(200, response.getStatus());
   }
 
+  @Test
+  @DisplayName("OPTIONS preflight bypasses validation")
+  void preHandle_AllowsOptionsRequests() throws Exception {
+    MockHttpServletRequest request = new MockHttpServletRequest("OPTIONS", "/api/persons");
+    MockHttpServletResponse response = new MockHttpServletResponse();
+
+    assertTrue(interceptor.preHandle(request, response, new Object()));
+  }
+
+  @Test
+  @DisplayName("Health and root endpoints bypass validation")
+  void preHandle_AllowsHealthAndRoot() throws Exception {
+    MockHttpServletRequest health = new MockHttpServletRequest("GET", "/health");
+    MockHttpServletRequest root = new MockHttpServletRequest("GET", "/");
+    MockHttpServletResponse response = new MockHttpServletResponse();
+
+    assertTrue(interceptor.preHandle(health, response, new Object()));
+    assertTrue(interceptor.preHandle(root, response, new Object()));
+  }
+
+  @Test
+  @DisplayName("Open POST endpoints bypass validation")
+  void preHandle_AllowsOpenPostEndpoints() throws Exception {
+    MockHttpServletRequest createPerson = new MockHttpServletRequest("POST", "/api/persons");
+    MockHttpServletRequest createResearch = new MockHttpServletRequest("POST", "/api/research");
+    MockHttpServletResponse response = new MockHttpServletResponse();
+
+    assertTrue(interceptor.preHandle(createPerson, response, new Object()));
+    assertTrue(interceptor.preHandle(createResearch, response, new Object()));
+  }
+
+  @Test
+  @DisplayName("POST endpoints with trailing slashes bypass validation")
+  void preHandle_AllowsTrailingSlashEndpoints() throws Exception {
+    MockHttpServletRequest createPerson = new MockHttpServletRequest("POST", "/api/persons/");
+    MockHttpServletRequest createResearch = new MockHttpServletRequest("POST", "/api/research/");
+    MockHttpServletResponse response = new MockHttpServletResponse();
+
+    assertTrue(interceptor.preHandle(createPerson, response, new Object()));
+    assertTrue(interceptor.preHandle(createResearch, response, new Object()));
+  }
+
   /**
    * Invalid scenario: missing header triggers a 400 and stops the handler chain.
    */
@@ -88,5 +130,18 @@ class ClientIdInterceptorTest {
 
     interceptor.afterCompletion(request, response, new Object(), null);
     assertEquals(null, ClientContext.getClientId());
+  }
+
+  @Test
+  @DisplayName("Research client IDs are accepted and stored")
+  void preHandle_ValidResearchClient() throws Exception {
+    MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/research/data");
+    request.addHeader(ClientIdInterceptor.CLIENT_ID_HEADER, "research-analyst1");
+    MockHttpServletResponse response = new MockHttpServletResponse();
+
+    boolean allowed = interceptor.preHandle(request, response, new Object());
+
+    assertTrue(allowed);
+    assertEquals("research-analyst1", ClientContext.getClientId());
   }
 }

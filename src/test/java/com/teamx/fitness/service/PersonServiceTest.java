@@ -9,6 +9,7 @@ import java.time.Period;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -54,6 +55,7 @@ class PersonServiceTest {
     );
   }
 
+  @Test
   @DisplayName("calculateBMI throws for null inputs and invalid ranges")
   void calculateBmiInvalidInputs() {
     // null inputs
@@ -163,6 +165,8 @@ class PersonServiceTest {
   private static Stream<Arguments> calculateDailyCalorieNeedsScenarios() {
     return Stream.of(
         Arguments.of("Valid: moderate activity", 1600.0, 3, 2480.0, false),
+        Arguments.of("Valid: light activity", 1600.0, 2, 2200.0, false),
+        Arguments.of("Valid: very active", 1700.0, 5, 2932.5, false),
         Arguments.of("Boundary: sedentary baseline", 1800.0, 0, 2160.0, false),
         Arguments.of("Boundary: extra active baseline", 1700.0, 7, 3230.0, false),
         Arguments.of("Invalid: missing BMR", null, 4, null, true),

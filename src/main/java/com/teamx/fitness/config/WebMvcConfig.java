@@ -14,17 +14,28 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
-  /**
-   * Client ID interceptor for validating client tokens.
-   */
-  @Autowired
-  private ClientIdInterceptor clientIdInterceptor;
+  /** Cache max age for CORS preflight responses. */
+  private static final long CORS_MAX_AGE_SECONDS = 3600L;
+
+  /** Client ID interceptor for validating client tokens. */
+  private final ClientIdInterceptor clientIdInterceptor;
+
+  /** API logging interceptor. */
+  private final ApiLoggingInterceptor apiLoggingInterceptor;
 
   /**
-   * API logging interceptor.
+   * Creates the MVC configuration with required interceptors.
+   *
+   * @param clientIdInterceptor validates the X-Client-ID header
+   * @param apiLoggingInterceptor logs API invocations for auditing
    */
   @Autowired
-  private ApiLoggingInterceptor apiLoggingInterceptor;
+  public WebMvcConfig(
+      ClientIdInterceptor clientIdInterceptor,
+      ApiLoggingInterceptor apiLoggingInterceptor) {
+    this.clientIdInterceptor = clientIdInterceptor;
+    this.apiLoggingInterceptor = apiLoggingInterceptor;
+  }
 
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
@@ -39,6 +50,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
         .allowedHeaders("*")
         .exposedHeaders("X-Client-ID")
-        .maxAge(3600);
+        .maxAge(CORS_MAX_AGE_SECONDS);
   }
 }

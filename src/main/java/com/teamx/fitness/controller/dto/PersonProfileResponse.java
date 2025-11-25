@@ -11,17 +11,27 @@ import java.time.LocalDate;
  */
 public class PersonProfileResponse {
 
+  /** Client ID associated with the profile. */
   private String clientId;
+  /** Persisted display name. */
   private String name;
+  /** Stored weight in kilograms. */
   private Double weight;
+  /** Stored height in centimeters. */
   private Double height;
+  /** Birth date used for age calculations. */
   private LocalDate birthDate;
+  /** Active goal for the profile. */
   private FitnessGoal goal;
   /** Gender stored for the person. */
   private Gender gender;
+  /** Planned change in kilograms. */
   private Double targetChangeKg;
+  /** Duration in weeks for the plan. */
   private Integer targetDurationWeeks;
+  /** Weekly training frequency. */
   private Integer trainingFrequencyPerWeek;
+  /** Strategy that the plan follows. */
   private PlanStrategy planStrategy;
 
   public static PersonProfileResponse fromEntity(PersonSimple person) {
