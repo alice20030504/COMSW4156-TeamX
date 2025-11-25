@@ -4,14 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import org.junit.jupiter.api.BeforeEach;
-import org.mockito.MockitoAnnotations;
 
 import com.teamx.fitness.controller.PersonController;
 import com.teamx.fitness.controller.dto.PersonCreateRequest;
@@ -23,7 +19,6 @@ import com.teamx.fitness.model.PersonSimple;
 import com.teamx.fitness.model.PlanStrategy;
 import com.teamx.fitness.repository.PersonRepository;
 import com.teamx.fitness.security.ClientContext;
-import com.teamx.fitness.service.AuthService;
 import com.teamx.fitness.service.PersonService;
 import java.time.LocalDate;
 import java.util.Optional;
@@ -46,15 +41,6 @@ import org.springframework.http.ResponseEntity;
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Client isolation safeguards")
 class ClientIsolationIntegrationTest {
-    
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-        lenient().when(authService.createUnauthorizedResponse()).thenReturn(
-            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid ID or birth date."));
-        // Set up lenient stubs for common auth validations
-        lenient().when(authService.validateUserAccess(anyLong(), any(LocalDate.class))).thenReturn(false);
-    }
 
   private static final String MOBILE_CLIENT_1 = "mobile-app1";
   private static final String MOBILE_CLIENT_2 = "mobile-app2";
@@ -62,8 +48,6 @@ class ClientIsolationIntegrationTest {
   @Mock private PersonRepository personRepository;
 
   @Mock private PersonService personService;
-
-  @Mock private AuthService authService;
 
   @InjectMocks private PersonController personController;
 
@@ -147,7 +131,6 @@ class ClientIsolationIntegrationTest {
     existing.setHeight(172.0);
     existing.setBirthDate(LocalDate.of(1992, 7, 10));
     existing.setId(9L);
-    String birthDate = "1992-07-10";
 
     PersonSimple update = new PersonSimple();
     update.setName("Carol Updated");
@@ -156,11 +139,9 @@ class ClientIsolationIntegrationTest {
     update.setBirthDate(existing.getBirthDate());
     update.setGoal(FitnessGoal.CUT);
     update.setGender(Gender.FEMALE);
-    update.setClientId(MOBILE_CLIENT_1);
-    update.setId(9L);
+    update.setPlanStrategy(existing.getPlanStrategy());
 
-    when(authService.validateUserAccess(9L, LocalDate.parse(birthDate))).thenReturn(true);
-    when(personRepository.findByIdAndClientId(9L, MOBILE_CLIENT_1)).thenReturn(Optional.of(existing));
+    when(personRepository.findByClientId(MOBILE_CLIENT_1)).thenReturn(Optional.of(existing));
     when(personService.calculateBMI(72.0, 172.0)).thenReturn(24.34);
     doAnswer(invocation -> {
         PersonSimple savedPerson = invocation.getArgument(0);
@@ -169,7 +150,7 @@ class ClientIsolationIntegrationTest {
         return savedPerson;
     }).when(personRepository).save(any(PersonSimple.class));
 
-    ResponseEntity<?> response = personController.updatePerson(9L, LocalDate.parse(birthDate), update);
+    ResponseEntity<PersonSimple> response = personController.updatePerson(update);
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals("Carol Updated", ((PersonSimple) response.getBody()).getName());
@@ -179,11 +160,9 @@ class ClientIsolationIntegrationTest {
    * Invalid update scenario: non-owners receive a 401 due to authentication failure.
    */
   @Test
-  @DisplayName("Update returns 401 when authentication fails")
+  @DisplayName("Update returns 404 when profile missing")
   void updatePerson_RejectsOtherClient() {
-    String birthDate = "1992-07-10";
     ClientContext.setClientId(MOBILE_CLIENT_2);
-    // Default behavior set in setUp()
 
     PersonSimple updateAttempt = new PersonSimple();
     updateAttempt.setName("Carol Updated");
@@ -193,10 +172,11 @@ class ClientIsolationIntegrationTest {
     updateAttempt.setGoal(FitnessGoal.CUT);
     updateAttempt.setGender(Gender.FEMALE);
 
-    ResponseEntity<?> response =
-        personController.updatePerson(9L, LocalDate.parse(birthDate), updateAttempt);
+    when(personRepository.findByClientId(MOBILE_CLIENT_2)).thenReturn(Optional.empty());
 
-    assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    org.junit.jupiter.api.Assertions.assertThrows(
+        ResponseStatusException.class,
+        () -> personController.updatePerson(updateAttempt));
     verify(personRepository, never()).save(any(PersonSimple.class));
   }
 
@@ -212,16 +192,14 @@ class ClientIsolationIntegrationTest {
     existing.setHeight(168.0);
     existing.setBirthDate(LocalDate.of(1991, 1, 1));
     existing.setId(4L);
-    String birthDate = "1991-01-01";
 
-    when(authService.validateUserAccess(4L, LocalDate.parse(birthDate))).thenReturn(true);
-    when(personRepository.findByIdAndClientId(4L, MOBILE_CLIENT_1)).thenReturn(Optional.of(existing));
+    when(personRepository.findByClientId(MOBILE_CLIENT_1)).thenReturn(Optional.of(existing));
 
-    ResponseEntity<?> response = personController.deletePerson(4L, LocalDate.parse(birthDate));
+    ResponseEntity<?> response = personController.deletePerson();
 
-    assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-    verify(personRepository).findByIdAndClientId(4L, MOBILE_CLIENT_1);
-    verify(personRepository).deleteById(4L);
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    verify(personRepository).findByClientId(MOBILE_CLIENT_1);
+    verify(personRepository).delete(existing);
 
     ClientContext.clear();
     assertFalse(ClientContext.isMobileClient(ClientContext.getClientId()));
@@ -231,16 +209,14 @@ class ClientIsolationIntegrationTest {
    * Invalid deletion scenario: other clients cannot remove records they do not own.
    */
   @Test
-  @DisplayName("Delete returns 401 for authentication failure")
+  @DisplayName("Delete returns 404 when profile missing")
   void deletePerson_RejectsOtherClient() {
-    String birthDate = "1991-01-01";
     ClientContext.setClientId(MOBILE_CLIENT_2);
-    // Default behavior set in setUp()
+    when(personRepository.findByClientId(MOBILE_CLIENT_2)).thenReturn(Optional.empty());
 
-    ResponseEntity<?> response = personController.deletePerson(4L, LocalDate.parse(birthDate));
-
-    assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-    verify(personRepository, never()).deleteById(any());
+    ResponseEntity<?> response = personController.deletePerson();
+    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    verify(personRepository, never()).delete(any(PersonSimple.class));
   }
 
   private PersonSimple buildPerson(String name, Gender gender, FitnessGoal goal, String clientId) {

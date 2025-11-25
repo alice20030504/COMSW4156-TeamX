@@ -6,6 +6,7 @@ const REMOTE_DEFAULT_PORT = '8080';
 
 let cachedAutoApiBaseUrl = '';
 let autoDetectPromise = null;
+let cachedProfile = null;
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
@@ -62,6 +63,20 @@ function setupEventListeners() {
     
     // Clear client button
     document.getElementById('clearClientBtn').addEventListener('click', clearClient);
+    
+    const existingBtn = document.getElementById('useExistingClientBtn');
+    if (existingBtn) {
+        existingBtn.addEventListener('click', useExistingClient);
+    }
+
+    const updateForm = document.getElementById('updateProfileForm');
+    if (updateForm) {
+        updateForm.addEventListener('submit', handleProfileUpdate);
+    }
+
+    document.querySelectorAll('.collapse-toggle').forEach((btn) => {
+        btn.addEventListener('click', () => toggleSection(btn));
+    });
 }
 
 async function getApiBaseUrl() {
@@ -92,13 +107,43 @@ function showAuthenticatedView(clientId) {
     document.getElementById('authenticatedSection').style.display = 'block';
     document.getElementById('clientInfo').style.display = 'block';
     document.getElementById('clientIdDisplay').textContent = clientId;
+    loadProfile();
 }
 
 function clearClient() {
     if (confirm('Are you sure you want to clear your client ID and register a new profile?')) {
         localStorage.removeItem(CLIENT_ID_KEY);
+        cachedProfile = null;
         showRegistrationView();
         showStatus('Client ID cleared. Please register a new profile.', 'info');
+    }
+}
+
+async function useExistingClient() {
+    const input = document.getElementById('existingClientId');
+    if (!input) {
+        return;
+    }
+    const clientId = input.value.trim();
+    if (!clientId) {
+        showStatus('Enter a client ID to continue.', 'error');
+        return;
+    }
+    localStorage.setItem(CLIENT_ID_KEY, clientId);
+    try {
+        const response = await apiCall('GET', '/api/persons/me', null, true);
+        cachedProfile = JSON.parse(response);
+        showAuthenticatedView(clientId);
+        showStatus('Loaded existing client ID.', 'success');
+    } catch (error) {
+        localStorage.removeItem(CLIENT_ID_KEY);
+        cachedProfile = null;
+        input.focus();
+        showStatus('Client ID not found: ' + error.message, 'error');
+        showRegistrationView();
+        return;
+    } finally {
+        input.value = '';
     }
 }
 
@@ -155,7 +200,9 @@ async function loadProfile() {
     try {
         const response = await apiCall('GET', '/api/persons/me', null, true);
         const data = JSON.parse(response);
+        cachedProfile = data;
         displayProfile(data);
+        populateUpdateForm(data);
     } catch (error) {
         showStatus('Failed to load profile: ' + error.message, 'error');
         document.getElementById('profileContent').innerHTML = 
@@ -192,10 +239,13 @@ async function getRecommendation() {
 
 async function listProfiles() {
     try {
-        const response = await apiCall('GET', '/api/persons', null, true);
-        displayResults('All Profiles', response);
+        const response = await apiCall('GET', '/api/persons/me', null, true);
+        displayResults('Stored Profile', response);
+        const data = JSON.parse(response);
+        cachedProfile = data;
+        populateUpdateForm(data);
     } catch (error) {
-        showStatus('Failed to list profiles: ' + error.message, 'error');
+        showStatus('Failed to load stored profile from /api/persons/me: ' + error.message, 'error');
     }
 }
 
@@ -230,6 +280,89 @@ function displayResults(title, response) {
     }
     
     resultsContent.innerHTML = html;
+}
+
+function populateUpdateForm(data) {
+    const setValue = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.value = value ?? '';
+        }
+    };
+    setValue('updateName', data.name || '');
+    setValue('updateWeight', data.weight ?? '');
+    setValue('updateHeight', data.height ?? '');
+    setValue('updateBirthDate', data.birthDate || '');
+    setValue('updateGender', data.gender || '');
+    setValue('updateGoal', data.goal || '');
+    setValue('updateTargetChangeKg', data.targetChangeKg ?? '');
+    setValue('updateDurationWeeks', data.targetDurationWeeks ?? '');
+    setValue('updateTrainingFrequency', data.trainingFrequencyPerWeek ?? '');
+    setValue('updatePlanStrategy', data.planStrategy || '');
+}
+
+async function handleProfileUpdate(e) {
+    e.preventDefault();
+    try {
+        const payload = buildUpdatePayload();
+        const response = await apiCall('PUT', '/api/persons/me', payload, true);
+        displayResults('Profile Updated', response);
+        showStatus('Profile updated successfully!', 'success');
+        await loadProfile();
+    } catch (error) {
+        showStatus('Failed to update profile: ' + error.message, 'error');
+    }
+}
+
+function buildUpdatePayload() {
+    return {
+        name: document.getElementById('updateName').value.trim(),
+        weight: parseFloat(document.getElementById('updateWeight').value),
+        height: parseFloat(document.getElementById('updateHeight').value),
+        birthDate: document.getElementById('updateBirthDate').value,
+        gender: document.getElementById('updateGender').value,
+        goal: document.getElementById('updateGoal').value,
+        targetChangeKg: readOptionalNumber('updateTargetChangeKg', cachedProfile?.targetChangeKg, parseFloat),
+        targetDurationWeeks: readOptionalNumber('updateDurationWeeks', cachedProfile?.targetDurationWeeks, parseInt),
+        trainingFrequencyPerWeek: readOptionalNumber('updateTrainingFrequency', cachedProfile?.trainingFrequencyPerWeek, parseInt),
+        planStrategy: readOptionalSelect('updatePlanStrategy', cachedProfile?.planStrategy)
+    };
+}
+
+function readOptionalNumber(id, fallback, parser) {
+    const el = document.getElementById(id);
+    if (!el) {
+        return fallback ?? null;
+    }
+    const raw = el.value;
+    if (raw === '' || raw === null) {
+        return fallback ?? null;
+    }
+    const parsed = parser(raw);
+    return Number.isNaN(parsed) ? fallback ?? null : parsed;
+}
+
+function readOptionalSelect(id, fallback) {
+    const el = document.getElementById(id);
+    if (!el) {
+        return fallback ?? null;
+    }
+    const raw = el.value;
+    return raw ? raw : (fallback ?? null);
+}
+
+function toggleSection(button) {
+    const targetId = button.dataset.target;
+    if (!targetId) {
+        return;
+    }
+    const container = document.getElementById(targetId);
+    if (!container) {
+        return;
+    }
+    const isOpen = container.dataset.open === 'true';
+    container.dataset.open = isOpen ? 'false' : 'true';
+    button.textContent = isOpen ? 'Edit' : 'Hide';
 }
 
 async function apiCall(method, path, body, requireAuth) {
@@ -281,7 +414,7 @@ async function apiCall(method, path, body, requireAuth) {
         return text;
     } catch (error) {
         if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-            const diagnosticMsg = `Cannot connect to API at ${baseUrl}. ` +
+            const diagnosticMsg = `Cannot connect to API via ${method} ${url}. ` +
                 `Please check: 1) Backend is running (try: mvn spring-boot:run), ` +
                 `2) Using a web server (not file://), ` +
                 `3) API URL is correct. ` +

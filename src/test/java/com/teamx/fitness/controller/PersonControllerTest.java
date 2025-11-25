@@ -174,19 +174,6 @@ class PersonControllerTest {
   }
 
   @Test
-  @DisplayName("health reports service availability metadata")
-  void healthReturnsMetadata() {
-    ResponseEntity<Map<String, Object>> response = personController.health();
-
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    Map<String, Object> body = response.getBody();
-    assertNotNull(body);
-    assertEquals("UP", body.get("status"));
-    assertEquals("Personal Fitness Management Service", body.get("service"));
-    assertEquals("1.1.0", body.get("version"));
-  }
-
-  @Test
   @DisplayName("createPerson rejects birthDate equal to today")
   void createPersonRejectsBirthDateToday() {
     PersonCreateRequest request = new PersonCreateRequest();

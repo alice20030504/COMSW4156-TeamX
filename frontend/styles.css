@@ -235,6 +235,48 @@ header h1 {
     transform: translateY(-2px);
 }
 
+.helper-text {
+    font-size: 0.9em;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.collapse-toggle {
+    font-size: 0.85em;
+    padding: 6px 12px;
+}
+
+.collapse-content {
+    display: none;
+    margin-top: 15px;
+}
+
+.collapse-content[data-open="true"] {
+    display: block;
+}
+
+.existing-client {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.existing-client input {
+    flex: 1;
+    min-width: 180px;
+    padding: 10px;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 1em;
+}
+
 .action-buttons {
     display: flex;
     flex-wrap: wrap;
