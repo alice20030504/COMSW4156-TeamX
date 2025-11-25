@@ -3,6 +3,7 @@ package com.teamx.fitness.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -23,6 +24,7 @@ import com.teamx.fitness.repository.PersonRepository;
 import com.teamx.fitness.security.ClientContext;
 import com.teamx.fitness.service.PersonService;
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -48,10 +50,124 @@ import org.springframework.web.server.ResponseStatusException;
 @DisplayName("PersonController")
 class PersonControllerTest {
 
+  /** Standard adult weight used in BMI samples (kg). */
+  private static final double WEIGHT_STANDARD_KG = 70.0;
+  /** Underweight adult sample weight (kg). */
+  private static final double WEIGHT_UNDER_KG = 50.0;
+  /** Overweight adult sample weight (kg). */
+  private static final double WEIGHT_OVER_KG = 85.0;
+  /** Obese adult sample weight (kg). */
+  private static final double WEIGHT_OBESE_KG = 110.0;
+  /** Baseline persisted profile weight (kg). */
+  private static final double WEIGHT_BASE_KG = 80.0;
+  /** Updated profile weight (kg). */
+  private static final double WEIGHT_UPDATED_KG = 82.0;
+  /** Standard adult height used in BMI samples (cm). */
+  private static final double HEIGHT_STANDARD_CM = 175.0;
+  /** Tall adult height sample (cm). */
+  private static final double HEIGHT_TALL_CM = 180.0;
+  /** Slightly above-average adult height (cm). */
+  private static final double HEIGHT_OVER_CM = 178.0;
+  /** Shorter adult height sample (cm). */
+  private static final double HEIGHT_SHORT_CM = 170.0;
+  /** Updated profile height (cm). */
+  private static final double HEIGHT_UPDATED_CM = 181.0;
+  /** Expected BMI for the standard sample. */
+  private static final double BMI_NORMAL = 22.86;
+  /** Expected BMI for the underweight sample. */
+  private static final double BMI_UNDER = 15.43;
+  /** Expected BMI for the overweight sample. */
+  private static final double BMI_OVER = 26.82;
+  /** Expected BMI for the obese sample. */
+  private static final double BMI_OBESE = 38.06;
+  /** BMI returned during person creation happy-path. */
+  private static final double BMI_RESPONSE = 24.22;
+  /** BMI returned during update flows. */
+  private static final double BMI_UPDATED = 24.0;
+  /** Default target change for plan configuration (kg). */
+  private static final double TARGET_CHANGE_PLAN_KG = 2.0;
+  /** Target change used in update scenarios (kg). */
+  private static final double TARGET_CHANGE_UPDATE_KG = 3.0;
+  /** Target change used when configuring plans (kg). */
+  private static final double TARGET_CHANGE_CONFIG_KG = 2.5;
+  /** Expected maintenance calories for standard sample. */
+  private static final double MAINTENANCE_CALORIES = 2500.0;
+  /** Maintenance calories for sedentary scenario. */
+  private static final double MAINTENANCE_CALORIES_SEDENTARY = 2016.0;
+  /** Maintenance calories for high-activity scenario. */
+  private static final double MAINTENANCE_CALORIES_ACTIVE = 2604.0;
+  /** Default BMR returned from service. */
+  private static final double BMR_STANDARD = 1680.0;
+  /** Sample BMR used in calorie flows. */
+  private static final double BMR_SAMPLE = 1600.0;
+  /** BMR used when testing fallback logic. */
+  private static final double BMR_FALLBACK = 1500.0;
+  /** Negative weight used for validation test cases (kg). */
+  private static final double NEGATIVE_WEIGHT_KG = -10.0;
+  /** Target change for bulk-oriented recommendations (kg). */
+  private static final double TARGET_CHANGE_BULK_KG = 3.0;
+  /** Age used across calorie-related tests. */
+  private static final int AGE_THIRTY = 30;
+  /** Zero training-frequency placeholder. */
+  private static final int TRAINING_FREQ_ZERO = 0;
+  /** Light training frequency. */
+  private static final int TRAINING_FREQ_THREE = 3;
+  /** Standard training frequency. */
+  private static final int TRAINING_FREQ_FOUR = 4;
+  /** Heavy training frequency. */
+  private static final int TRAINING_FREQ_FIVE = 5;
+  /** Extreme training frequency used for validation. */
+  private static final int TRAINING_FREQ_FOURTEEN = 14;
+  /** Default target duration for plans (weeks). */
+  private static final int TRAINING_DURATION_WEEKS = 6;
+  /** Extended duration used in update tests (weeks). */
+  private static final int TRAINING_DURATION_EXTENDED = 10;
+  /** Persisted plan duration when the user has a plan (weeks). */
+  private static final int TARGET_DURATION_DEFAULT = 8;
+  /** Sentinel target duration representing no plan. */
+  private static final int TARGET_DURATION_NONE = 0;
+  /** Year constant used for historical DOBs (1985). */
+  private static final int YEAR_1985 = 1985;
+  /** Year constant used for historical DOBs (1988). */
+  private static final int YEAR_1988 = 1988;
+  /** Year constant used for historical DOBs (1990). */
+  private static final int YEAR_1990 = 1990;
+  /** Year constant used for historical DOBs (1992). */
+  private static final int YEAR_1992 = 1992;
+  /** First day of month value. */
+  private static final int DAY_ONE = 1;
+  /** Second day of month value. */
+  private static final int DAY_TWO = 2;
+  /** Third day of month value. */
+  private static final int DAY_THREE = 3;
+  /** Fourth day of month value. */
+  private static final int DAY_FOUR = 4;
+  /** Fifth day of month value. */
+  private static final int DAY_FIVE = 5;
+
+  /** Baseline DOB used for persisted profiles. */
+  private static final LocalDate DOB_1990_JAN =
+      LocalDate.of(YEAR_1990, Month.JANUARY, DAY_ONE);
+  /** Alternate DOB used for female samples. */
+  private static final LocalDate DOB_1992_FEB =
+      LocalDate.of(YEAR_1992, Month.FEBRUARY, DAY_TWO);
+  /** Alternate DOB used for overweight samples. */
+  private static final LocalDate DOB_1988_MAR =
+      LocalDate.of(YEAR_1988, Month.MARCH, DAY_THREE);
+  /** Alternate DOB used for obese samples. */
+  private static final LocalDate DOB_1985_APR =
+      LocalDate.of(YEAR_1985, Month.APRIL, DAY_FOUR);
+  /** DOB used when verifying update flows. */
+  private static final LocalDate DOB_1990_MAY =
+      LocalDate.of(YEAR_1990, Month.MAY, DAY_FIVE);
+
+  /** Mocked BMI/calorie service. */
   @Mock private PersonService personService;
 
+  /** Mocked persistence layer. */
   @Mock private PersonRepository personRepository;
 
+  /** Controller instance under test. */
   @InjectMocks private PersonController personController;
 
   @AfterEach
@@ -90,44 +206,44 @@ class PersonControllerTest {
     PersonSimple normal =
         new PersonSimple(
             "Normal",
-            70.0,
-            175.0,
-            LocalDate.of(1990, 1, 1),
+            WEIGHT_STANDARD_KG,
+            HEIGHT_STANDARD_CM,
+            DOB_1990_JAN,
             Gender.MALE,
             FitnessGoal.CUT,
             "mobile-normal");
     PersonSimple underweight =
         new PersonSimple(
             "Under",
-            50.0,
-            180.0,
-            LocalDate.of(1992, 2, 2),
+            WEIGHT_UNDER_KG,
+            HEIGHT_TALL_CM,
+            DOB_1992_FEB,
             Gender.FEMALE,
             FitnessGoal.BULK,
             "mobile-under");
     PersonSimple overweight =
         new PersonSimple(
             "Over",
-            85.0,
-            178.0,
-            LocalDate.of(1988, 3, 3),
+            WEIGHT_OVER_KG,
+            HEIGHT_OVER_CM,
+            DOB_1988_MAR,
             Gender.MALE,
             FitnessGoal.CUT,
             "mobile-over");
     PersonSimple obese =
         new PersonSimple(
             "Obese",
-            110.0,
-            170.0,
-            LocalDate.of(1985, 4, 4),
+            WEIGHT_OBESE_KG,
+            HEIGHT_SHORT_CM,
+            DOB_1985_APR,
             Gender.FEMALE,
             FitnessGoal.BULK,
             "mobile-obese");
     return Stream.of(
-        Arguments.of("Normal category", normal, 22.86, "Normal weight"),
-        Arguments.of("Underweight category", underweight, 15.43, "Underweight"),
-        Arguments.of("Overweight category", overweight, 26.82, "Overweight"),
-        Arguments.of("Obese category", obese, 38.06, "Obese"),
+        Arguments.of("Normal category", normal, BMI_NORMAL, "Normal weight"),
+        Arguments.of("Underweight category", underweight, BMI_UNDER, "Underweight"),
+        Arguments.of("Overweight category", overweight, BMI_OVER, "Overweight"),
+        Arguments.of("Obese category", obese, BMI_OBESE, "Obese"),
         Arguments.of("Unknown BMI when service returns null", normal, null, "Unknown"));
   }
 
@@ -144,38 +260,38 @@ class PersonControllerTest {
     return Stream.of(
         Arguments.of(
             "Male moderate activity",
-            70.0,
-            175.0,
-            30,
+            WEIGHT_STANDARD_KG,
+            HEIGHT_STANDARD_CM,
+            AGE_THIRTY,
             "male",
-            3,
-            1680.0,
-            2604.0),
+            TRAINING_FREQ_THREE,
+            BMR_STANDARD,
+            MAINTENANCE_CALORIES_ACTIVE),
         Arguments.of(
             "Sedentary frequency",
-            70.0,
-            175.0,
-            30,
+            WEIGHT_STANDARD_KG,
+            HEIGHT_STANDARD_CM,
+            AGE_THIRTY,
             "male",
-            0,
-            1680.0,
-            2016.0),
+            TRAINING_FREQ_ZERO,
+            BMR_STANDARD,
+            MAINTENANCE_CALORIES_SEDENTARY),
         Arguments.of(
             "Uppercase gender handled",
-            70.0,
-            175.0,
-            30,
+            WEIGHT_STANDARD_KG,
+            HEIGHT_STANDARD_CM,
+            AGE_THIRTY,
             "MALE",
-            4,
-            1680.0,
-            2604.0),
+            TRAINING_FREQ_FOUR,
+            BMR_STANDARD,
+            MAINTENANCE_CALORIES_ACTIVE),
         Arguments.of(
             "Missing BMR prevents calorie calculation",
-            70.0,
-            175.0,
-            30,
+            WEIGHT_STANDARD_KG,
+            HEIGHT_STANDARD_CM,
+            AGE_THIRTY,
             "female",
-            2,
+            TRAINING_FREQ_FOUR / 2,
             null,
             null));
   }
@@ -185,13 +301,13 @@ class PersonControllerTest {
   void createPersonRejectsBirthDateToday() {
     PersonCreateRequest request = new PersonCreateRequest();
     request.setName("Test");
-    request.setWeight(70.0);
-    request.setHeight(170.0);
+    request.setWeight(WEIGHT_STANDARD_KG);
+    request.setHeight(HEIGHT_SHORT_CM);
     request.setBirthDate(LocalDate.now());
     request.setGoal(FitnessGoal.CUT);
     request.setGender(Gender.MALE);
 
-    when(personService.calculateBMI(70.0, 170.0)).thenReturn(24.22);
+    when(personService.calculateBMI(WEIGHT_STANDARD_KG, HEIGHT_SHORT_CM)).thenReturn(BMI_RESPONSE);
 
     assertThrows(ResponseStatusException.class, () -> personController.createPerson(request));
   }
@@ -201,13 +317,13 @@ class PersonControllerTest {
   void createPersonRejectsInvalidWeight() {
     PersonCreateRequest request = new PersonCreateRequest();
     request.setName("Test2");
-    request.setWeight(-10.0);
-    request.setHeight(170.0);
-    request.setBirthDate(LocalDate.of(1990, 1, 1));
+    request.setWeight(NEGATIVE_WEIGHT_KG);
+    request.setHeight(HEIGHT_SHORT_CM);
+    request.setBirthDate(DOB_1990_JAN);
     request.setGoal(FitnessGoal.BULK);
     request.setGender(Gender.FEMALE);
 
-    when(personService.calculateBMI(-10.0, 170.0))
+    when(personService.calculateBMI(NEGATIVE_WEIGHT_KG, HEIGHT_SHORT_CM))
         .thenThrow(
             new ResponseStatusException(HttpStatus.BAD_REQUEST, "weight must be greater than 0"));
 
@@ -219,13 +335,13 @@ class PersonControllerTest {
   void createPersonReturnsClientId() {
     PersonCreateRequest request = new PersonCreateRequest();
     request.setName("Valid");
-    request.setWeight(70.0);
-    request.setHeight(170.0);
-    request.setBirthDate(LocalDate.of(1990, 1, 1));
+    request.setWeight(WEIGHT_STANDARD_KG);
+    request.setHeight(HEIGHT_SHORT_CM);
+    request.setBirthDate(DOB_1990_JAN);
     request.setGoal(FitnessGoal.CUT);
     request.setGender(Gender.MALE);
 
-    when(personService.calculateBMI(70.0, 170.0)).thenReturn(24.22);
+    when(personService.calculateBMI(WEIGHT_STANDARD_KG, HEIGHT_SHORT_CM)).thenReturn(BMI_RESPONSE);
     lenient().when(personRepository.findByClientId(anyString())).thenReturn(Optional.empty());
     when(personRepository.save(any(PersonSimple.class)))
         .thenAnswer(invocation -> invocation.getArgument(0, PersonSimple.class));
@@ -236,7 +352,7 @@ class PersonControllerTest {
     PersonCreatedResponse body = response.getBody();
     assertNotNull(body);
     assertNotNull(body.getClientId());
-    assertEquals(true, body.getClientId().startsWith(ClientContext.MOBILE_PREFIX));
+    assertTrue(body.getClientId().startsWith(ClientContext.MOBILE_PREFIX));
   }
 
   @Test
@@ -268,9 +384,9 @@ class PersonControllerTest {
     when(personRepository.save(any(PersonSimple.class))).thenAnswer(inv -> inv.getArgument(0));
 
     GoalPlanRequest request = new GoalPlanRequest();
-    request.setTargetChangeKg(2.5);
-    request.setDurationWeeks(6);
-    request.setTrainingFrequencyPerWeek(4);
+    request.setTargetChangeKg(TARGET_CHANGE_CONFIG_KG);
+    request.setDurationWeeks(TRAINING_DURATION_WEEKS);
+    request.setTrainingFrequencyPerWeek(TRAINING_FREQ_FOUR);
     request.setPlanStrategy(PlanStrategy.BOTH);
 
     ResponseEntity<PersonProfileResponse> response = personController.configureGoalPlan(request);
@@ -279,9 +395,9 @@ class PersonControllerTest {
     ArgumentCaptor<PersonSimple> captor = ArgumentCaptor.forClass(PersonSimple.class);
     verify(personRepository).save(captor.capture());
     PersonSimple saved = captor.getValue();
-    assertEquals(2.5, saved.getTargetChangeKg());
-    assertEquals(6, saved.getTargetDurationWeeks());
-    assertEquals(4, saved.getTrainingFrequencyPerWeek());
+    assertEquals(TARGET_CHANGE_CONFIG_KG, saved.getTargetChangeKg());
+    assertEquals(TRAINING_DURATION_WEEKS, saved.getTargetDurationWeeks());
+    assertEquals(TRAINING_FREQ_FOUR, saved.getTrainingFrequencyPerWeek());
     assertEquals(PlanStrategy.BOTH, saved.getPlanStrategy());
   }
 
@@ -307,9 +423,9 @@ class PersonControllerTest {
     when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
 
     GoalPlanRequest request = new GoalPlanRequest();
-    request.setTargetChangeKg(2.0);
+    request.setTargetChangeKg(TARGET_CHANGE_PLAN_KG);
     request.setDurationWeeks(null);
-    request.setTrainingFrequencyPerWeek(3);
+    request.setTrainingFrequencyPerWeek(TRAINING_FREQ_THREE);
     request.setPlanStrategy(PlanStrategy.DIET);
 
     assertThrows(ResponseStatusException.class, () -> personController.configureGoalPlan(request));
@@ -322,18 +438,18 @@ class PersonControllerTest {
     ClientContext.setClientId(stored.getClientId());
     when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
     when(personRepository.save(any(PersonSimple.class))).thenAnswer(inv -> inv.getArgument(0));
-    when(personService.calculateBMI(anyDouble(), anyDouble())).thenReturn(24.0);
+    when(personService.calculateBMI(anyDouble(), anyDouble())).thenReturn(BMI_UPDATED);
 
     PersonSimple update = new PersonSimple();
     update.setName("  Updated User  ");
-    update.setWeight(82.0);
-    update.setHeight(181.0);
-    update.setBirthDate(LocalDate.of(1990, 5, 5));
+    update.setWeight(WEIGHT_UPDATED_KG);
+    update.setHeight(HEIGHT_UPDATED_CM);
+    update.setBirthDate(DOB_1990_MAY);
     update.setGender(Gender.MALE);
     update.setGoal(FitnessGoal.BULK);
-    update.setTargetChangeKg(3.0);
-    update.setTargetDurationWeeks(10);
-    update.setTrainingFrequencyPerWeek(5);
+    update.setTargetChangeKg(TARGET_CHANGE_UPDATE_KG);
+    update.setTargetDurationWeeks(TRAINING_DURATION_EXTENDED);
+    update.setTrainingFrequencyPerWeek(TRAINING_FREQ_FIVE);
     update.setPlanStrategy(PlanStrategy.WORKOUT);
 
     ResponseEntity<PersonSimple> response = personController.updatePerson(update);
@@ -342,7 +458,7 @@ class PersonControllerTest {
     PersonSimple saved = response.getBody();
     assertNotNull(saved);
     assertEquals("Updated User", saved.getName());
-    assertEquals(82.0, saved.getWeight());
+    assertEquals(WEIGHT_UPDATED_KG, saved.getWeight());
     assertEquals(PlanStrategy.WORKOUT, saved.getPlanStrategy());
   }
 
@@ -391,18 +507,18 @@ class PersonControllerTest {
     PersonSimple stored = basePerson("mobile-calories");
     ClientContext.setClientId(stored.getClientId());
     when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
-    when(personService.calculateAge(stored.getBirthDate())).thenReturn(30);
-    when(personService.calculateBMR(stored.getWeight(), stored.getHeight(), 30, true))
-        .thenReturn(1600.0);
-    when(personService.calculateDailyCalorieNeeds(1600.0, stored.getTrainingFrequencyPerWeek()))
-        .thenReturn(2500.0);
+    when(personService.calculateAge(stored.getBirthDate())).thenReturn(AGE_THIRTY);
+    when(personService.calculateBMR(stored.getWeight(), stored.getHeight(), AGE_THIRTY, true))
+        .thenReturn(BMR_SAMPLE);
+    when(personService.calculateDailyCalorieNeeds(BMR_SAMPLE, stored.getTrainingFrequencyPerWeek()))
+        .thenReturn(MAINTENANCE_CALORIES);
 
     ResponseEntity<Map<String, Object>> response = personController.calculateDailyCalories();
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
     Map<String, Object> body = response.getBody();
     assertEquals(FitnessGoal.CUT, body.get("goal"));
-    assertEquals(2500.0, body.get("maintenanceCalories"));
+    assertEquals(MAINTENANCE_CALORIES, body.get("maintenanceCalories"));
   }
 
   @Test
@@ -433,7 +549,7 @@ class PersonControllerTest {
   @DisplayName("calculateDailyCalories requires positive duration")
   void calculateDailyCaloriesRequiresPositiveDuration() {
     PersonSimple stored = basePerson("mobile-calories-duration");
-    stored.setTargetDurationWeeks(0);
+    stored.setTargetDurationWeeks(TARGET_DURATION_NONE);
     expectCalorieFailure(stored);
   }
 
@@ -446,14 +562,14 @@ class PersonControllerTest {
     when(personService.calculateAge(stored.getBirthDate())).thenReturn(null);
     assertThrows(ResponseStatusException.class, () -> personController.calculateDailyCalories());
 
-    when(personService.calculateAge(stored.getBirthDate())).thenReturn(30);
-    when(personService.calculateBMR(stored.getWeight(), stored.getHeight(), 30, true))
+    when(personService.calculateAge(stored.getBirthDate())).thenReturn(AGE_THIRTY);
+    when(personService.calculateBMR(stored.getWeight(), stored.getHeight(), AGE_THIRTY, true))
         .thenReturn(null);
     assertThrows(ResponseStatusException.class, () -> personController.calculateDailyCalories());
 
-    when(personService.calculateBMR(stored.getWeight(), stored.getHeight(), 30, true))
-        .thenReturn(1500.0);
-    when(personService.calculateDailyCalorieNeeds(1500.0, stored.getTrainingFrequencyPerWeek()))
+    when(personService.calculateBMR(stored.getWeight(), stored.getHeight(), AGE_THIRTY, true))
+        .thenReturn(BMR_FALLBACK);
+    when(personService.calculateDailyCalorieNeeds(BMR_FALLBACK, stored.getTrainingFrequencyPerWeek()))
         .thenReturn(null);
     assertThrows(ResponseStatusException.class, () -> personController.calculateDailyCalories());
   }
@@ -464,8 +580,8 @@ class PersonControllerTest {
     PersonSimple stored = basePerson("mobile-reco");
     stored.setGoal(FitnessGoal.BULK);
     stored.setPlanStrategy(PlanStrategy.WORKOUT);
-    stored.setTargetChangeKg(3.0);
-    stored.setTargetDurationWeeks(8);
+    stored.setTargetChangeKg(TARGET_CHANGE_BULK_KG);
+    stored.setTargetDurationWeeks(TARGET_DURATION_DEFAULT);
     ClientContext.setClientId(stored.getClientId());
     when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
 
@@ -502,7 +618,7 @@ class PersonControllerTest {
     PersonSimple stored = basePerson("mobile-reco-unknown");
     stored.setGoal(null);
     stored.setPlanStrategy(PlanStrategy.BOTH);
-    stored.setTrainingFrequencyPerWeek(0);
+    stored.setTrainingFrequencyPerWeek(TRAINING_FREQ_ZERO);
     ClientContext.setClientId(stored.getClientId());
     when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
 
@@ -554,8 +670,8 @@ class PersonControllerTest {
   void provideRecommendationCutWithTargets() {
     PersonSimple stored = basePerson("mobile-reco-cut-target");
     stored.setGoal(FitnessGoal.CUT);
-    stored.setTargetChangeKg(2.0);
-    stored.setTargetDurationWeeks(6);
+    stored.setTargetChangeKg(TARGET_CHANGE_PLAN_KG);
+    stored.setTargetDurationWeeks(TRAINING_DURATION_WEEKS);
     stored.setPlanStrategy(PlanStrategy.DIET);
     ClientContext.setClientId(stored.getClientId());
     when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
@@ -564,7 +680,11 @@ class PersonControllerTest {
 
     String message = (String) response.getBody().get("message");
     assertNotNull(message);
-    org.junit.jupiter.api.Assertions.assertTrue(message.contains("target 2.0 kg over 6 weeks"));
+    org.junit.jupiter.api.Assertions.assertTrue(
+        message.contains(
+            String.format(
+                "target %.1f kg over %d weeks",
+                TARGET_CHANGE_PLAN_KG, TRAINING_DURATION_WEEKS)));
   }
 
   @Test
@@ -591,7 +711,7 @@ class PersonControllerTest {
     PersonSimple stored = basePerson("mobile-reco-cut-workout");
     stored.setGoal(FitnessGoal.CUT);
     stored.setPlanStrategy(PlanStrategy.WORKOUT);
-    stored.setTrainingFrequencyPerWeek(5);
+    stored.setTrainingFrequencyPerWeek(TRAINING_FREQ_FIVE);
     ClientContext.setClientId(stored.getClientId());
     when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
 
@@ -608,7 +728,7 @@ class PersonControllerTest {
     PersonSimple stored = basePerson("mobile-reco-no-goal-workout");
     stored.setGoal(null);
     stored.setPlanStrategy(PlanStrategy.WORKOUT);
-    stored.setTrainingFrequencyPerWeek(0);
+    stored.setTrainingFrequencyPerWeek(TRAINING_FREQ_ZERO);
     ClientContext.setClientId(stored.getClientId());
     when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
 
@@ -642,13 +762,13 @@ class PersonControllerTest {
   void createPersonRetriesClientIdGeneration() {
     PersonCreateRequest request = new PersonCreateRequest();
     request.setName("Retry");
-    request.setWeight(70.0);
-    request.setHeight(170.0);
-    request.setBirthDate(LocalDate.of(1990, 1, 1));
+    request.setWeight(WEIGHT_STANDARD_KG);
+    request.setHeight(HEIGHT_SHORT_CM);
+    request.setBirthDate(DOB_1990_JAN);
     request.setGoal(FitnessGoal.CUT);
     request.setGender(Gender.MALE);
 
-    when(personService.calculateBMI(70.0, 170.0)).thenReturn(24.22);
+    when(personService.calculateBMI(WEIGHT_STANDARD_KG, HEIGHT_SHORT_CM)).thenReturn(BMI_RESPONSE);
     when(personRepository.findByClientId("mobile-id1"))
         .thenReturn(Optional.of(new PersonSimple()));
     when(personRepository.findByClientId("mobile-id2")).thenReturn(Optional.empty());
@@ -682,12 +802,12 @@ class PersonControllerTest {
     person.setClientId(clientId);
     person.setGoal(FitnessGoal.CUT);
     person.setGender(Gender.MALE);
-    person.setBirthDate(LocalDate.of(1990, 1, 1));
-    person.setWeight(80.0);
-    person.setHeight(180.0);
-    person.setTargetChangeKg(2.0);
-    person.setTargetDurationWeeks(8);
-    person.setTrainingFrequencyPerWeek(4);
+    person.setBirthDate(DOB_1990_JAN);
+    person.setWeight(WEIGHT_BASE_KG);
+    person.setHeight(HEIGHT_TALL_CM);
+    person.setTargetChangeKg(TARGET_CHANGE_PLAN_KG);
+    person.setTargetDurationWeeks(TARGET_DURATION_DEFAULT);
+    person.setTrainingFrequencyPerWeek(TRAINING_FREQ_FOUR);
     person.setPlanStrategy(PlanStrategy.DIET);
     return person;
   }

@@ -2,6 +2,7 @@ package com.teamx.fitness.integration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -17,6 +18,7 @@ import com.teamx.fitness.repository.ResearcherRepository;
 import com.teamx.fitness.security.ClientContext;
 import com.teamx.fitness.service.PersonService;
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -36,10 +38,97 @@ import org.springframework.web.server.ResponseStatusException;
 @DisplayName("ResearchController")
 class ResearchControllerTest {
 
+  /** Year constant 1990. */
+  private static final int YEAR_1990 = 1990;
+  /** Year constant 1992. */
+  private static final int YEAR_1992 = 1992;
+  /** Year constant 1995. */
+  private static final int YEAR_1995 = 1995;
+  /** Year constant 1988. */
+  private static final int YEAR_1988 = 1988;
+  /** Year constant 1989. */
+  private static final int YEAR_1989 = 1989;
+  /** Month day constant 1. */
+  private static final int DAY_ONE = 1;
+  /** Month day constant 5. */
+  private static final int DAY_FIVE = 5;
+  /** Month day constant 7. */
+  private static final int DAY_SEVEN = 7;
+  /** Month day constant 9. */
+  private static final int DAY_NINE = 9;
+  /** Month day constant 15. */
+  private static final int DAY_FIFTEEN = 15;
+  /** Month day constant 20. */
+  private static final int DAY_TWENTY = 20;
+
+  /** Default DOB used for sample people. */
+  private static final LocalDate DOB_STANDARD =
+      LocalDate.of(YEAR_1990, Month.JANUARY, DAY_ONE);
+  /** Supplemental female DOB. */
+  private static final LocalDate DOB_FEMALE_ALT =
+      LocalDate.of(YEAR_1992, Month.MAY, DAY_FIVE);
+  /** Supplemental male DOB. */
+  private static final LocalDate DOB_MALE_ALT =
+      LocalDate.of(YEAR_1995, Month.MARCH, DAY_FIFTEEN);
+  /** Additional male DOB used for analytics. */
+  private static final LocalDate DOB_MALE_SECOND =
+      LocalDate.of(YEAR_1988, Month.MARCH, DAY_SEVEN);
+  /** Additional female DOB used for analytics. */
+  private static final LocalDate DOB_FEMALE_SECOND =
+      LocalDate.of(YEAR_1989, Month.JULY, DAY_SEVEN);
+  /** DOB used for supplemental cut female sample. */
+  private static final LocalDate DOB_SAMPLE_FEMALE =
+      LocalDate.of(YEAR_1995, Month.JANUARY, DAY_ONE);
+  /** DOB used for supplemental cut male sample. */
+  private static final LocalDate DOB_SAMPLE_MALE =
+      LocalDate.of(YEAR_1990, Month.JUNE, DAY_FIFTEEN);
+  /** DOB used for bulk male sample. */
+  private static final LocalDate DOB_SAMPLE_BULK_MALE =
+      LocalDate.of(YEAR_1988, Month.MARCH, DAY_TWENTY);
+  /** DOB used for bulk female sample. */
+  private static final LocalDate DOB_SAMPLE_BULK_FEMALE =
+      LocalDate.of(YEAR_1992, Month.SEPTEMBER, DAY_NINE);
+
+  /** Standard adult weight used for analytics fixtures (kg). */
+  private static final double WEIGHT_STANDARD_KG = 70.0;
+  /** Alternate female weight (kg). */
+  private static final double WEIGHT_FEMALE_KG = 65.0;
+  /** Alternate male weight (kg). */
+  private static final double WEIGHT_MALE_KG = 80.0;
+  /** Supplemental male weight (kg). */
+  private static final double WEIGHT_SUPPLEMENTAL_MALE_KG = 75.0;
+  /** Cut female sample weight (kg). */
+  private static final double WEIGHT_CUT_FEMALE_KG = 60.0;
+  /** Cut male sample weight (kg). */
+  private static final double WEIGHT_CUT_MALE_KG = 72.0;
+  /** Bulk female sample weight (kg). */
+  private static final double WEIGHT_BULK_FEMALE_KG = 68.0;
+  /** Supplemental male height (cm). */
+  private static final double HEIGHT_SUPPLEMENTAL_MALE_CM = 170.0;
+  /** Standard adult height used for analytics fixtures (cm). */
+  private static final double HEIGHT_STANDARD_CM = 175.0;
+  /** Alternate tall height (cm). */
+  private static final double HEIGHT_TALL_CM = 180.0;
+  /** Supplemental tall height (cm). */
+  private static final double HEIGHT_SUPPLEMENTAL_CM = 182.0;
+  /** Cut female sample height (cm). */
+  private static final double HEIGHT_CUT_FEMALE_CM = 165.0;
+  /** Cut male sample height (cm). */
+  private static final double HEIGHT_CUT_MALE_CM = 178.0;
+  /** Bulk female sample height (cm). */
+  private static final double HEIGHT_BULK_FEMALE_CM = 170.0;
+  /** Default cohort size expectation. */
+  private static final int DEFAULT_SAMPLE_SIZE = 4;
+  /** Minimum cohort size required for analytics. */
+  private static final int MIN_SAMPLE_SIZE = 4;
+
+  /** Mocked person repository. */
   @Mock private PersonRepository personRepository;
   
+  /** Mocked researcher repository. */
   @Mock private ResearcherRepository researcherRepository;
 
+  /** Controller instance under test. */
   private ResearchController controller;
 
   @BeforeEach
@@ -79,7 +168,7 @@ class ResearchControllerTest {
 
     ResponseEntity<Map<String, Object>> response = controller.populationHealth();
 
-    assertEquals(200, response.getStatusCode().value());
+    assertEquals(HttpStatus.OK.value(), response.getStatusCode().value());
     Map<String, Object> goalSegments = (Map<String, Object>) response.getBody().get("goalSegments");
     Map<String, Object> cut = (Map<String, Object>) goalSegments.get("CUT");
     Map<String, Object> bulk = (Map<String, Object>) goalSegments.get("BULK");
@@ -114,7 +203,7 @@ class ResearchControllerTest {
     ResponseEntity<ResearcherCreatedResponse> response = controller.registerResearcher(request);
 
     assertEquals(HttpStatus.CREATED, response.getStatusCode());
-    assertEquals(true, response.getBody().getClientId().startsWith(ClientContext.RESEARCH_PREFIX));
+    assertTrue(response.getBody().getClientId().startsWith(ClientContext.RESEARCH_PREFIX));
   }
 
   @Test
@@ -168,7 +257,7 @@ class ResearchControllerTest {
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
     Map<String, Object> summary = (Map<String, Object>) response.getBody().get("cohortSummary");
-    assertEquals(4, summary.get("sampleSize"));
+    assertEquals(DEFAULT_SAMPLE_SIZE, summary.get("sampleSize"));
   }
 
   @Test
@@ -200,10 +289,28 @@ class ResearchControllerTest {
   @DisplayName("goalMetrics requires height data for BMI computation")
   void goalMetricsRequiresHeightData() {
     ClientContext.setClientId("research-tool8");
-    PersonSimple cut = buildPerson("CutA", FitnessGoal.CUT, Gender.MALE, 70.0, null, LocalDate.of(1990, 1, 1));
-    PersonSimple cut2 = buildPerson("CutB", FitnessGoal.CUT, Gender.FEMALE, 65.0, null, LocalDate.of(1992, 5, 5));
-    PersonSimple bulk = buildPerson("BulkA", FitnessGoal.BULK, Gender.MALE, 80.0, 180.0, LocalDate.of(1988, 3, 3));
-    PersonSimple bulk2 = buildPerson("BulkB", FitnessGoal.BULK, Gender.FEMALE, 75.0, 170.0, LocalDate.of(1989, 7, 7));
+    PersonSimple cut =
+        buildPerson(
+            "CutA", FitnessGoal.CUT, Gender.MALE, WEIGHT_STANDARD_KG, null, DOB_STANDARD);
+    PersonSimple cut2 =
+        buildPerson(
+            "CutB", FitnessGoal.CUT, Gender.FEMALE, WEIGHT_FEMALE_KG, null, DOB_FEMALE_ALT);
+    PersonSimple bulk =
+        buildPerson(
+            "BulkA",
+            FitnessGoal.BULK,
+            Gender.MALE,
+            WEIGHT_MALE_KG,
+            HEIGHT_TALL_CM,
+            DOB_MALE_SECOND);
+    PersonSimple bulk2 =
+        buildPerson(
+            "BulkB",
+            FitnessGoal.BULK,
+            Gender.FEMALE,
+            WEIGHT_SUPPLEMENTAL_MALE_KG,
+            HEIGHT_SUPPLEMENTAL_MALE_CM,
+            DOB_FEMALE_SECOND);
     when(personRepository.findAll()).thenReturn(List.of(cut, cut2, bulk, bulk2));
 
     ResponseStatusException ex =
@@ -251,14 +358,38 @@ class ResearchControllerTest {
 
   private List<PersonSimple> samplePeople() {
     return List.of(
-        buildPerson("P1", FitnessGoal.CUT, Gender.FEMALE, 60.0, 165.0, LocalDate.of(1995, 1, 1)),
-        buildPerson("P2", FitnessGoal.CUT, Gender.MALE, 72.0, 178.0, LocalDate.of(1990, 6, 15)),
-        buildPerson("P3", FitnessGoal.BULK, Gender.MALE, 80.0, 182.0, LocalDate.of(1988, 3, 20)),
-        buildPerson("P4", FitnessGoal.BULK, Gender.FEMALE, 68.0, 170.0, LocalDate.of(1992, 9, 5)));
+        buildPerson(
+            "P1",
+            FitnessGoal.CUT,
+            Gender.FEMALE,
+            WEIGHT_CUT_FEMALE_KG,
+            HEIGHT_CUT_FEMALE_CM,
+            DOB_SAMPLE_FEMALE),
+        buildPerson(
+            "P2",
+            FitnessGoal.CUT,
+            Gender.MALE,
+            WEIGHT_CUT_MALE_KG,
+            HEIGHT_CUT_MALE_CM,
+            DOB_SAMPLE_MALE),
+        buildPerson(
+            "P3",
+            FitnessGoal.BULK,
+            Gender.MALE,
+            WEIGHT_MALE_KG,
+            HEIGHT_SUPPLEMENTAL_CM,
+            DOB_SAMPLE_BULK_MALE),
+        buildPerson(
+            "P4",
+            FitnessGoal.BULK,
+            Gender.FEMALE,
+            WEIGHT_BULK_FEMALE_KG,
+            HEIGHT_BULK_FEMALE_CM,
+            DOB_SAMPLE_BULK_FEMALE));
   }
 
   private PersonSimple buildPerson(FitnessGoal goal) {
-    return buildPerson("Test", goal, Gender.MALE, 70.0, 175.0, LocalDate.of(1990, 1, 1));
+    return buildPerson("Test", goal, Gender.MALE, WEIGHT_STANDARD_KG, HEIGHT_STANDARD_CM, DOB_STANDARD);
   }
 
   private PersonSimple buildPerson(

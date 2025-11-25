@@ -21,7 +21,16 @@ import org.springframework.web.server.ResponseStatusException;
 @DisplayName("GlobalExceptionHandler formatting")
 class GlobalExceptionHandlerTest {
 
+  /** HTTP 200 status code. */
+  private static final int STATUS_OK = 200;
+  /** HTTP 400 status code. */
+  private static final int STATUS_BAD_REQUEST = 400;
+  /** HTTP 403 status code. */
+  private static final int STATUS_FORBIDDEN = 403;
+
+  /** Handler instance under test. */
   private final GlobalExceptionHandler handler = new GlobalExceptionHandler();
+  /** Cached reflection reference for creating MethodParameter objects. */
   private static final Method SAMPLE_METHOD;
 
   static {
@@ -41,7 +50,7 @@ class GlobalExceptionHandlerTest {
 
     ResponseEntity<Map<String, Object>> response = handler.handleResponseStatusException(ex);
 
-    assertEquals(403, response.getStatusCode().value());
+    assertEquals(STATUS_FORBIDDEN, response.getStatusCode().value());
     assertEquals("Forbidden", response.getBody().get("error"));
     assertEquals("Access denied", response.getBody().get("message"));
   }
@@ -59,7 +68,7 @@ class GlobalExceptionHandlerTest {
     ResponseEntity<Map<String, Object>> response =
         handler.handleMethodArgumentNotValid(ex);
 
-    assertEquals(400, response.getStatusCode().value());
+    assertEquals(STATUS_BAD_REQUEST, response.getStatusCode().value());
     assertTrue(((String) response.getBody().get("message")).contains("Field must not be blank"));
   }
 
@@ -71,7 +80,7 @@ class GlobalExceptionHandlerTest {
     ResponseEntity<Map<String, Object>> response =
         handler.handleConstraintViolation(ex);
 
-    assertEquals(400, response.getStatusCode().value());
+    assertEquals(STATUS_BAD_REQUEST, response.getStatusCode().value());
     assertEquals("Invalid parameter", response.getBody().get("message"));
   }
 
@@ -84,7 +93,7 @@ class GlobalExceptionHandlerTest {
     ResponseEntity<Map<String, Object>> response =
         handler.handleDateTimeParse(ex);
 
-    assertEquals(400, response.getStatusCode().value());
+    assertEquals(STATUS_BAD_REQUEST, response.getStatusCode().value());
     assertEquals("Invalid date format. Use YYYY-MM-DD", response.getBody().get("message"));
   }
 
@@ -94,7 +103,8 @@ class GlobalExceptionHandlerTest {
   }
 
   /** Simple bean with a readable property to satisfy binding result requirements. */
-  private static class PersonBean {
+  private static final class PersonBean {
+    /** Dummy field so BeanPropertyBindingResult has something to bind. */
     private String field;
 
     public String getField() {

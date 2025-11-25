@@ -22,6 +22,7 @@ import com.teamx.fitness.repository.PersonRepository;
 import com.teamx.fitness.security.ClientContext;
 import com.teamx.fitness.service.PersonService;
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.Optional;
 import org.springframework.web.server.ResponseStatusException;
 import org.junit.jupiter.api.AfterEach;
@@ -43,13 +44,75 @@ import org.springframework.http.ResponseEntity;
 @DisplayName("Client isolation safeguards")
 class ClientIsolationIntegrationTest {
 
+  /** Primary mock client identifier. */
   private static final String MOBILE_CLIENT_1 = "mobile-app1";
+  /** Secondary mock client identifier. */
   private static final String MOBILE_CLIENT_2 = "mobile-app2";
+  /** Baseline persisted weight used for default profiles (kg). */
+  private static final double WEIGHT_BASE_KG = 70.0;
+  /** Baseline persisted height used for default profiles (cm). */
+  private static final double HEIGHT_BASE_CM = 170.0;
+  /** Weight for the Alice sample profile (kg). */
+  private static final double WEIGHT_ALICE_KG = 65.0;
+  /** Weight for the Bob sample profile (kg). */
+  private static final double WEIGHT_BOB_KG = 80.0;
+  /** Updated weight for Carol after edits (kg). */
+  private static final double WEIGHT_CAROL_UPDATED_KG = 72.0;
+  /** Weight for the Dana sample profile (kg). */
+  private static final double WEIGHT_DANA_KG = 68.0;
+  /** Height for the Carol sample profile (cm). */
+  private static final double HEIGHT_CAROL_CM = 172.0;
+  /** Height for the Bob sample profile (cm). */
+  private static final double HEIGHT_BOB_CM = 180.0;
+  /** Height for the Dana sample profile (cm). */
+  private static final double HEIGHT_DANA_CM = 168.0;
+  /** BMI expected for Bob's metrics. */
+  private static final double BMI_BOB = 24.69;
+  /** BMI expected for Carol's updated metrics. */
+  private static final double BMI_CAROL_UPDATED = 24.34;
+  /** Persisted ID assigned to Carol's record. */
+  private static final long PERSON_ID_CAROL = 9L;
+  /** Persisted ID assigned to Dana's record. */
+  private static final long PERSON_ID_DANA = 4L;
+  /** Year constant for 1990. */
+  private static final int YEAR_1990 = 1990;
+  /** Year constant for 1991. */
+  private static final int YEAR_1991 = 1991;
+  /** Year constant for 1992. */
+  private static final int YEAR_1992 = 1992;
+  /** Year constant for 1995. */
+  private static final int YEAR_1995 = 1995;
+  /** First day of month constant. */
+  private static final int DAY_ONE = 1;
+  /** Tenth day of month constant. */
+  private static final int DAY_TEN = 10;
+  /** Fifteenth day of month constant. */
+  private static final int DAY_FIFTEEN = 15;
+  /** Twentieth day of month constant. */
+  private static final int DAY_TWENTY = 20;
+  /** Default DOB used for persisted profiles. */
+  private static final LocalDate DOB_DEFAULT =
+      LocalDate.of(YEAR_1990, Month.JANUARY, DAY_ONE);
+  /** Alice sample DOB. */
+  private static final LocalDate DOB_ALICE =
+      LocalDate.of(YEAR_1990, Month.MAY, DAY_FIFTEEN);
+  /** Bob sample DOB. */
+  private static final LocalDate DOB_BOB =
+      LocalDate.of(YEAR_1995, Month.MARCH, DAY_TWENTY);
+  /** Carol sample DOB. */
+  private static final LocalDate DOB_CAROL =
+      LocalDate.of(YEAR_1992, Month.JULY, DAY_TEN);
+  /** Dana sample DOB. */
+  private static final LocalDate DOB_DANA =
+      LocalDate.of(YEAR_1991, Month.JANUARY, DAY_ONE);
 
+  /** Repository mock for persisted profiles. */
   @Mock private PersonRepository personRepository;
 
+  /** Service mock for BMI/calorie helpers. */
   @Mock private PersonService personService;
 
+  /** Controller instance under test. */
   @InjectMocks private PersonController personController;
 
   @AfterEach
@@ -62,11 +125,11 @@ class ClientIsolationIntegrationTest {
    */
   @Test
   @DisplayName("Current client can fetch their persisted profile")
-  void getProfile_AllowsCurrentClient() {
+  void getProfileAllowsCurrentClient() {
     PersonSimple stored = buildPerson("Alice", Gender.FEMALE, FitnessGoal.CUT, MOBILE_CLIENT_1);
-    stored.setWeight(65.0);
-    stored.setHeight(170.0);
-    stored.setBirthDate(LocalDate.of(1990, 5, 15));
+    stored.setWeight(WEIGHT_ALICE_KG);
+    stored.setHeight(HEIGHT_BASE_CM);
+    stored.setBirthDate(DOB_ALICE);
 
     ClientContext.setClientId(MOBILE_CLIENT_1);
     when(personRepository.findByClientId(MOBILE_CLIENT_1)).thenReturn(Optional.of(stored));
@@ -85,7 +148,7 @@ class ClientIsolationIntegrationTest {
    */
   @Test
   @DisplayName("Profile lookup returns 404 for unknown client")
-  void getProfile_ReturnsNotFoundForUnknownClient() {
+  void getProfileReturnsNotFoundForUnknownClient() {
     ClientContext.setClientId(MOBILE_CLIENT_2);
     when(personRepository.findByClientId(MOBILE_CLIENT_2)).thenReturn(Optional.empty());
 
@@ -98,16 +161,16 @@ class ClientIsolationIntegrationTest {
    */
   @Test
   @DisplayName("Create person assigns current client ID")
-  void createPerson_AssignsClientId() {
+  void createPersonAssignsClientId() {
     PersonCreateRequest request = new PersonCreateRequest();
     request.setName("Bob");
-    request.setWeight(80.0);
-    request.setHeight(180.0);
-    request.setBirthDate(LocalDate.of(1995, 3, 20));
+    request.setWeight(WEIGHT_BOB_KG);
+    request.setHeight(HEIGHT_BOB_CM);
+    request.setBirthDate(DOB_BOB);
     request.setGoal(FitnessGoal.BULK);
     request.setGender(Gender.MALE);
 
-    when(personService.calculateBMI(80.0, 180.0)).thenReturn(24.69);
+    when(personService.calculateBMI(WEIGHT_BOB_KG, HEIGHT_BOB_CM)).thenReturn(BMI_BOB);
     lenient().when(personRepository.findByClientId(any(String.class))).thenReturn(Optional.empty());
     when(personRepository.save(any(PersonSimple.class)))
         .thenAnswer(invocation -> invocation.getArgument(0, PersonSimple.class));
@@ -125,25 +188,26 @@ class ClientIsolationIntegrationTest {
    */
   @Test
   @DisplayName("Update respects client ownership")
-  void updatePerson_RespectsOwnership() {
+  void updatePersonRespectsOwnership() {
     ClientContext.setClientId(MOBILE_CLIENT_1);
     PersonSimple existing = buildPerson("Carol", Gender.FEMALE, FitnessGoal.CUT, MOBILE_CLIENT_1);
-    existing.setWeight(70.0);
-    existing.setHeight(172.0);
-    existing.setBirthDate(LocalDate.of(1992, 7, 10));
-    existing.setId(9L);
+    existing.setWeight(WEIGHT_BASE_KG);
+    existing.setHeight(HEIGHT_CAROL_CM);
+    existing.setBirthDate(DOB_CAROL);
+    existing.setId(PERSON_ID_CAROL);
 
     PersonSimple update = new PersonSimple();
     update.setName("Carol Updated");
-    update.setWeight(72.0);
-    update.setHeight(172.0);
+    update.setWeight(WEIGHT_CAROL_UPDATED_KG);
+    update.setHeight(HEIGHT_CAROL_CM);
     update.setBirthDate(existing.getBirthDate());
     update.setGoal(FitnessGoal.CUT);
     update.setGender(Gender.FEMALE);
     update.setPlanStrategy(existing.getPlanStrategy());
 
     when(personRepository.findByClientId(MOBILE_CLIENT_1)).thenReturn(Optional.of(existing));
-    when(personService.calculateBMI(72.0, 172.0)).thenReturn(24.34);
+    when(personService.calculateBMI(WEIGHT_CAROL_UPDATED_KG, HEIGHT_CAROL_CM))
+        .thenReturn(BMI_CAROL_UPDATED);
     doAnswer(invocation -> {
         PersonSimple savedPerson = invocation.getArgument(0);
         savedPerson.setName("Carol Updated");
@@ -162,14 +226,14 @@ class ClientIsolationIntegrationTest {
    */
   @Test
   @DisplayName("Update returns 404 when profile missing")
-  void updatePerson_RejectsOtherClient() {
+  void updatePersonRejectsOtherClient() {
     ClientContext.setClientId(MOBILE_CLIENT_2);
 
     PersonSimple updateAttempt = new PersonSimple();
     updateAttempt.setName("Carol Updated");
-    updateAttempt.setWeight(72.0);
-    updateAttempt.setHeight(172.0);
-    updateAttempt.setBirthDate(LocalDate.of(1992, 7, 10));
+    updateAttempt.setWeight(WEIGHT_CAROL_UPDATED_KG);
+    updateAttempt.setHeight(HEIGHT_CAROL_CM);
+    updateAttempt.setBirthDate(DOB_CAROL);
     updateAttempt.setGoal(FitnessGoal.CUT);
     updateAttempt.setGender(Gender.FEMALE);
 
@@ -186,13 +250,13 @@ class ClientIsolationIntegrationTest {
    */
   @Test
   @DisplayName("Delete removes record for owner and clears context")
-  void deletePerson_AllowsOwnerAndClearsContext() {
+  void deletePersonAllowsOwnerAndClearsContext() {
     ClientContext.setClientId(MOBILE_CLIENT_1);
     PersonSimple existing = buildPerson("Dana", Gender.FEMALE, FitnessGoal.BULK, MOBILE_CLIENT_1);
-    existing.setWeight(68.0);
-    existing.setHeight(168.0);
-    existing.setBirthDate(LocalDate.of(1991, 1, 1));
-    existing.setId(4L);
+    existing.setWeight(WEIGHT_DANA_KG);
+    existing.setHeight(HEIGHT_DANA_CM);
+    existing.setBirthDate(DOB_DANA);
+    existing.setId(PERSON_ID_DANA);
 
     when(personRepository.findByClientId(MOBILE_CLIENT_1)).thenReturn(Optional.of(existing));
 
@@ -211,7 +275,7 @@ class ClientIsolationIntegrationTest {
    */
   @Test
   @DisplayName("Delete returns 404 when profile missing")
-  void deletePerson_RejectsOtherClient() {
+  void deletePersonRejectsOtherClient() {
     ClientContext.setClientId(MOBILE_CLIENT_2);
     when(personRepository.findByClientId(MOBILE_CLIENT_2)).thenReturn(Optional.empty());
 
@@ -226,9 +290,9 @@ class ClientIsolationIntegrationTest {
     person.setGender(gender);
     person.setGoal(goal);
     person.setClientId(clientId);
-    person.setWeight(70.0);
-    person.setHeight(170.0);
-    person.setBirthDate(LocalDate.of(1990, 1, 1));
+    person.setWeight(WEIGHT_BASE_KG);
+    person.setHeight(HEIGHT_BASE_CM);
+    person.setBirthDate(DOB_DEFAULT);
     person.setPlanStrategy(PlanStrategy.BOTH);
     return person;
   }

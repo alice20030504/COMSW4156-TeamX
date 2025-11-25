@@ -12,6 +12,7 @@ import org.springframework.web.servlet.view.RedirectView;
 @DisplayName("HomeController redirect")
 class HomeControllerTest {
 
+  /** Controller under test. */
   private final HomeController controller = new HomeController();
 
   @Test

@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,6 +17,12 @@ import org.springframework.mock.web.MockHttpServletResponse;
 @DisplayName("ClientIdInterceptor header validation")
 class ClientIdInterceptorTest {
 
+  /** HTTP 200 status used when requests are allowed through. */
+  private static final int STATUS_OK = 200;
+  /** HTTP 400 status returned for rejected requests. */
+  private static final int STATUS_BAD_REQUEST = 400;
+
+  /** Interceptor under test. */
   private final ClientIdInterceptor interceptor = new ClientIdInterceptor();
 
   @AfterEach
@@ -30,19 +35,19 @@ class ClientIdInterceptorTest {
    */
   @Test
   @DisplayName("Requests for swagger docs bypass validation")
-  void preHandle_SkipsSwaggerRoutes() throws Exception {
+  void preHandleSkipsSwaggerRoutes() throws Exception {
     MockHttpServletRequest request = new MockHttpServletRequest("GET", "/swagger-ui/index.html");
     MockHttpServletResponse response = new MockHttpServletResponse();
 
     boolean allowed = interceptor.preHandle(request, response, new Object());
 
     assertTrue(allowed);
-    assertEquals(200, response.getStatus());
+    assertEquals(STATUS_OK, response.getStatus());
   }
 
   @Test
   @DisplayName("OPTIONS preflight bypasses validation")
-  void preHandle_AllowsOptionsRequests() throws Exception {
+  void preHandleAllowsOptionsRequests() throws Exception {
     MockHttpServletRequest request = new MockHttpServletRequest("OPTIONS", "/api/persons");
     MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -51,7 +56,7 @@ class ClientIdInterceptorTest {
 
   @Test
   @DisplayName("Health and root endpoints bypass validation")
-  void preHandle_AllowsHealthAndRoot() throws Exception {
+  void preHandleAllowsHealthAndRoot() throws Exception {
     MockHttpServletRequest health = new MockHttpServletRequest("GET", "/health");
     MockHttpServletRequest root = new MockHttpServletRequest("GET", "/");
     MockHttpServletResponse response = new MockHttpServletResponse();
@@ -62,7 +67,7 @@ class ClientIdInterceptorTest {
 
   @Test
   @DisplayName("Open POST endpoints bypass validation")
-  void preHandle_AllowsOpenPostEndpoints() throws Exception {
+  void preHandleAllowsOpenPostEndpoints() throws Exception {
     MockHttpServletRequest createPerson = new MockHttpServletRequest("POST", "/api/persons");
     MockHttpServletRequest createResearch = new MockHttpServletRequest("POST", "/api/research");
     MockHttpServletResponse response = new MockHttpServletResponse();
@@ -73,7 +78,7 @@ class ClientIdInterceptorTest {
 
   @Test
   @DisplayName("POST endpoints with trailing slashes bypass validation")
-  void preHandle_AllowsTrailingSlashEndpoints() throws Exception {
+  void preHandleAllowsTrailingSlashEndpoints() throws Exception {
     MockHttpServletRequest createPerson = new MockHttpServletRequest("POST", "/api/persons/");
     MockHttpServletRequest createResearch = new MockHttpServletRequest("POST", "/api/research/");
     MockHttpServletResponse response = new MockHttpServletResponse();
@@ -87,14 +92,14 @@ class ClientIdInterceptorTest {
    */
   @Test
   @DisplayName("Missing client header returns 400 and blocks request")
-  void preHandle_MissingHeader() throws Exception {
+  void preHandleMissingHeader() throws Exception {
     MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/persons");
     MockHttpServletResponse response = new MockHttpServletResponse();
 
     boolean allowed = interceptor.preHandle(request, response, new Object());
 
     assertFalse(allowed);
-    assertEquals(HttpServletResponse.SC_BAD_REQUEST, response.getStatus());
+    assertEquals(STATUS_BAD_REQUEST, response.getStatus());
   }
 
   /**
@@ -102,7 +107,7 @@ class ClientIdInterceptorTest {
    */
   @Test
   @DisplayName("Invalid client format returns 400 and blocks request")
-  void preHandle_InvalidFormat() throws Exception {
+  void preHandleInvalidFormat() throws Exception {
     MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/persons");
     request.addHeader(ClientIdInterceptor.CLIENT_ID_HEADER, "invalid-client");
     MockHttpServletResponse response = new MockHttpServletResponse();
@@ -110,7 +115,7 @@ class ClientIdInterceptorTest {
     boolean allowed = interceptor.preHandle(request, response, new Object());
 
     assertFalse(allowed);
-    assertEquals(HttpServletResponse.SC_BAD_REQUEST, response.getStatus());
+    assertEquals(STATUS_BAD_REQUEST, response.getStatus());
   }
 
   /**
@@ -118,7 +123,7 @@ class ClientIdInterceptorTest {
    */
   @Test
   @DisplayName("Valid client ID is stored and allows request to proceed")
-  void preHandle_ValidClient() throws Exception {
+  void preHandleValidClient() throws Exception {
     MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/persons");
     request.addHeader(ClientIdInterceptor.CLIENT_ID_HEADER, "mobile-app1");
     MockHttpServletResponse response = new MockHttpServletResponse();
@@ -134,7 +139,7 @@ class ClientIdInterceptorTest {
 
   @Test
   @DisplayName("Research client IDs are accepted and stored")
-  void preHandle_ValidResearchClient() throws Exception {
+  void preHandleValidResearchClient() throws Exception {
     MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/research/data");
     request.addHeader(ClientIdInterceptor.CLIENT_ID_HEADER, "research-analyst1");
     MockHttpServletResponse response = new MockHttpServletResponse();

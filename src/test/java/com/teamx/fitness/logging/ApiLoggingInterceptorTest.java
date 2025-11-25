@@ -21,6 +21,20 @@ import org.springframework.mock.web.MockHttpServletResponse;
  */
 class ApiLoggingInterceptorTest {
 
+  /** Logger name used by the interceptor. */
+  private static final String LOGGER_NAME = "API_LOG";
+  /** HTTP 200 status code. */
+  private static final int STATUS_OK = 200;
+  /** HTTP 400 status code. */
+  private static final int STATUS_BAD_REQUEST = 400;
+  /** Maximum allowed user-agent length. */
+  private static final int UA_MAX_LENGTH = 200;
+  /** Length for the oversized user-agent sample. */
+  private static final int UA_SAMPLE_LENGTH = 500;
+  /** Sentinel duration value when start time missing. */
+  private static final int NEGATIVE_DURATION = -1;
+
+  /** JSON mapper used to inspect structured log output. */
   private final ObjectMapper mapper = new ObjectMapper();
 
   @AfterEach
@@ -29,9 +43,9 @@ class ApiLoggingInterceptorTest {
   }
 
   @Test
-  void validRequest_isLogged() throws Exception {
+  void validRequestIsLogged() throws Exception {
     ApiLoggingInterceptor interceptor = new ApiLoggingInterceptor();
-    Logger logger = (Logger) LoggerFactory.getLogger("API_LOG");
+    Logger logger = (Logger) LoggerFactory.getLogger(LOGGER_NAME);
     ListAppender<ILoggingEvent> appender = new ListAppender<>();
     appender.start();
     logger.addAppender(appender);
@@ -40,7 +54,7 @@ class ApiLoggingInterceptorTest {
     req.addHeader("User-Agent", "JUnit");
     req.setRemoteAddr("127.0.0.1");
     MockHttpServletResponse res = new MockHttpServletResponse();
-    res.setStatus(200);
+    res.setStatus(STATUS_OK);
     ClientContext.setClientId("mobile-app1");
 
     interceptor.preHandle(req, res, new Object());
@@ -50,16 +64,17 @@ class ApiLoggingInterceptorTest {
     Assertions.assertFalse(events.isEmpty(), "No log events captured");
     String msg = events.get(0).getFormattedMessage();
 
-    Map<String, Object> json = mapper.readValue(msg, new TypeReference<Map<String, Object>>() {});
+    Map<String, Object> json =
+        mapper.readValue(msg, new TypeReference<Map<String, Object>>() { });
     Assertions.assertEquals("mobile-app1", json.get("clientId"));
     Assertions.assertEquals("GET", json.get("method"));
-    Assertions.assertEquals(200, json.get("status"));
+    Assertions.assertEquals(STATUS_OK, json.get("status"));
   }
 
   @Test
-  void invalidRequest_isLoggedWith400AndError() throws Exception {
+  void invalidRequestIsLoggedWith400AndError() throws Exception {
     ApiLoggingInterceptor interceptor = new ApiLoggingInterceptor();
-    Logger logger = (Logger) LoggerFactory.getLogger("API_LOG");
+    Logger logger = (Logger) LoggerFactory.getLogger(LOGGER_NAME);
     ListAppender<ILoggingEvent> appender = new ListAppender<>();
     appender.start();
     logger.addAppender(appender);
@@ -67,49 +82,50 @@ class ApiLoggingInterceptorTest {
     MockHttpServletRequest req = new MockHttpServletRequest("POST", "/api/persons");
     req.addHeader("User-Agent", "JUnit");
     MockHttpServletResponse res = new MockHttpServletResponse();
-    res.setStatus(400);
+    res.setStatus(STATUS_BAD_REQUEST);
     ClientContext.setClientId("mobile-app1");
 
     interceptor.preHandle(req, res, new Object());
     interceptor.afterCompletion(req, res, new Object(), new RuntimeException("Invalid input"));
 
-    String msg = ((ListAppender<ILoggingEvent>) ((Logger) LoggerFactory.getLogger("API_LOG")).getAppender(appender.getName()) == null
-        ? appender.list.get(0).getFormattedMessage()
-        : appender.list.get(0).getFormattedMessage());
-    Map<String, Object> json = mapper.readValue(msg, new TypeReference<Map<String, Object>>() {});
-    Assertions.assertEquals(400, json.get("status"));
+    String msg = appender.list.get(0).getFormattedMessage();
+    Map<String, Object> json =
+        mapper.readValue(msg, new TypeReference<Map<String, Object>>() { });
+    Assertions.assertEquals(STATUS_BAD_REQUEST, json.get("status"));
     Assertions.assertTrue(msg.contains("error"));
   }
 
   @Test
-  void atypicalUserAgent_isTrimmed() throws Exception {
+  void atypicalUserAgentIsTrimmed() throws Exception {
     ApiLoggingInterceptor interceptor = new ApiLoggingInterceptor();
-    Logger logger = (Logger) LoggerFactory.getLogger("API_LOG");
+    Logger logger = (Logger) LoggerFactory.getLogger(LOGGER_NAME);
     ListAppender<ILoggingEvent> appender = new ListAppender<>();
     appender.start();
     logger.addAppender(appender);
 
-    String longUa = "A".repeat(500);
+    String longUa = "A".repeat(UA_SAMPLE_LENGTH);
     MockHttpServletRequest req = new MockHttpServletRequest("GET", "/api/persons");
     req.addHeader("User-Agent", longUa);
     MockHttpServletResponse res = new MockHttpServletResponse();
-    res.setStatus(200);
+    res.setStatus(STATUS_OK);
     ClientContext.setClientId("mobile-app1");
 
     interceptor.preHandle(req, res, new Object());
     interceptor.afterCompletion(req, res, new Object(), null);
 
     String msg = appender.list.get(0).getFormattedMessage();
-    Map<String, Object> json = mapper.readValue(msg, new TypeReference<Map<String, Object>>() {});
+    Map<String, Object> json =
+        mapper.readValue(msg, new TypeReference<Map<String, Object>>() { });
     String ua = (String) json.get("ua");
     Assertions.assertNotNull(ua);
-    Assertions.assertTrue(ua.length() <= 200, "User-Agent should be trimmed to <= 200 characters");
+    Assertions.assertTrue(
+        ua.length() <= UA_MAX_LENGTH, "User-Agent should be trimmed to <= 200 characters");
   }
 
   @Test
-  void forwardedForHeader_isPreferredForIp() throws Exception {
+  void forwardedForHeaderIsPreferredForIp() throws Exception {
     ApiLoggingInterceptor interceptor = new ApiLoggingInterceptor();
-    Logger logger = (Logger) LoggerFactory.getLogger("API_LOG");
+    Logger logger = (Logger) LoggerFactory.getLogger(LOGGER_NAME);
     ListAppender<ILoggingEvent> appender = new ListAppender<>();
     appender.start();
     logger.addAppender(appender);
@@ -117,33 +133,33 @@ class ApiLoggingInterceptorTest {
     MockHttpServletRequest req = new MockHttpServletRequest("GET", "/api/persons");
     req.addHeader("X-Forwarded-For", "10.0.0.1, 10.0.0.2");
     MockHttpServletResponse res = new MockHttpServletResponse();
-    res.setStatus(200);
+    res.setStatus(STATUS_OK);
 
     interceptor.preHandle(req, res, new Object());
     interceptor.afterCompletion(req, res, new Object(), null);
 
     Map<String, Object> json =
-        mapper.readValue(appender.list.get(0).getFormattedMessage(), new TypeReference<>() {});
+        mapper.readValue(appender.list.get(0).getFormattedMessage(), new TypeReference<>() { });
     Assertions.assertEquals("10.0.0.1", json.get("ip"));
   }
 
   @Test
-  void missingStartTime_recordsNegativeDuration() throws Exception {
+  void missingStartTimeRecordsNegativeDuration() throws Exception {
     ApiLoggingInterceptor interceptor = new ApiLoggingInterceptor();
-    Logger logger = (Logger) LoggerFactory.getLogger("API_LOG");
+    Logger logger = (Logger) LoggerFactory.getLogger(LOGGER_NAME);
     ListAppender<ILoggingEvent> appender = new ListAppender<>();
     appender.start();
     logger.addAppender(appender);
 
     MockHttpServletRequest req = new MockHttpServletRequest("GET", "/api/persons");
     MockHttpServletResponse res = new MockHttpServletResponse();
-    res.setStatus(200);
+    res.setStatus(STATUS_OK);
 
     interceptor.afterCompletion(req, res, new Object(), null);
 
     Map<String, Object> json =
-        mapper.readValue(appender.list.get(0).getFormattedMessage(), new TypeReference<>() {});
-    Assertions.assertEquals(-1, json.get("durationMs"));
+        mapper.readValue(appender.list.get(0).getFormattedMessage(), new TypeReference<>() { });
+    Assertions.assertEquals(NEGATIVE_DURATION, json.get("durationMs"));
   }
 }
 
