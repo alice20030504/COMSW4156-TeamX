@@ -1,0 +1,14 @@
+Loading Whisper model...
+Whisper model loaded successfully!
+======================================================================
+     7-Day Meal Plan Generator
+     Speech → Local Whisper → POE API → Meal Plan
+======================================================================
+
+[OK] POE API key is set
+
+[OK] Using local Whisper model (tiny.en) for transcription
+   No OpenAI API key required!
+
+Starting Gradio interface...
+======================================================================

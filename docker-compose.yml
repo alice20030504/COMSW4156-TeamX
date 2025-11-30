@@ -50,3 +50,17 @@ services:
       app:
         condition: service_started
     restart: unless-stopped
+
+  mealplan-service:
+    build: 
+      context: ./mealplan-service
+      args:
+        POE_API_KEY: ${POE_API_KEY}
+    container_name: mealplan-service
+    ports:
+      - "5001:5001"
+    environment:
+      - POE_API_KEY=${POE_API_KEY}
+    depends_on:
+      - app
+    restart: unless-stopped

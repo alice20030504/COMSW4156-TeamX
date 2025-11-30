@@ -75,8 +75,8 @@ function setupEventListeners() {
     .getElementById("getCaloriesBtn")
     .addEventListener("click", getCalories);
   document
-    .getElementById("getRecommendationBtn")
-    .addEventListener("click", getRecommendation);
+    .getElementById("getMealPlanBtn")
+    .addEventListener("click", getMealPlan);
   document
     .getElementById("listProfilesBtn")
     .addEventListener("click", listProfiles);
@@ -258,17 +258,47 @@ async function getCalories() {
   }
 }
 
-async function getRecommendation() {
+async function getMealPlan() {
+  console.log("== getMealPlan() CALLED ==");
   try {
-    const response = await apiCall(
-      "GET",
-      "/api/persons/recommendation",
-      null,
-      true
-    );
-    displayResults("Recommendation", response);
-  } catch (error) {
-    showStatus("Failed to get recommendation: " + error.message, "error");
+    // 1. Get client ID from storage
+    const clientId = getClientId();
+    if (!clientId) {
+      showStatus("Client ID not found. Please register first.", "error");
+      return;
+    }
+
+    // 2. Retrieve user profile from Spring Boot (8080)
+    const profileRaw = await apiCall("GET", `/api/persons/${clientId}`, null, true);
+    const profile = JSON.parse(profileRaw);
+
+    // 3. Prepare FastAPI (5001) request body
+    const body = {
+      id: profile.id,
+      age: profile.age,
+      height: profile.height,
+      weight: profile.weight,
+      gender: profile.gender,
+      goal: profile.goal
+    };
+
+    // 4. Send POST to FastAPI
+    const mealPlanResp = await fetch("http://localhost:5001/mealplan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+
+    if (!mealPlanResp.ok) {
+      throw new Error("FastAPI returned error " + mealPlanResp.status);
+    }
+
+    const mealPlanData = await mealPlanResp.json();
+
+    // 5. Display the result
+    displayResults("Meal Plan", mealPlanData.meal_plan);
+  } catch (err) {
+    showStatus("Failed to get meal plan: " + err.message, "error");
   }
 }
 
@@ -492,6 +522,7 @@ function toggleSection(button) {
   container.dataset.open = isOpen ? "false" : "true";
   button.textContent = isOpen ? "Edit" : "Hide";
 }
+
 
 async function apiCall(method, path, body, requireAuth) {
   const baseUrl = await getApiBaseUrl();

@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "C:\Users\ZHANG Shurong\Desktop\Master1\COMS W4156 Advance Software Engineering\COMSW4156-TeamX\app_mealplan.py", line 263, in <module>
+    demo.launch(
+  File "C:\Users\ZHANG Shurong\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\LocalCache\local-packages\Python312\site-packages\gradio\blocks.py", line 2666, in launch
+    ) = http_server.start_server(
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ZHANG Shurong\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\LocalCache\local-packages\Python312\site-packages\gradio\http_server.py", line 182, in start_server
+    raise OSError(
+OSError: Cannot find empty port in range: 7860-7860. You can specify a different port by setting the GRADIO_SERVER_PORT environment variable or passing the `server_port` parameter to `launch()`.
