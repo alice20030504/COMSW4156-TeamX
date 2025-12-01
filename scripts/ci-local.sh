@@ -26,20 +26,20 @@ echo "----------------------------------------"
 
 echo "Running Checkstyle..."
 if mvn checkstyle:checkstyle checkstyle:check; then
-    echo -e "${GREEN}✓ Checkstyle passed${NC}"
+    echo -e "${GREEN}[OK] Checkstyle passed${NC}"
     cp target/checkstyle-result.xml ci-reports/checkstyle/ 2>/dev/null || true
 else
-    echo -e "${RED}✗ Checkstyle found violations${NC}"
+    echo -e "${RED}[FAIL] Checkstyle found violations${NC}"
     cp target/checkstyle-result.xml ci-reports/checkstyle/ 2>/dev/null || true
 fi
 
 echo "Running PMD..."
 if mvn pmd:check; then
-    echo -e "${GREEN}✓ PMD passed${NC}"
+    echo -e "${GREEN}[OK] PMD passed${NC}"
     cp target/pmd.xml ci-reports/pmd/ 2>/dev/null || true
     cp target/site/pmd.html ci-reports/pmd/ 2>/dev/null || true
 else
-    echo -e "${RED}✗ PMD found violations${NC}"
+    echo -e "${RED}[FAIL] PMD found violations${NC}"
     cp target/pmd.xml ci-reports/pmd/ 2>/dev/null || true
     cp target/site/pmd.html ci-reports/pmd/ 2>/dev/null || true
 fi
@@ -50,11 +50,11 @@ echo "----------------------------------------"
 
 echo "Running tests with coverage..."
 if mvn clean test jacoco:report; then
-    echo -e "${GREEN}✓ All tests passed${NC}"
+    echo -e "${GREEN}[OK] All tests passed${NC}"
     cp -r target/surefire-reports/* ci-reports/test/ 2>/dev/null || true
     cp -r target/site/jacoco/* ci-reports/coverage/ 2>/dev/null || true
 else
-    echo -e "${RED}✗ Some tests failed${NC}"
+    echo -e "${RED}[FAIL] Some tests failed${NC}"
     cp -r target/surefire-reports/* ci-reports/test/ 2>/dev/null || true
     exit 1
 fi
@@ -64,9 +64,9 @@ echo -e "\n${YELLOW}Step 3: Checking Test Coverage${NC}"
 echo "----------------------------------------"
 
 if mvn jacoco:check; then
-    echo -e "${GREEN}✓ Coverage requirements met${NC}"
+    echo -e "${GREEN}[OK] Coverage requirements met${NC}"
 else
-    echo -e "${YELLOW}⚠ Coverage below threshold (80%)${NC}"
+    echo -e "${YELLOW}[WARN] Coverage below threshold (80%)${NC}"
 fi
 
 # Step 4: Build
@@ -74,9 +74,9 @@ echo -e "\n${YELLOW}Step 4: Building Application${NC}"
 echo "----------------------------------------"
 
 if mvn clean package -DskipTests; then
-    echo -e "${GREEN}✓ Build successful${NC}"
+    echo -e "${GREEN}[OK] Build successful${NC}"
 else
-    echo -e "${RED}✗ Build failed${NC}"
+    echo -e "${RED}[FAIL] Build failed${NC}"
     exit 1
 fi
 
@@ -97,9 +97,9 @@ Commit: $(git rev-parse HEAD 2>/dev/null || echo "unknown")
 - Coverage Report: See coverage/index.html
 
 ## Status
-- Code Quality: ✓ Complete
-- Tests: ✓ Complete
-- Build: ✓ Complete
+- Code Quality: [OK] Complete
+- Tests: [OK] Complete
+- Build: [OK] Complete
 EOF
 
 echo -e "\n${GREEN}=========================================="

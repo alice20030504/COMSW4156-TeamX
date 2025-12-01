@@ -21,21 +21,21 @@ Write-Host "----------------------------------------" -ForegroundColor Yellow
 Write-Host "Running Checkstyle..."
 try {
     mvn checkstyle:checkstyle checkstyle:check
-    Write-Host "✓ Checkstyle passed" -ForegroundColor Green
+    Write-Host "[OK] Checkstyle passed" -ForegroundColor Green
     Copy-Item -Path "target\checkstyle-result.xml" -Destination "ci-reports\checkstyle\" -ErrorAction SilentlyContinue
 } catch {
-    Write-Host "✗ Checkstyle found violations" -ForegroundColor Red
+    Write-Host "[FAIL] Checkstyle found violations" -ForegroundColor Red
     Copy-Item -Path "target\checkstyle-result.xml" -Destination "ci-reports\checkstyle\" -ErrorAction SilentlyContinue
 }
 
 Write-Host "Running PMD..."
 try {
     mvn pmd:check
-    Write-Host "✓ PMD passed" -ForegroundColor Green
+    Write-Host "[OK] PMD passed" -ForegroundColor Green
     Copy-Item -Path "target\pmd.xml" -Destination "ci-reports\pmd\" -ErrorAction SilentlyContinue
     Copy-Item -Path "target\site\pmd.html" -Destination "ci-reports\pmd\" -ErrorAction SilentlyContinue
 } catch {
-    Write-Host "✗ PMD found violations" -ForegroundColor Red
+    Write-Host "[FAIL] PMD found violations" -ForegroundColor Red
     Copy-Item -Path "target\pmd.xml" -Destination "ci-reports\pmd\" -ErrorAction SilentlyContinue
     Copy-Item -Path "target\site\pmd.html" -Destination "ci-reports\pmd\" -ErrorAction SilentlyContinue
 }
@@ -47,11 +47,11 @@ Write-Host "----------------------------------------" -ForegroundColor Yellow
 Write-Host "Running tests with coverage..."
 try {
     mvn clean test jacoco:report
-    Write-Host "✓ All tests passed" -ForegroundColor Green
+    Write-Host "[OK] All tests passed" -ForegroundColor Green
     Copy-Item -Path "target\surefire-reports\*" -Destination "ci-reports\test\" -Recurse -ErrorAction SilentlyContinue
     Copy-Item -Path "target\site\jacoco\*" -Destination "ci-reports\coverage\" -Recurse -ErrorAction SilentlyContinue
 } catch {
-    Write-Host "✗ Some tests failed" -ForegroundColor Red
+    Write-Host "[FAIL] Some tests failed" -ForegroundColor Red
     Copy-Item -Path "target\surefire-reports\*" -Destination "ci-reports\test\" -Recurse -ErrorAction SilentlyContinue
     exit 1
 }
@@ -62,9 +62,9 @@ Write-Host "----------------------------------------" -ForegroundColor Yellow
 
 try {
     mvn jacoco:check
-    Write-Host "✓ Coverage requirements met" -ForegroundColor Green
+    Write-Host "[OK] Coverage requirements met" -ForegroundColor Green
 } catch {
-    Write-Host "⚠ Coverage below threshold (80%)" -ForegroundColor Yellow
+    Write-Host "[WARN] Coverage below threshold (80%)" -ForegroundColor Yellow
 }
 
 # Step 4: Build
@@ -73,9 +73,9 @@ Write-Host "----------------------------------------" -ForegroundColor Yellow
 
 try {
     mvn clean package -DskipTests
-    Write-Host "✓ Build successful" -ForegroundColor Green
+    Write-Host "[OK] Build successful" -ForegroundColor Green
 } catch {
-    Write-Host "✗ Build failed" -ForegroundColor Red
+    Write-Host "[FAIL] Build failed" -ForegroundColor Red
     exit 1
 }
 
@@ -102,9 +102,9 @@ Commit: $commit
 - Coverage Report: See coverage/index.html
 
 ## Status
-- Code Quality: ✓ Complete
-- Tests: ✓ Complete
-- Build: ✓ Complete
+- Code Quality: [OK] Complete
+- Tests: [OK] Complete
+- Build: [OK] Complete
 "@
 
 $summary | Out-File -FilePath "ci-reports\ci-summary.md" -Encoding UTF8
