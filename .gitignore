@@ -34,3 +34,8 @@ testresult/**
 # Env files / local overrides
 .env
 *.local.properties
+
+# CI reports (keep structure but ignore generated content)
+ci-reports/**/*
+!ci-reports/.gitkeep
+!ci-reports/README.md

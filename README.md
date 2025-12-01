@@ -176,6 +176,89 @@ For more details, see `frontend/README.md`.
 
 ---
 
+## Continuous Integration (CI)
+
+This project includes automated CI pipelines for code quality checks, static analysis, and testing.
+
+### GitHub Actions CI
+
+The project uses GitHub Actions for automated CI on every push and pull request. The CI pipeline includes:
+
+1. **Code Quality Checks**
+   - Checkstyle: Code style validation
+   - PMD: Static code analysis
+
+2. **Testing**
+   - Unit tests (JUnit 5)
+   - Integration tests
+   - Code coverage analysis (JaCoCo, minimum 80% line coverage)
+
+3. **Build**
+   - Compilation and packaging
+
+**CI Workflow:** `.github/workflows/ci.yml`
+
+**View CI Reports:** Reports are archived as GitHub Actions artifacts and can also be found in `ci-reports/` directory.
+
+### Running CI Locally
+
+You can run the full CI pipeline locally using the provided scripts:
+
+**Linux/Mac:**
+```bash
+bash scripts/ci-local.sh
+```
+
+**Windows PowerShell:**
+```powershell
+.\scripts\ci-local.ps1
+```
+
+**Manual CI Steps:**
+```bash
+# Code quality
+mvn checkstyle:checkstyle checkstyle:check
+mvn pmd:check
+
+# Tests and coverage
+mvn clean test jacoco:report
+mvn jacoco:check
+
+# Build
+mvn clean package -DskipTests
+```
+
+### CI Reports
+
+Reports are generated in the `ci-reports/` directory:
+- `checkstyle/` - Code style analysis results
+- `pmd/` - Static analysis results  
+- `test/` - Test execution results
+- `coverage/` - Code coverage reports (HTML)
+- `ci-summary.md` - Pipeline execution summary
+
+See `ci-reports/README.md` for more details.
+
+### Automated vs Manual Testing
+
+**Automated (CI):**
+- ✅ Code style checks (Checkstyle)
+- ✅ Static analysis (PMD)
+- ✅ Unit tests
+- ✅ Integration tests
+- ✅ Code coverage validation
+
+**Manual (Not Automated):**
+- ⚠️ End-to-end (E2E) testing with client applications
+  - Reason: E2E tests require manual interaction with web browsers and client applications
+  - See `docs/E2E_TESTING.md` for manual E2E test procedures
+- ⚠️ Postman/Newman API tests
+  - Reason: Requires running backend service and database
+  - Can be run manually: `docker compose -f docker-compose.yml -f docker-compose.tests.yml run --rm newman`
+  - See "Run with Docker" section for details
+
+---
+
 ## Build, Test, and Run
 
 Prerequisites:

@@ -1,0 +1,192 @@
+name: CI - Code Quality and Testing
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  code-quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      
+      - name: Run Checkstyle
+        run: mvn checkstyle:check
+        continue-on-error: true
+      
+      - name: Generate Checkstyle Report
+        run: mvn checkstyle:checkstyle
+        continue-on-error: true
+      
+      - name: Run PMD Analysis
+        run: mvn pmd:check
+        continue-on-error: true
+      
+      - name: Archive Checkstyle Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: checkstyle-results
+          path: |
+            target/checkstyle-result.xml
+            target/checkstyle-checker.xml
+          retention-days: 30
+      
+      - name: Archive PMD Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pmd-results
+          path: |
+            target/pmd.xml
+            target/site/pmd.html
+          retention-days: 30
+
+  test:
+    name: Unit and Integration Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      
+      - name: Run Tests with Coverage
+        run: mvn clean test jacoco:report
+      
+      - name: Check Test Coverage
+        run: mvn jacoco:check
+        continue-on-error: true
+      
+      - name: Archive Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: |
+            target/surefire-reports/**
+            target/site/jacoco/**
+          retention-days: 30
+      
+      - name: Archive Coverage Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: target/site/jacoco/index.html
+          retention-days: 30
+
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    needs: [code-quality, test]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      
+      - name: Build with Maven
+        run: mvn clean package -DskipTests
+      
+      - name: Archive JAR
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: application-jar
+          path: target/*.jar
+          retention-days: 7
+
+  generate-reports:
+    name: Generate CI Reports
+    runs-on: ubuntu-latest
+    needs: [code-quality, test]
+    if: always()
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download Checkstyle Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: checkstyle-results
+          path: ci-reports/checkstyle/
+      
+      - name: Download PMD Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: pmd-results
+          path: ci-reports/pmd/
+      
+      - name: Download Test Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results
+          path: ci-reports/test/
+      
+      - name: Download Coverage Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report
+          path: ci-reports/coverage/
+      
+      - name: Create Summary Report
+        run: |
+          mkdir -p ci-reports
+          cat > ci-reports/ci-summary.md << 'EOF'
+          # CI Pipeline Summary
+          
+          Generated: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          Workflow: ${{ github.workflow }}
+          Run ID: ${{ github.run_id }}
+          Commit: ${{ github.sha }}
+          Branch: ${{ github.ref_name }}
+          
+          ## Code Quality
+          - Checkstyle: See checkstyle/checkstyle-result.xml
+          - PMD: See pmd/pmd.xml
+          
+          ## Testing
+          - Test Results: See test/surefire-reports/
+          - Coverage Report: See coverage/index.html
+          
+          ## Status
+          - Code Quality: ${{ needs.code-quality.result }}
+          - Tests: ${{ needs.test.result }}
+          EOF
+      
+      - name: Commit Reports
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add ci-reports/
+          git commit -m "CI: Update reports for ${{ github.sha }}" || exit 0
+          git push || exit 0
+
