@@ -55,45 +55,8 @@ This means you can:
 1. Ensure the backend service is running (default: `http://localhost:8080`)
 2. Open `index.html` in your web browser:
    - **Windows**: Double-click `index.html` or right-click → "Open with" → your browser
-   - **Mac/Linux**: Open from file manager or use `open index.html` (Mac) / `xdg-open index.html` (Linux)
 
-### Option 2: Local Web Server (Recommended)
-
-For better security and CORS handling, use a local web server:
-
-#### Using Python (if installed):
-
-```bash
-# Python 3
-cd frontend
-python -m http.server 3000
-
-# Then open: http://localhost:3000
-```
-
-#### Using Node.js (if installed):
-
-```bash
-# Install http-server globally (one time)
-npm install -g http-server
-
-# Run the server
-cd frontend
-http-server -p 3000
-
-# Then open: http://localhost:3000
-```
-
-#### Using PHP (if installed):
-
-```bash
-cd frontend
-php -S localhost:3000
-
-# Then open: http://localhost:3000
-```
-
-### Option 3: Run with Docker (Backend + Frontend)
+### Option 2: Run with Docker (Backend + Frontend)
 
 From the project root:
 
@@ -103,7 +66,7 @@ docker-compose up --build
 # Frontend: http://localhost:3000
 ```
 
-### Option 4: Test with GCP-Deployed Server
+### Option 3: Test with GCP-Deployed Server
 
 The frontend can also connect to the service deployed on Google Cloud Platform:
 
@@ -113,7 +76,7 @@ The frontend can also connect to the service deployed on Google Cloud Platform:
 - Backend Port: `8080`
 - Frontend Port: `3000`
 
-**Option 4a: Access Frontend Directly on GCP**
+**Option 3a: Access Frontend Directly on GCP**
 
 Open your web browser and navigate to:
 
@@ -123,7 +86,7 @@ http://35.188.26.134:3000
 
 The frontend will automatically connect to the backend service at `http://35.188.26.134:8080`.
 
-**Option 4b: Run Local Frontend Connected to GCP Backend**
+**Option 3b: Run Local Frontend Connected to GCP Backend**
 
 1. Run the local frontend web server:
 
