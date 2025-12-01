@@ -63,10 +63,15 @@ fi
 echo -e "\n${YELLOW}Step 3: Checking Test Coverage${NC}"
 echo "----------------------------------------"
 
-if mvn jacoco:check; then
-    echo -e "${GREEN}[OK] Coverage requirements met${NC}"
+# Coverage check requires jacoco.exec from test run
+if [ -f "target/jacoco.exec" ]; then
+    if mvn jacoco:check; then
+        echo -e "${GREEN}[OK] Coverage requirements met${NC}"
+    else
+        echo -e "${YELLOW}[WARN] Coverage below threshold (80%)${NC}"
+    fi
 else
-    echo -e "${YELLOW}[WARN] Coverage below threshold (80%)${NC}"
+    echo -e "${YELLOW}[WARN] Coverage data not found. Run tests first.${NC}"
 fi
 
 # Step 4: Build

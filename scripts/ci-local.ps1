@@ -60,11 +60,20 @@ try {
 Write-Host "`nStep 3: Checking Test Coverage" -ForegroundColor Yellow
 Write-Host "----------------------------------------" -ForegroundColor Yellow
 
-try {
-    mvn jacoco:check
-    Write-Host "[OK] Coverage requirements met" -ForegroundColor Green
-} catch {
-    Write-Host "[WARN] Coverage below threshold (80%)" -ForegroundColor Yellow
+# Coverage check requires jacoco.exec from test run
+if (Test-Path "target\jacoco.exec") {
+    try {
+        mvn jacoco:check
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "[OK] Coverage requirements met" -ForegroundColor Green
+        } else {
+            Write-Host "[WARN] Coverage below threshold (80%)" -ForegroundColor Yellow
+        }
+    } catch {
+        Write-Host "[WARN] Coverage below threshold (80%)" -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "[WARN] Coverage data not found. Run tests first." -ForegroundColor Yellow
 }
 
 # Step 4: Build
