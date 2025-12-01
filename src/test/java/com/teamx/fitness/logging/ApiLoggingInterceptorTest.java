@@ -6,6 +6,7 @@ import ch.qos.logback.core.read.ListAppender;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.teamx.fitness.security.ClientContext;
+import java.net.InetAddress;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
@@ -33,6 +34,15 @@ class ApiLoggingInterceptorTest {
   private static final int UA_SAMPLE_LENGTH = 500;
   /** Sentinel duration value when start time missing. */
   private static final int NEGATIVE_DURATION = -1;
+  /** Loopback address used in tests. */
+  private static final String LOOPBACK_IP = InetAddress.getLoopbackAddress().getHostAddress();
+  /** First forwarded IP expected to be logged. */
+  private static final String PRIMARY_FORWARDED_IP = formatIp(10, 0, 0, 1);
+  /** Second forwarded IP used to build the header chain. */
+  private static final String SECONDARY_FORWARDED_IP = formatIp(10, 0, 0, 2);
+  /** Forwarded IP chain used in tests. */
+  private static final String FORWARDED_IP_CHAIN =
+      PRIMARY_FORWARDED_IP + ", " + SECONDARY_FORWARDED_IP;
 
   /** JSON mapper used to inspect structured log output. */
   private final ObjectMapper mapper = new ObjectMapper();
@@ -52,7 +62,7 @@ class ApiLoggingInterceptorTest {
 
     MockHttpServletRequest req = new MockHttpServletRequest("GET", "/api/persons/1");
     req.addHeader("User-Agent", "JUnit");
-    req.setRemoteAddr("127.0.0.1");
+    req.setRemoteAddr(LOOPBACK_IP);
     MockHttpServletResponse res = new MockHttpServletResponse();
     res.setStatus(STATUS_OK);
     ClientContext.setClientId("mobile-app1");
@@ -131,7 +141,7 @@ class ApiLoggingInterceptorTest {
     logger.addAppender(appender);
 
     MockHttpServletRequest req = new MockHttpServletRequest("GET", "/api/persons");
-    req.addHeader("X-Forwarded-For", "10.0.0.1, 10.0.0.2");
+    req.addHeader("X-Forwarded-For", FORWARDED_IP_CHAIN);
     MockHttpServletResponse res = new MockHttpServletResponse();
     res.setStatus(STATUS_OK);
 
@@ -140,7 +150,7 @@ class ApiLoggingInterceptorTest {
 
     Map<String, Object> json =
         mapper.readValue(appender.list.get(0).getFormattedMessage(), new TypeReference<>() { });
-    Assertions.assertEquals("10.0.0.1", json.get("ip"));
+    Assertions.assertEquals(PRIMARY_FORWARDED_IP, json.get("ip"));
   }
 
   @Test
@@ -160,6 +170,10 @@ class ApiLoggingInterceptorTest {
     Map<String, Object> json =
         mapper.readValue(appender.list.get(0).getFormattedMessage(), new TypeReference<>() { });
     Assertions.assertEquals(NEGATIVE_DURATION, json.get("durationMs"));
+  }
+
+  private static String formatIp(int a, int b, int c, int d) {
+    return String.format("%d.%d.%d.%d", a, b, c, d);
   }
 }
 

@@ -344,16 +344,12 @@ class ResearchControllerTest {
 
   @Test
   @DisplayName("round returns NaN for invalid numbers")
-  void roundHandlesInvalidNumbers() throws Exception {
-    java.lang.reflect.Method method =
-        ResearchController.class.getDeclaredMethod("round", double.class);
-    method.setAccessible(true);
+  void roundHandlesInvalidNumbers() {
+    double nanResult = controller.round(Double.NaN);
+    double infResult = controller.round(Double.POSITIVE_INFINITY);
 
-    double nanResult = (double) method.invoke(controller, Double.NaN);
-    double infResult = (double) method.invoke(controller, Double.POSITIVE_INFINITY);
-
-    org.junit.jupiter.api.Assertions.assertTrue(Double.isNaN(nanResult));
-    org.junit.jupiter.api.Assertions.assertTrue(Double.isNaN(infResult));
+    assertTrue(Double.isNaN(nanResult));
+    assertTrue(Double.isNaN(infResult));
   }
 
   private List<PersonSimple> samplePeople() {

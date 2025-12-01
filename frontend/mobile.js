@@ -326,6 +326,9 @@ function displayResults(title, response) {
 
   try {
     const data = JSON.parse(response);
+    if (title === "Recommendation" && data && !Array.isArray(data)) {
+      html += renderRecommendationSummary(data);
+    }
     html += formatResultsAsCards(data);
   } catch (e) {
     html +=
@@ -393,6 +396,63 @@ function formatValue(value) {
     )}</code>`;
   }
   return escapeHtml(String(value));
+}
+
+function renderRecommendationSummary(data) {
+  const metricDefinitions = [
+    {
+      label: "BMI",
+      show: () => data.bmi !== null && data.bmi !== undefined,
+      value: () => summarizeMetric(data.bmi, data.bmiCategory ? ` (${data.bmiCategory})` : ""),
+      description: () => "Shows how your weight sits for your height (under/normal/over/obese)."
+    },
+    {
+      label: "Health Index",
+      show: () => true,
+      value: () => summarizeMetric(data.healthIndex),
+      description: () => "0-100 indicator of overall health habits (100 = strongest)."
+    },
+    {
+      label: "Plan Alignment",
+      show: () => true,
+      value: () => summarizeMetric(data.planAlignmentIndex),
+      description: () => "0-100 gauge of how realistic your goal/pace/training combo is."
+    },
+    {
+      label: "Trajectory Score",
+      show: () => true,
+      value: () => summarizeMetric(data.overallScore),
+      description: () => "0-100 overall outlook for where your health and plan are heading."
+    },
+    {
+      label: "Percentile",
+      show: () => data.percentile !== null && data.percentile !== undefined,
+      value: () => summarizeMetric(data.percentile, "%"),
+      description: () => "Comparison to other users. 70% means you outrank 70% of the cohort."
+    }
+  ];
+
+  let html = '<div class="result-item recommendation-summary">';
+  html += `<p class="recommendation-message">${escapeHtml(data.message || 'No recommendation available')}</p>`;
+  html += '<div class="recommendation-metrics" style="display:flex; flex-direction:column; gap:10px;">';
+  metricDefinitions.filter((metric) => metric.show()).forEach((metric) => {
+    html += `<div class="recommendation-metric" style="background: rgba(255,255,255,0.08); border-radius: 10px; padding: 10px;"><div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:4px;"><span class="metric-label" style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">${escapeHtml(metric.label)}</span><span class="metric-value" style="font-size: 20px; font-weight: 600; color: var(--primary-color-light);">${metric.value()}</span></div><span class="metric-description" style="font-size: 13px; color: var(--text-secondary);">${escapeHtml(metric.description())}</span></div>`;
+  });
+  html += '</div>';
+  if (data.cohortWarning) {
+    html += `<div class="recommendation-warning">${escapeHtml(data.cohortWarning)}</div>`;
+  }
+  html += '</div>';
+  return html;
+}
+
+function summarizeMetric(rawValue, suffix) {
+  if (rawValue === null || rawValue === undefined || Number.isNaN(rawValue)) {
+    return '<span class="metric-missing">—</span>';
+  }
+  const num = Math.round(Number(rawValue) * 10) / 10;
+  const text = suffix && suffix !== true ? `${num}${suffix === '%' ? suffix : ' ' + suffix}` : `${num}`;
+  return `<strong>${escapeHtml(text)}</strong>`;
 }
 
 function populateUpdateForm(data) {

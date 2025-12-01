@@ -89,7 +89,10 @@ public class PersonSimple {
   @Column(name = "client_id", nullable = false, unique = true, length = 96)
   private String clientId;
 
-  public PersonSimple() { }
+  /** Default constructor required by JPA. */
+  public PersonSimple() {
+    // Required by JPA
+  }
 
   @SuppressWarnings("checkstyle:ParameterNumber")
   public PersonSimple(

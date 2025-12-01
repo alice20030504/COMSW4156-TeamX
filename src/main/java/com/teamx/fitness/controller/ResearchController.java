@@ -22,6 +22,7 @@ import jakarta.validation.Valid;
 import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -80,12 +81,11 @@ public class ResearchController {
           description = "Researcher created successfully",
           content = @Content(
               schema = @Schema(implementation = ResearcherCreatedResponse.class),
-              examples = @ExampleObject(
-                  value = """
-                      {
-                        "clientId": "research-3f2a4b1cd8e94bceb8c0b6a7dd5f1e92"
-                      }
-                      """))),
+              examples = @ExampleObject("""
+                  {
+                    "clientId": "research-3f2a4b1cd8e94bceb8c0b6a7dd5f1e92"
+                  }
+                  """))),
       @ApiResponse(responseCode = "400", description = "Invalid input data or email already exists")
   })
   public ResponseEntity<ResearcherCreatedResponse> registerResearcher(
@@ -98,7 +98,7 @@ public class ResearchController {
 
     Researcher researcher = new Researcher();
     researcher.setName(request.getName().trim());
-    researcher.setEmail(request.getEmail().trim().toLowerCase());
+    researcher.setEmail(request.getEmail().trim().toLowerCase(Locale.ROOT));
     researcher.setClientId(generateResearchClientId());
 
     Researcher saved = researcherRepository.save(researcher);
@@ -155,7 +155,13 @@ public class ResearchController {
         .orElse(Double.NaN);
   }
 
-  private double round(double value) {
+  /**
+   * Rounds metric values while tolerating NaN input so tests can call directly.
+   *
+   * @param value number to round
+   * @return rounded value or NaN when the input is invalid
+   */
+  public double round(double value) {
     if (Double.isNaN(value) || Double.isInfinite(value)) {
       return Double.NaN;
     }
@@ -179,7 +185,7 @@ public class ResearchController {
           responseCode = "200",
           description = "Demographic snapshot computed",
           content = @Content(schema = @Schema(implementation = Map.class),
-              examples = @ExampleObject(value = """
+              examples = @ExampleObject("""
                   {
                     "cohortSummary": {
                       "sampleSize": 4,
@@ -271,7 +277,7 @@ public class ResearchController {
           responseCode = "200",
           description = "Population health metrics computed",
           content = @Content(schema = @Schema(implementation = Map.class),
-              examples = @ExampleObject(value = """
+              examples = @ExampleObject("""
                   {
                     "totalProfiles": 4,
                     "goalSegments": {

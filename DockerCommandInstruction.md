@@ -18,8 +18,12 @@ Assumptions
 3) Test
 - Unit + Checkstyle (Dockerized Maven):
   - `docker compose -f docker-compose.yml -f docker-compose.tests.yml run --rm unit-tests`
-- Checkstyle only (Dockerized Maven):
-  - `docker compose -f docker-compose.yml -f docker-compose.tests.yml run --rm unit-tests mvn -e -B checkstyle:check`
+- Checkstyle only (Dockerized Maven; same as `mvn -e -B checkstyle:check`, copies report to `testresult/checkstyle/`):
+  - `docker compose -f docker-compose.yml -f docker-compose.tests.yml run --rm unit-tests /bin/sh -lc "mvn -e -B checkstyle:check && mkdir -p testresult/checkstyle && cp -f target/checkstyle-result.xml testresult/checkstyle/checkstyle-result.xml 2>/dev/null || true"`
+- PMD only (Dockerized Maven):
+  - `docker compose -f docker-compose.yml -f docker-compose.tests.yml run --rm unit-tests mvn -e -B pmd:check`
+- PMD (Maven plugin, reports copied to `testresult/pmd/` like JaCoCo):
+  - `docker compose -f docker-compose.yml -f docker-compose.tests.yml run --rm unit-tests /bin/sh -lc "mvn -e -B pmd:check && mkdir -p testresult/pmd && { cp target/site/pmd.xml testresult/pmd/ 2>/dev/null || true; } && { cp target/site/pmd.html testresult/pmd/ 2>/dev/null || true; }"`
 - API tests (Newman):
   - `docker compose -f docker-compose.yml -f docker-compose.tests.yml run --rm newman`
 - Outputs (kept under `testresult/`):

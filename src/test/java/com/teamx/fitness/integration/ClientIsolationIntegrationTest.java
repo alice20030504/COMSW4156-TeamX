@@ -2,6 +2,7 @@ package com.teamx.fitness.integration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -152,8 +153,7 @@ class ClientIsolationIntegrationTest {
     ClientContext.setClientId(MOBILE_CLIENT_2);
     when(personRepository.findByClientId(MOBILE_CLIENT_2)).thenReturn(Optional.empty());
 
-    org.junit.jupiter.api.Assertions.assertThrows(
-        ResponseStatusException.class, () -> personController.getProfile());
+    assertThrows(ResponseStatusException.class, () -> personController.getProfile());
   }
 
   /**
@@ -239,9 +239,8 @@ class ClientIsolationIntegrationTest {
 
     when(personRepository.findByClientId(MOBILE_CLIENT_2)).thenReturn(Optional.empty());
 
-    org.junit.jupiter.api.Assertions.assertThrows(
-        ResponseStatusException.class,
-        () -> personController.updatePerson(updateAttempt));
+    assertThrows(
+        ResponseStatusException.class, () -> personController.updatePerson(updateAttempt));
     verify(personRepository, never()).save(any(PersonSimple.class));
   }
 

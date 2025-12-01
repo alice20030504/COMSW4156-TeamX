@@ -1,6 +1,7 @@
 package com.teamx.fitness.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -22,6 +23,8 @@ import com.teamx.fitness.model.PlanStrategy;
 import com.teamx.fitness.model.PersonSimple;
 import com.teamx.fitness.repository.PersonRepository;
 import com.teamx.fitness.security.ClientContext;
+import com.teamx.fitness.service.HealthInsightResult;
+import com.teamx.fitness.service.HealthInsightService;
 import com.teamx.fitness.service.PersonService;
 import java.time.LocalDate;
 import java.time.Month;
@@ -102,6 +105,10 @@ class PersonControllerTest {
   private static final double BMR_SAMPLE = 1600.0;
   /** BMR used when testing fallback logic. */
   private static final double BMR_FALLBACK = 1500.0;
+  /** Calories associated with one kilogram change. */
+  private static final double CALORIES_PER_KG = 7700.0;
+  /** Days per week constant for averaging. */
+  private static final double DAYS_PER_WEEK = 7.0;
   /** Negative weight used for validation test cases (kg). */
   private static final double NEGATIVE_WEIGHT_KG = -10.0;
   /** Target change for bulk-oriented recommendations (kg). */
@@ -160,12 +167,27 @@ class PersonControllerTest {
   /** DOB used when verifying update flows. */
   private static final LocalDate DOB_1990_MAY =
       LocalDate.of(YEAR_1990, Month.MAY, DAY_FIVE);
+  /** BMI returned by mocked health insight service. */
+  private static final double INSIGHT_BMI_VALUE = 26.4;
+  /** BMI category returned by mocked health insight service. */
+  private static final String INSIGHT_BMI_CATEGORY = "Overweight";
+  /** Health index returned by mocked health insight service. */
+  private static final double INSIGHT_HEALTH_INDEX = 58.0;
+  /** Plan alignment score returned by mocked health insight service. */
+  private static final double INSIGHT_PLAN_SCORE = 54.0;
+  /** Overall score returned by mocked health insight service. */
+  private static final double INSIGHT_OVERALL_SCORE = 56.0;
+  /** Percentile returned by mocked health insight service. */
+  private static final double INSIGHT_PERCENTILE = 67.4;
 
   /** Mocked BMI/calorie service. */
   @Mock private PersonService personService;
 
   /** Mocked persistence layer. */
   @Mock private PersonRepository personRepository;
+
+  /** Mocked insight service powering /recommendation. */
+  @Mock private HealthInsightService healthInsightService;
 
   /** Controller instance under test. */
   @InjectMocks private PersonController personController;
@@ -255,46 +277,6 @@ class PersonControllerTest {
 
     assertThrows(ResponseStatusException.class, () -> personController.calculateBMI());
   }
-  
-  private static Stream<Arguments> calorieScenarios() {
-    return Stream.of(
-        Arguments.of(
-            "Male moderate activity",
-            WEIGHT_STANDARD_KG,
-            HEIGHT_STANDARD_CM,
-            AGE_THIRTY,
-            "male",
-            TRAINING_FREQ_THREE,
-            BMR_STANDARD,
-            MAINTENANCE_CALORIES_ACTIVE),
-        Arguments.of(
-            "Sedentary frequency",
-            WEIGHT_STANDARD_KG,
-            HEIGHT_STANDARD_CM,
-            AGE_THIRTY,
-            "male",
-            TRAINING_FREQ_ZERO,
-            BMR_STANDARD,
-            MAINTENANCE_CALORIES_SEDENTARY),
-        Arguments.of(
-            "Uppercase gender handled",
-            WEIGHT_STANDARD_KG,
-            HEIGHT_STANDARD_CM,
-            AGE_THIRTY,
-            "MALE",
-            TRAINING_FREQ_FOUR,
-            BMR_STANDARD,
-            MAINTENANCE_CALORIES_ACTIVE),
-        Arguments.of(
-            "Missing BMR prevents calorie calculation",
-            WEIGHT_STANDARD_KG,
-            HEIGHT_STANDARD_CM,
-            AGE_THIRTY,
-            "female",
-            TRAINING_FREQ_FOUR / 2,
-            null,
-            null));
-  }
 
   @Test
   @DisplayName("createPerson rejects birthDate equal to today")
@@ -326,6 +308,22 @@ class PersonControllerTest {
     when(personService.calculateBMI(NEGATIVE_WEIGHT_KG, HEIGHT_SHORT_CM))
         .thenThrow(
             new ResponseStatusException(HttpStatus.BAD_REQUEST, "weight must be greater than 0"));
+
+    assertThrows(ResponseStatusException.class, () -> personController.createPerson(request));
+  }
+
+  @Test
+  @DisplayName("createPerson rejects missing gender selection")
+  void createPersonRejectsMissingGender() {
+    PersonCreateRequest request = new PersonCreateRequest();
+    request.setName("NoGender");
+    request.setWeight(WEIGHT_STANDARD_KG);
+    request.setHeight(HEIGHT_SHORT_CM);
+    request.setBirthDate(DOB_1990_JAN);
+    request.setGoal(FitnessGoal.CUT);
+    request.setGender(null);
+
+    when(personService.calculateBMI(WEIGHT_STANDARD_KG, HEIGHT_SHORT_CM)).thenReturn(BMI_RESPONSE);
 
     assertThrows(ResponseStatusException.class, () -> personController.createPerson(request));
   }
@@ -463,6 +461,20 @@ class PersonControllerTest {
   }
 
   @Test
+  @DisplayName("updatePerson rejects missing gender")
+  void updatePersonRejectsMissingGender() {
+    PersonSimple stored = basePerson("mobile-update-missing-gender");
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(personService.calculateBMI(stored.getWeight(), stored.getHeight())).thenReturn(BMI_UPDATED);
+
+    PersonSimple update = basePerson("mobile-update-missing-gender");
+    update.setGender(null);
+
+    assertThrows(ResponseStatusException.class, () -> personController.updatePerson(update));
+  }
+
+  @Test
   @DisplayName("updatePerson rejects invalid birth date")
   void updatePersonRejectsFutureBirthDate() {
     PersonSimple stored = basePerson("mobile-update-invalid");
@@ -522,6 +534,29 @@ class PersonControllerTest {
   }
 
   @Test
+  @DisplayName("calculateDailyCalories handles negative target changes")
+  void calculateDailyCaloriesHandlesNegativeTargetChange() {
+    PersonSimple stored = basePerson("mobile-calories-negative");
+    stored.setTargetChangeKg(-TARGET_CHANGE_PLAN_KG);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(personService.calculateAge(stored.getBirthDate())).thenReturn(AGE_THIRTY);
+    when(personService.calculateBMR(stored.getWeight(), stored.getHeight(), AGE_THIRTY, true))
+        .thenReturn(BMR_SAMPLE);
+    when(personService.calculateDailyCalorieNeeds(BMR_SAMPLE, stored.getTrainingFrequencyPerWeek()))
+        .thenReturn(MAINTENANCE_CALORIES);
+
+    ResponseEntity<Map<String, Object>> response = personController.calculateDailyCalories();
+
+    Map<String, Object> body = response.getBody();
+    double adjustment = Math.abs(
+        (stored.getTargetChangeKg() * CALORIES_PER_KG)
+            / (stored.getTargetDurationWeeks() * DAYS_PER_WEEK));
+    assertEquals(-adjustment, (Double) body.get("calorieAdjustmentPerDay"));
+    assertTrue((Double) body.get("recommendedDailyCalories") < MAINTENANCE_CALORIES);
+  }
+
+  @Test
   @DisplayName("calculateDailyCalories requires training frequency")
   void calculateDailyCaloriesRequiresFrequency() {
     PersonSimple stored = basePerson("mobile-calories-frequency");
@@ -575,186 +610,133 @@ class PersonControllerTest {
   }
 
   @Test
-  @DisplayName("provideRecommendation composes strategy notes")
-  void provideRecommendationIncludesStrategy() {
+  @DisplayName("provideRecommendation surfaces insight metrics")
+  void provideRecommendationIncludesInsightFields() {
     PersonSimple stored = basePerson("mobile-reco");
-    stored.setGoal(FitnessGoal.BULK);
-    stored.setPlanStrategy(PlanStrategy.WORKOUT);
-    stored.setTargetChangeKg(TARGET_CHANGE_BULK_KG);
-    stored.setTargetDurationWeeks(TARGET_DURATION_DEFAULT);
     ClientContext.setClientId(stored.getClientId());
     when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(healthInsightService.buildInsights(stored))
+        .thenReturn(sampleInsight("Stay the course."));
 
     ResponseEntity<Map<String, Object>> response = personController.provideRecommendation();
 
-    String message = (String) response.getBody().get("message");
-    assertNotNull(message);
-    org.junit.jupiter.api.Assertions.assertTrue(message.contains("bulking"));
-  }
-
-  @Test
-  @DisplayName("provideRecommendation handles CUT goals without targets")
-  void provideRecommendationHandlesCutWithoutTargets() {
-    PersonSimple stored = basePerson("mobile-reco-cut");
-    stored.setGoal(FitnessGoal.CUT);
-    stored.setPlanStrategy(PlanStrategy.DIET);
-    stored.setTargetChangeKg(null);
-    stored.setTargetDurationWeeks(null);
-    ClientContext.setClientId(stored.getClientId());
-    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
-
-    ResponseEntity<Map<String, Object>> response = personController.provideRecommendation();
-
-    String message = (String) response.getBody().get("message");
-    assertNotNull(message);
-    org.junit.jupiter.api.Assertions.assertTrue(message.contains("cutting"));
-    Map<String, Object> details = response.getBody();
-    org.junit.jupiter.api.Assertions.assertTrue(details.containsKey("dietPlan"));
-  }
-
-  @Test
-  @DisplayName("provideRecommendation handles missing goal and BOTH strategy")
-  void provideRecommendationHandlesUnknownGoal() {
-    PersonSimple stored = basePerson("mobile-reco-unknown");
-    stored.setGoal(null);
-    stored.setPlanStrategy(PlanStrategy.BOTH);
-    stored.setTrainingFrequencyPerWeek(TRAINING_FREQ_ZERO);
-    ClientContext.setClientId(stored.getClientId());
-    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
-
-    ResponseEntity<Map<String, Object>> response = personController.provideRecommendation();
-
-    Map<String, Object> details = response.getBody();
-    assertNotNull(details);
-    org.junit.jupiter.api.Assertions.assertTrue(details.containsKey("dietPlan"));
-    org.junit.jupiter.api.Assertions.assertTrue(details.containsKey("workoutPlan"));
-  }
-
-  @Test
-  @DisplayName("provideRecommendation includes BOTH strategy note")
-  void provideRecommendationIncludesBothStrategyMessage() {
-    PersonSimple stored = basePerson("mobile-reco-both");
-    stored.setGoal(FitnessGoal.BULK);
-    stored.setPlanStrategy(PlanStrategy.BOTH);
-    ClientContext.setClientId(stored.getClientId());
-    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
-
-    ResponseEntity<Map<String, Object>> response = personController.provideRecommendation();
-
-    String message = (String) response.getBody().get("message");
-    assertNotNull(message);
-    org.junit.jupiter.api.Assertions.assertTrue(message.contains("Balance training and nutrition"));
-  }
-
-  @Test
-  @DisplayName("provideRecommendation handles BULK goal without targets")
-  void provideRecommendationBulkWithoutTargets() {
-    PersonSimple stored = basePerson("mobile-reco-bulk-missing");
-    stored.setGoal(FitnessGoal.BULK);
-    stored.setTargetChangeKg(null);
-    stored.setTargetDurationWeeks(null);
-    stored.setPlanStrategy(PlanStrategy.WORKOUT);
-    ClientContext.setClientId(stored.getClientId());
-    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
-
-    ResponseEntity<Map<String, Object>> response = personController.provideRecommendation();
-
-    String message = (String) response.getBody().get("message");
-    assertNotNull(message);
-    org.junit.jupiter.api.Assertions.assertTrue(message.contains("Keep bulking—focus"));
-    org.junit.jupiter.api.Assertions.assertTrue(message.contains("structured training sessions"));
-  }
-
-  @Test
-  @DisplayName("provideRecommendation handles CUT goal with explicit targets")
-  void provideRecommendationCutWithTargets() {
-    PersonSimple stored = basePerson("mobile-reco-cut-target");
-    stored.setGoal(FitnessGoal.CUT);
-    stored.setTargetChangeKg(TARGET_CHANGE_PLAN_KG);
-    stored.setTargetDurationWeeks(TRAINING_DURATION_WEEKS);
-    stored.setPlanStrategy(PlanStrategy.DIET);
-    ClientContext.setClientId(stored.getClientId());
-    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
-
-    ResponseEntity<Map<String, Object>> response = personController.provideRecommendation();
-
-    String message = (String) response.getBody().get("message");
-    assertNotNull(message);
-    org.junit.jupiter.api.Assertions.assertTrue(
-        message.contains(
-            String.format(
-                "target %.1f kg over %d weeks",
-                TARGET_CHANGE_PLAN_KG, TRAINING_DURATION_WEEKS)));
-  }
-
-  @Test
-  @DisplayName("provideRecommendation omits strategy note when planStrategy is null")
-  void provideRecommendationOmitsStrategyWhenPlanMissing() {
-    PersonSimple stored = basePerson("mobile-reco-no-strategy");
-    stored.setPlanStrategy(null);
-    ClientContext.setClientId(stored.getClientId());
-    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
-
-    ResponseEntity<Map<String, Object>> response = personController.provideRecommendation();
-
-    String message = (String) response.getBody().get("message");
-    assertNotNull(message);
-    org.junit.jupiter.api.Assertions.assertFalse(message.contains("Balance training and nutrition"));
     Map<String, Object> body = response.getBody();
-    org.junit.jupiter.api.Assertions.assertFalse(body.containsKey("dietPlan"));
-    org.junit.jupiter.api.Assertions.assertFalse(body.containsKey("workoutPlan"));
+    assertNotNull(body);
+    assertEquals("Stay the course.", body.get("message"));
+    assertEquals(INSIGHT_BMI_VALUE, body.get("bmi"));
+    assertEquals(INSIGHT_BMI_CATEGORY, body.get("bmiCategory"));
+    assertEquals(INSIGHT_HEALTH_INDEX, body.get("healthIndex"));
+    assertEquals(INSIGHT_PLAN_SCORE, body.get("planAlignmentIndex"));
+    assertEquals(INSIGHT_OVERALL_SCORE, body.get("overallScore"));
+    assertEquals(INSIGHT_PERCENTILE, body.get("percentile"));
   }
 
   @Test
-  @DisplayName("provideRecommendation supplies workout plan for CUT goal")
-  void provideRecommendationGeneratesWorkoutPlanForCutGoal() {
-    PersonSimple stored = basePerson("mobile-reco-cut-workout");
-    stored.setGoal(FitnessGoal.CUT);
-    stored.setPlanStrategy(PlanStrategy.WORKOUT);
-    stored.setTrainingFrequencyPerWeek(TRAINING_FREQ_FIVE);
+  @DisplayName("provideRecommendation includes cohort warning when present")
+  void provideRecommendationIncludesCohortWarning() {
+    PersonSimple stored = basePerson("mobile-reco-warning");
     ClientContext.setClientId(stored.getClientId());
     when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(healthInsightService.buildInsights(stored))
+        .thenReturn(sampleInsight("Need more data", "Cohort too small"));
 
     ResponseEntity<Map<String, Object>> response = personController.provideRecommendation();
 
-    String workoutPlan = (String) response.getBody().get("workoutPlan");
-    assertNotNull(workoutPlan);
-    org.junit.jupiter.api.Assertions.assertTrue(workoutPlan.contains("mixing strength and cardio"));
+    Map<String, Object> body = response.getBody();
+    assertEquals("Cohort too small", body.get("cohortWarning"));
   }
 
   @Test
-  @DisplayName("provideRecommendation supplies workout plan when goal missing")
-  void provideRecommendationGeneratesWorkoutPlanWhenGoalMissing() {
-    PersonSimple stored = basePerson("mobile-reco-no-goal-workout");
-    stored.setGoal(null);
-    stored.setPlanStrategy(PlanStrategy.WORKOUT);
-    stored.setTrainingFrequencyPerWeek(TRAINING_FREQ_ZERO);
-    ClientContext.setClientId(stored.getClientId());
-    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
-
-    ResponseEntity<Map<String, Object>> response = personController.provideRecommendation();
-
-    String workoutPlan = (String) response.getBody().get("workoutPlan");
-    assertNotNull(workoutPlan);
-    org.junit.jupiter.api.Assertions.assertTrue(workoutPlan.contains("total-body"));
-  }
-
-  @Test
-  @DisplayName("provideRecommendation supplies diet plan when goal missing")
-  void provideRecommendationGeneratesDietPlanWhenGoalMissing() {
-    PersonSimple stored = basePerson("mobile-reco-no-goal-diet");
+  @DisplayName("provideRecommendation supplies balanced diet plan when goal unknown")
+  void provideRecommendationGeneratesDietPlanForUnknownGoal() {
+    PersonSimple stored = basePerson("mobile-reco-diet-unknown");
     stored.setGoal(null);
     stored.setPlanStrategy(PlanStrategy.DIET);
     stored.setTargetChangeKg(null);
     stored.setTargetDurationWeeks(null);
     ClientContext.setClientId(stored.getClientId());
     when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(healthInsightService.buildInsights(stored))
+        .thenReturn(sampleInsight("Diet message"));
 
     ResponseEntity<Map<String, Object>> response = personController.provideRecommendation();
 
     String dietPlan = (String) response.getBody().get("dietPlan");
-    assertNotNull(dietPlan);
-    org.junit.jupiter.api.Assertions.assertTrue(dietPlan.contains("balanced meal plan"));
+    assertTrue(dietPlan.contains("balanced meal plan"));
+  }
+
+  @Test
+  @DisplayName("provideRecommendation clamps workout frequency to minimum value")
+  void provideRecommendationClampsWorkoutFrequency() {
+    PersonSimple stored = basePerson("mobile-reco-workout-min");
+    stored.setGoal(null);
+    stored.setPlanStrategy(PlanStrategy.WORKOUT);
+    stored.setTrainingFrequencyPerWeek(0);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(healthInsightService.buildInsights(stored))
+        .thenReturn(sampleInsight("Workout message"));
+
+    ResponseEntity<Map<String, Object>> response = personController.provideRecommendation();
+
+    String workoutPlan = (String) response.getBody().get("workoutPlan");
+    assertTrue(workoutPlan.contains("Schedule 1 total-body"), "Workout plan should clamp to minimum frequency");
+  }
+
+  @Test
+  @DisplayName("provideRecommendation adds diet plan text for diet strategies")
+  void provideRecommendationIncludesDietPlanDetails() {
+    PersonSimple stored = basePerson("mobile-reco-diet");
+    stored.setPlanStrategy(PlanStrategy.DIET);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(healthInsightService.buildInsights(stored))
+        .thenReturn(sampleInsight("Diet focus message"));
+
+    ResponseEntity<Map<String, Object>> response = personController.provideRecommendation();
+
+    Map<String, Object> body = response.getBody();
+    assertNotNull(body.get("dietPlan"));
+    assertEquals("Diet focus message", body.get("message"));
+  }
+
+  @Test
+  @DisplayName("provideRecommendation adds workout plan text for workout strategies")
+  void provideRecommendationIncludesWorkoutPlanDetails() {
+    PersonSimple stored = basePerson("mobile-reco-workout");
+    stored.setPlanStrategy(PlanStrategy.WORKOUT);
+    stored.setTrainingFrequencyPerWeek(TRAINING_FREQ_FIVE);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(healthInsightService.buildInsights(stored))
+        .thenReturn(sampleInsight("Workout focus message"));
+
+    ResponseEntity<Map<String, Object>> response = personController.provideRecommendation();
+
+    Map<String, Object> body = response.getBody();
+    assertNotNull(body.get("workoutPlan"));
+    assertEquals("Workout focus message", body.get("message"));
+  }
+
+  @Test
+  @DisplayName("provideRecommendation omits plan details when no strategy stored")
+  void provideRecommendationOmitsPlanDetailsWhenMissing() {
+    PersonSimple stored = basePerson("mobile-reco-no-plan");
+    stored.setPlanStrategy(null);
+    stored.setTrainingFrequencyPerWeek(null);
+    stored.setTargetChangeKg(null);
+    stored.setTargetDurationWeeks(null);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(healthInsightService.buildInsights(stored))
+        .thenReturn(sampleInsight("Plan-free message"));
+
+    ResponseEntity<Map<String, Object>> response = personController.provideRecommendation();
+
+    Map<String, Object> body = response.getBody();
+    assertEquals("Plan-free message", body.get("message"));
+    assertFalse(body.containsKey("dietPlan"));
+    assertFalse(body.containsKey("workoutPlan"));
   }
 
   @Test
@@ -794,6 +776,22 @@ class PersonControllerTest {
     ClientContext.setClientId(stored.getClientId());
     when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
     assertThrows(ResponseStatusException.class, () -> personController.calculateDailyCalories());
+  }
+
+  private HealthInsightResult sampleInsight(String message) {
+    return sampleInsight(message, null);
+  }
+
+  private HealthInsightResult sampleInsight(String message, String warning) {
+    return new HealthInsightResult(
+        INSIGHT_BMI_VALUE,
+        INSIGHT_BMI_CATEGORY,
+        INSIGHT_HEALTH_INDEX,
+        INSIGHT_PLAN_SCORE,
+        INSIGHT_OVERALL_SCORE,
+        INSIGHT_PERCENTILE,
+        warning,
+        message);
   }
 
   private PersonSimple basePerson(String clientId) {
