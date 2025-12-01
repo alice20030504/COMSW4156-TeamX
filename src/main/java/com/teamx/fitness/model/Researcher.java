@@ -43,7 +43,10 @@ public class Researcher {
   @Column(name = "client_id", nullable = false, unique = true, length = 96)
   private String clientId;
 
-  public Researcher() { }
+  /** Default constructor required by JPA. */
+  public Researcher() {
+    // Required by JPA
+  }
 
   public Researcher(String name, String email, String clientId) {
     this.name = name;
@@ -83,4 +86,3 @@ public class Researcher {
     this.clientId = clientId;
   }
 }
-

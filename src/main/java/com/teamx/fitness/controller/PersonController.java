@@ -6,10 +6,12 @@ import com.teamx.fitness.controller.dto.PersonCreatedResponse;
 import com.teamx.fitness.controller.dto.PersonProfileResponse;
 import com.teamx.fitness.model.FitnessGoal;
 import com.teamx.fitness.model.Gender;
-import com.teamx.fitness.model.PlanStrategy;
 import com.teamx.fitness.model.PersonSimple;
+import com.teamx.fitness.model.PlanStrategy;
 import com.teamx.fitness.repository.PersonRepository;
 import com.teamx.fitness.security.ClientContext;
+import com.teamx.fitness.service.HealthInsightResult;
+import com.teamx.fitness.service.HealthInsightService;
 import com.teamx.fitness.service.PersonService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -58,6 +60,9 @@ public class PersonController {
   /** Repository for person data persistence. */
   @Autowired private PersonRepository personRepository;
 
+  /** Service for derived health metrics and recommendations. */
+  @Autowired private HealthInsightService healthInsightService;
+
   /** BMI threshold for underweight classification. */
   private static final double BMI_UNDERWEIGHT = 18.5;
 
@@ -97,12 +102,11 @@ public class PersonController {
           description = "Person created successfully",
           content = @Content(
               schema = @Schema(implementation = PersonCreatedResponse.class),
-              examples = @ExampleObject(
-                  value = """
-                      {
-                        "clientId": "mobile-3f2a4b1cd8e94bceb8c0b6a7dd5f1e92"
-                      }
-                      """))),
+              examples = @ExampleObject("""
+                  {
+                    "clientId": "mobile-3f2a4b1cd8e94bceb8c0b6a7dd5f1e92"
+                  }
+                  """))),
       @ApiResponse(responseCode = "400", description = "Invalid input data")
   })
   public ResponseEntity<PersonCreatedResponse> createPerson(
@@ -297,7 +301,7 @@ public class PersonController {
           responseCode = "200",
           description = "Calorie calculation successful",
           content = @Content(schema = @Schema(implementation = Map.class),
-              examples = @ExampleObject(value = """
+              examples = @ExampleObject("""
                   {
                     "bmr": 1650.5,
                     "dailyCalories": 2475.75,
@@ -349,8 +353,9 @@ public class PersonController {
     }
 
     double dailyAdjustmentCalories =
-        (person.getTargetChangeKg() * CALORIES_PER_KG)
-            / (person.getTargetDurationWeeks() * DAYS_PER_WEEK);
+        person.getTargetChangeKg() * CALORIES_PER_KG
+            / person.getTargetDurationWeeks()
+            / DAYS_PER_WEEK;
     if (dailyAdjustmentCalories < 0) {
       dailyAdjustmentCalories = Math.abs(dailyAdjustmentCalories);
     }
@@ -392,7 +397,7 @@ public class PersonController {
           responseCode = "200",
           description = "BMI retrieved successfully",
           content = @Content(schema = @Schema(implementation = Map.class),
-              examples = @ExampleObject(value = """
+              examples = @ExampleObject("""
                   {
                     "clientId": "mobile-3f2a4b1cd8e94bceb8c0b6a7dd5f1e92",
                     "weight": 75.5,
@@ -432,14 +437,24 @@ public class PersonController {
   public ResponseEntity<Map<String, Object>> provideRecommendation() {
     PersonSimple person = requirePersonForClient(requireClientId());
 
-    String message = buildRecommendation(person);
+    HealthInsightResult insight = healthInsightService.buildInsights(person);
 
     Map<String, Object> response = new HashMap<>();
     response.put("goal", person.getGoal());
-    response.put("message", message);
+    response.put("message", insight.recommendation());
+    response.put("bmi", insight.bmi());
+    response.put("bmiCategory", insight.bmiCategory());
+    response.put("healthIndex", insight.healthIndex());
+    response.put("planAlignmentIndex", insight.planAlignmentIndex());
+    response.put("overallScore", insight.overallScore());
+    response.put("percentile", insight.percentile());
+    if (insight.cohortWarning() != null) {
+      response.put("cohortWarning", insight.cohortWarning());
+    }
     response.put("planStrategy", person.getPlanStrategy());
     response.put("targetChangeKg", person.getTargetChangeKg());
     response.put("targetDurationWeeks", person.getTargetDurationWeeks());
+    response.put("trainingFrequencyPerWeek", person.getTrainingFrequencyPerWeek());
     response.putAll(buildPlanDetails(person));
     return ResponseEntity.ok(response);
   }
@@ -474,67 +489,15 @@ public class PersonController {
     return details;
   }
 
-  private String buildRecommendation(PersonSimple person) {
-    FitnessGoal goal = person.getGoal();
-    Double change = person.getTargetChangeKg();
-    Integer duration = person.getTargetDurationWeeks();
-    PlanStrategy strategy = person.getPlanStrategy();
-    String strategyNote = planStrategyMessage(strategy, goal);
-
-    String baseMessage;
-    if (goal == FitnessGoal.BULK) {
-      if (change != null && duration != null) {
-        baseMessage = String.format(
-            "Keep bulking: aim to gain %.1f kg over %d weeks. Stay consistent!",
-            change,
-            duration);
-      } else {
-        baseMessage = "Keep bulking—focus on progressive overload and sufficient calories.";
-      }
-    } else if (goal == FitnessGoal.CUT) {
-      if (change != null && duration != null) {
-        baseMessage = String.format(
-            "Keep cutting: target %.1f kg over %d weeks. Stay on track!",
-            change,
-            duration);
-      } else {
-        baseMessage = "Keep cutting—prioritize protein and maintain your calorie deficit.";
-      }
-    } else {
-      baseMessage = "Stay consistent with your current plan.";
-    }
-
-    if (strategyNote.isBlank()) {
-      return baseMessage;
-    }
-    return baseMessage + " " + strategyNote;
-  }
-
-  private String planStrategyMessage(PlanStrategy strategy, FitnessGoal goal) {
-    if (strategy == null) {
-      return "";
-    }
-    switch (strategy) {
-      case WORKOUT:
-        return "Leverage structured training sessions to "
-            + (goal == FitnessGoal.CUT ? "preserve muscle while cutting." : "drive strength gains.");
-      case DIET:
-        return "Dial in your nutrition to support the goal each day.";
-      case BOTH:
-        return "Balance training and nutrition to maximise results.";
-      default:
-        return "";
-    }
-  }
-
   private String defaultDietPlan(PersonSimple person) {
     FitnessGoal goal = person.getGoal();
     double adjustment = DEFAULT_PLAN_ADJUSTMENT;
     if (person.getTargetChangeKg() != null && person.getTargetDurationWeeks() != null
         && person.getTargetDurationWeeks() > 0) {
       adjustment = Math.abs(
-          (person.getTargetChangeKg() * CALORIES_PER_KG)
-              / (person.getTargetDurationWeeks() * DAYS_PER_WEEK));
+          person.getTargetChangeKg() * CALORIES_PER_KG
+              / person.getTargetDurationWeeks()
+              / DAYS_PER_WEEK);
     }
     adjustment = Math.round(adjustment / CALORIE_ROUNDING_STEP) * CALORIE_ROUNDING_STEP;
 

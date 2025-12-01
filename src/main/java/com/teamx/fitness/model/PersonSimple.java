@@ -23,7 +23,6 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
-
 import java.time.LocalDate;
 
 @Entity
@@ -89,7 +88,10 @@ public class PersonSimple {
   @Column(name = "client_id", nullable = false, unique = true, length = 96)
   private String clientId;
 
-  public PersonSimple() { }
+  /** Default constructor required by JPA. */
+  public PersonSimple() {
+    // Required by JPA
+  }
 
   @SuppressWarnings("checkstyle:ParameterNumber")
   public PersonSimple(

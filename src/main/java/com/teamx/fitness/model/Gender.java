@@ -23,7 +23,7 @@ public enum Gender {
     if (rawValue == null || rawValue.isBlank()) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "gender is required");
     }
-    for (Gender gender : Gender.values()) {
+    for (Gender gender : values()) {
       if (gender.name().equalsIgnoreCase(rawValue.trim())) {
         return gender;
       }
@@ -37,4 +37,3 @@ public enum Gender {
     return name();
   }
 }
-

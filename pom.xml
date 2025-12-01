@@ -233,6 +233,10 @@
                 <configuration>
                     <failOnViolation>false</failOnViolation>
                     <printFailingErrors>true</printFailingErrors>
+                    <includeTests>true</includeTests>
+                    <rulesets>
+                        <ruleset>pmd-ruleset.xml</ruleset>
+                    </rulesets>
                 </configuration>
                 <executions>
                     <execution>

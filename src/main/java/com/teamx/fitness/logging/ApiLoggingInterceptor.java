@@ -36,7 +36,7 @@ public class ApiLoggingInterceptor implements HandlerInterceptor {
       Exception ex) throws Exception {
 
     Long start = (Long) request.getAttribute(START_TIME_ATTR);
-    long duration = start != null ? (System.currentTimeMillis() - start) : -1L;
+    long duration = start != null ? System.currentTimeMillis() - start : -1L;
 
     String path = request.getRequestURI();
     String method = request.getMethod();

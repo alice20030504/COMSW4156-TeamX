@@ -3,6 +3,7 @@ package com.teamx.fitness.config;
 import jakarta.validation.ConstraintViolationException;
 import java.time.format.DateTimeParseException;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +35,7 @@ public class GlobalExceptionHandler {
 
     // Format error as "Forbidden" instead of "FORBIDDEN"
     String errorName = ex.getStatusCode().toString().substring(STATUS_CODE_PREFIX_LENGTH);
-    errorName = errorName.charAt(0) + errorName.substring(1).toLowerCase();
+    errorName = errorName.charAt(0) + errorName.substring(1).toLowerCase(Locale.ROOT);
 
     errorResponse.put("status", ex.getStatusCode().value());
     errorResponse.put("error", errorName);

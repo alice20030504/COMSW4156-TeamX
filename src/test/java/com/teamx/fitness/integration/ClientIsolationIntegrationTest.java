@@ -2,6 +2,7 @@ package com.teamx.fitness.integration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -24,7 +25,6 @@ import com.teamx.fitness.service.PersonService;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.Optional;
-import org.springframework.web.server.ResponseStatusException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,6 +34,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Verifies that {@link PersonController} enforces client isolation rules using mocked
@@ -152,8 +153,7 @@ class ClientIsolationIntegrationTest {
     ClientContext.setClientId(MOBILE_CLIENT_2);
     when(personRepository.findByClientId(MOBILE_CLIENT_2)).thenReturn(Optional.empty());
 
-    org.junit.jupiter.api.Assertions.assertThrows(
-        ResponseStatusException.class, () -> personController.getProfile());
+    assertThrows(ResponseStatusException.class, () -> personController.getProfile());
   }
 
   /**
@@ -239,9 +239,8 @@ class ClientIsolationIntegrationTest {
 
     when(personRepository.findByClientId(MOBILE_CLIENT_2)).thenReturn(Optional.empty());
 
-    org.junit.jupiter.api.Assertions.assertThrows(
-        ResponseStatusException.class,
-        () -> personController.updatePerson(updateAttempt));
+    assertThrows(
+        ResponseStatusException.class, () -> personController.updatePerson(updateAttempt));
     verify(personRepository, never()).save(any(PersonSimple.class));
   }
 

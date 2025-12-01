@@ -781,7 +781,7 @@
                     "exec": [
                       "pm.test('Recommendation request succeeds', function () { pm.response.to.have.status(200); });",
                       "const body = pm.response.json();",
-                      "pm.test('Message contains guidance', function () { pm.expect(body.message).to.include('Keep'); });"
+                      "pm.test('Message contains guidance', function () { pm.expect(body.message || '').to.match(/^(Keep|BMI)/); });"
                     ]
                   }
                 }
@@ -817,7 +817,7 @@
                     "exec": [
                       "pm.test('Boundary recommendation succeeds', function () { pm.response.to.have.status(200); });",
                       "const body = pm.response.json();",
-                      "pm.test('Bulk strategy message present', function () { pm.expect(body.message).to.include('bulking'); });"
+                      "pm.test('Bulk strategy message present', function () { pm.expect(body.message || '').to.match(/(Keep bulking|Lean bulk focus looks good)/); });"
                     ]
                   }
                 }

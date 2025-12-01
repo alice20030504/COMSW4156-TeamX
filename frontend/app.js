@@ -256,16 +256,93 @@ function displayProfile(data) {
 
 function displayResults(title, response) {
     const resultsContent = document.getElementById('resultsContent');
-    let html = `<h4 style="margin-bottom: 10px;">${title}</h4>`;
-    
-    try {
-        const data = JSON.parse(response);
-        html += '<div class="json-display">' + JSON.stringify(data, null, 2) + '</div>';
-    } catch (e) {
-        html += '<div class="json-display">' + escapeHtml(response) + '</div>';
+    let html = `<h4 style="margin-bottom: 10px;">${escapeHtml(title)}</h4>`;
+
+    let data = null;
+    if (typeof response === 'string') {
+        try {
+            data = JSON.parse(response);
+        } catch (e) {
+            data = null;
+        }
+    } else if (typeof response === 'object' && response !== null) {
+        data = response;
     }
-    
+
+    if (title === 'Recommendation' && data && !Array.isArray(data)) {
+        html += renderRecommendationSummary(data);
+    }
+
+    if (data) {
+        html += '<div class="json-display">' + escapeHtml(JSON.stringify(data, null, 2)) + '</div>';
+    } else {
+        const raw = typeof response === 'string' ? response : JSON.stringify(response);
+        html += '<div class="json-display">' + escapeHtml(raw) + '</div>';
+    }
+
     resultsContent.innerHTML = html;
+}
+
+function renderRecommendationSummary(data) {
+    const metricDefinitions = [
+        {
+            key: 'bmi',
+            label: 'BMI',
+            hasValue: () => data.bmi !== null && data.bmi !== undefined,
+            value: () => formatMetric(data.bmi, (val) => `${val}${data.bmiCategory ? ` (${data.bmiCategory})` : ''}`),
+            description: () => 'Shows where your weight sits for your height (underweight / normal / overweight / obese).'
+        },
+        {
+            key: 'healthIndex',
+            label: 'Health Index',
+            hasValue: () => true,
+            value: () => formatMetric(data.healthIndex),
+            description: () => '0-100 indicator of overall health habits. 100 is strongest.'
+        },
+        {
+            key: 'planAlignmentIndex',
+            label: 'Plan Alignment',
+            hasValue: () => true,
+            value: () => formatMetric(data.planAlignmentIndex),
+            description: () => '0-100 gauge for how realistic your goal/pace/training combo is right now.'
+        },
+        {
+            key: 'overallScore',
+            label: 'Trajectory Score',
+            hasValue: () => true,
+            value: () => formatMetric(data.overallScore),
+            description: () => '0-100 overall outlook for where your health and plan are heading.'
+        },
+        {
+            key: 'percentile',
+            label: 'Percentile',
+            hasValue: () => data.percentile !== null && data.percentile !== undefined,
+            value: () => formatMetric(data.percentile, (val) => `${val}%`),
+            description: () => 'Comparison to other users. 70% means you outrank 70% of the group.'
+        }
+    ];
+
+    let html = '<div class="insight-card" style="border: 1px solid #d9d9d9; border-radius: 8px; padding: 12px; margin-bottom: 12px; background: #fafafa;">';
+    html += `<p class="insight-message" style="font-weight: 600; margin-bottom: 8px;">${escapeHtml(data.message || 'No recommendation available')}</p>`;
+    html += '<div class="insight-metrics" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">';
+    metricDefinitions.filter((metric) => metric.hasValue()).forEach((metric) => {
+        html += `<div class="insight-metric" style="background: white; border: 1px solid #ececec; border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 6px;"><div style="display:flex; justify-content:space-between; align-items:flex-end;"><span class="metric-label" style="font-size: 11px; color:#666; text-transform: uppercase; letter-spacing: 0.05em;">${escapeHtml(metric.label)}</span><span class="metric-value" style="font-size: 24px; font-weight: 600; color: #0b6efb;">${metric.value()}</span></div><span class="metric-description" style="font-size: 12px; color: #444; line-height: 1.35;">${escapeHtml(metric.description())}</span></div>`;
+    });
+    html += '</div>';
+    if (data.cohortWarning) {
+        html += `<div class="insight-warning" style="margin-top: 8px; font-size: 13px; color: #8c6d1f; background: #fff7e6; border: 1px solid #ffe7ba; border-radius: 6px; padding: 6px 8px;">${escapeHtml(data.cohortWarning)}</div>`;
+    }
+    html += '</div>';
+    return html;
+}
+
+function formatMetric(value, formatter) {
+    if (value === null || value === undefined || Number.isNaN(value)) {
+        return '<span class="metric-missing">—</span>';
+    }
+    const formatted = Math.round(Number(value) * 10) / 10;
+    const text = formatter ? formatter(formatted) : String(formatted);
+    return `<strong>${escapeHtml(text)}</strong>`;
 }
 
 async function apiCall(method, path, body, requireAuth) {
