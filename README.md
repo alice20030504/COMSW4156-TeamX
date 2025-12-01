@@ -31,6 +31,168 @@ A modern web-based client is available in the `frontend/` directory, providing u
 
 ---
 
+## For Third-Party Developers
+
+Third-party developers can implement their own clients to interact with the Personal Fitness Management Service API. The service provides a well-documented REST API with support for multiple simultaneous client instances.
+
+### Getting Started
+
+1. **Review the API Documentation**: See [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) for complete endpoint specifications
+2. **Understand Client Identification**: Every authenticated request must include the `X-Client-ID` header to identify your client instance
+3. **Register Your Client**: Call `POST /api/persons` to register a profile and receive your unique `clientId`
+4. **Start Building**: Use the API reference to implement your custom client
+
+### API Authentication
+
+- **Open Endpoints**: Health check (`/health`) and user registration (`POST /api/persons`) do not require the `X-Client-ID` header
+- **Authenticated Endpoints**: All other endpoints require `X-Client-ID: <client-id>` header
+- **Client ID Format**: Client IDs follow the pattern `<type>-<identifier>` where type is either `mobile` (for personal fitness clients) or `research` (for analytics clients)
+- **Access Control**: Mobile clients can only access `/api/persons/*` endpoints; research clients can only access `/api/research/*` endpoints (403 Forbidden otherwise)
+
+### Available Endpoints
+
+**Mobile Client Endpoints** (for personal fitness management):
+
+- `POST /api/persons` - Register a new user profile
+- `GET /api/persons/me` - Retrieve your profile
+- `PUT /api/persons/me` - Update your profile
+- `DELETE /api/persons/me` - Delete your profile
+- `GET /api/persons/bmi?weight=<kg>&height=<cm>` - Calculate BMI
+- `GET /api/persons/calories?weight=<kg>&height=<cm>&age=<years>&gender=<MALE|FEMALE>&weeklyTrainingFreq=<1-14>` - Calculate daily calorie recommendations
+- `GET /api/persons/recommendation` - Get personalized fitness recommendations
+
+**Research Client Endpoints** (for analytics and population health):
+
+- `GET /api/research/persons` - Get aggregated user counts
+- `GET /api/research/demographics?ageRange=<optional>&gender=<optional>&objective=<optional>` - Get demographic statistics
+- `GET /api/research/workout-patterns?ageRange=<optional>` - Get workout patterns
+- `GET /api/research/nutrition-trends?objective=<optional>` - Get nutrition trends
+- `GET /api/research/population-health` - Get population health metrics
+
+### Multi-Client Support
+
+The service is designed to handle multiple simultaneous clients:
+
+- **Client Isolation**: Each client's data is completely isolated using their unique `X-Client-ID` header. A client can only see and modify its own data
+- **Concurrent Requests**: Multiple clients can make requests simultaneously without interference
+- **Data Persistence**: All data is stored in a PostgreSQL database, ensuring persistence across sessions
+- **Backend Enforcement**: The backend's `ClientIdInterceptor` validates every request and enforces client isolation at the database query level
+
+### Connection Details
+
+**Local Development**:
+
+```
+Base URL: http://localhost:8080
+Health Check: http://localhost:8080/health
+API Docs: http://localhost:8080/swagger-ui/index.html
+```
+
+**Production (GCP Cloud Run)**:
+
+```
+Base URL: https://teamx-backend-118279583185.us-central1.run.app
+Health Check: https://teamx-backend-118279583185.us-central1.run.app/health
+Swagger UI: https://teamx-backend-118279583185.us-central1.run.app/swagger-ui/index.html
+```
+
+**GCP VM Deployment**:
+
+```
+Base URL: http://35.188.26.134:8080
+Health Check: http://35.188.26.134:8080/health
+Swagger UI: http://35.188.26.134:8080/swagger-ui/index.html
+```
+
+### Example Implementation
+
+**Step 1: Register a User Profile**
+
+```bash
+curl -X POST http://localhost:8080/api/persons \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "John Doe",
+    "weight": 75.0,
+    "height": 180,
+    "birthDate": "1990-01-15",
+    "gender": "MALE",
+    "goal": "CUT"
+  }'
+```
+
+Response:
+
+```json
+{
+  "id": 1,
+  "clientId": "mobile-abc123xyz",
+  "name": "John Doe",
+  "weight": 75.0,
+  "height": 180,
+  "birthDate": "1990-01-15",
+  "gender": "MALE",
+  "goal": "CUT"
+}
+```
+
+**Step 2: Use Your Client ID for Authenticated Requests**
+
+```bash
+curl -X GET http://localhost:8080/api/persons/me \
+  -H "X-Client-ID: mobile-abc123xyz"
+```
+
+**Step 3: Access Fitness Calculation Endpoints**
+
+```bash
+curl -X GET "http://localhost:8080/api/persons/bmi?weight=75&height=180" \
+  -H "X-Client-ID: mobile-abc123xyz"
+```
+
+### Required Headers
+
+All authenticated API requests must include:
+
+```
+X-Client-ID: <your-client-id>
+Content-Type: application/json (for POST/PUT requests)
+```
+
+### Response Formats
+
+- **Success Responses**: 200 OK (GET), 201 Created (POST), 204 No Content (DELETE)
+- **Error Responses**: 400 Bad Request, 403 Forbidden, 404 Not Found, 500 Internal Server Error
+- **Data Format**: All requests and responses use JSON
+- **Date Format**: `YYYY-MM-DD` (e.g., `1990-01-15`)
+- **Enums**: Gender (`MALE`, `FEMALE`), Goal (`CUT`, `BULK`, `RECOVER`)
+
+### Error Handling
+
+Common error scenarios:
+
+- **Missing `X-Client-ID` Header**: Returns 400 Bad Request
+- **Invalid Client ID Format**: Returns 400 Bad Request
+- **Mobile Client Accessing Research Endpoints**: Returns 403 Forbidden
+- **Resource Not Found**: Returns 404 Not Found
+- **Invalid Request Data**: Returns 400 Bad Request with detailed error messages
+
+### Testing Your Implementation
+
+1. **Use the Interactive Swagger UI**: Access `/swagger-ui/index.html` to test endpoints directly
+2. **Use Postman**: Import the collection from `postman/fitness-api-tests.postman_collection.json`
+3. **Use cURL**: Command-line testing with custom headers and payloads
+4. **Run E2E Tests**: See [`docs/E2E_TESTING.md`](docs/E2E_TESTING.md) for comprehensive testing procedures
+
+### Additional Resources
+
+- **Full API Reference**: [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)
+- **Architecture Documentation**: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- **E2E Testing Guide**: [`docs/E2E_TESTING.md`](docs/E2E_TESTING.md)
+- **Postman Collection**: `postman/fitness-api-tests.postman_collection.json`
+
+---
+
 ## Static Analysis
 
 ### Tools Used
