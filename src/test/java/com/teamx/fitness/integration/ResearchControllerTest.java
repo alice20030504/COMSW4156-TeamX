@@ -6,9 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import com.teamx.fitness.controller.ResearchController;
 import com.teamx.fitness.controller.dto.ResearcherCreateRequest;
 import com.teamx.fitness.controller.dto.ResearcherCreatedResponse;
-import com.teamx.fitness.controller.ResearchController;
 import com.teamx.fitness.model.FitnessGoal;
 import com.teamx.fitness.model.Gender;
 import com.teamx.fitness.model.PersonSimple;

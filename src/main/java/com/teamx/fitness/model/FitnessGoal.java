@@ -23,7 +23,7 @@ public enum FitnessGoal {
     if (rawValue == null || rawValue.isBlank()) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "goal is required");
     }
-    for (FitnessGoal value : FitnessGoal.values()) {
+    for (FitnessGoal value : values()) {
       if (value.name().equalsIgnoreCase(rawValue.trim())) {
         return value;
       }
@@ -37,4 +37,3 @@ public enum FitnessGoal {
     return name();
   }
 }
-

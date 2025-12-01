@@ -18,7 +18,7 @@ public enum PlanStrategy {
     if (rawValue == null || rawValue.isBlank()) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "planStrategy is required");
     }
-    for (PlanStrategy value : PlanStrategy.values()) {
+    for (PlanStrategy value : values()) {
       if (value.name().equalsIgnoreCase(rawValue.trim())) {
         return value;
       }
@@ -32,4 +32,3 @@ public enum PlanStrategy {
     return name();
   }
 }
-

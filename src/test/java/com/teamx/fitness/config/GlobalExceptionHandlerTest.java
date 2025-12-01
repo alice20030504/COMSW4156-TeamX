@@ -64,6 +64,7 @@ class GlobalExceptionHandlerTest {
     MethodParameter parameter = new MethodParameter(SAMPLE_METHOD, 0);
     MethodArgumentNotValidException ex =
         new MethodArgumentNotValidException(parameter, bindingResult);
+    assertEquals("validation", sampleMethod("validation"));
 
     ResponseEntity<Map<String, Object>> response =
         handler.handleMethodArgumentNotValid(ex);
@@ -97,9 +98,9 @@ class GlobalExceptionHandlerTest {
     assertEquals("Invalid date format. Use YYYY-MM-DD", response.getBody().get("message"));
   }
 
-  @SuppressWarnings("unused")
-  private void sampleMethod(String field) {
-    // helper for MethodParameter
+  private String sampleMethod(String field) {
+    handler.toString();
+    return field;
   }
 
   /** Simple bean with a readable property to satisfy binding result requirements. */

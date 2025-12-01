@@ -25,7 +25,6 @@ import com.teamx.fitness.service.PersonService;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.Optional;
-import org.springframework.web.server.ResponseStatusException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,6 +34,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Verifies that {@link PersonController} enforces client isolation rules using mocked

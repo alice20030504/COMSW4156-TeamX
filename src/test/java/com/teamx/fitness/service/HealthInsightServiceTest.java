@@ -7,8 +7,8 @@ import static org.mockito.Mockito.when;
 
 import com.teamx.fitness.model.FitnessGoal;
 import com.teamx.fitness.model.Gender;
-import com.teamx.fitness.model.PlanStrategy;
 import com.teamx.fitness.model.PersonSimple;
+import com.teamx.fitness.model.PlanStrategy;
 import com.teamx.fitness.repository.PersonRepository;
 import java.time.LocalDate;
 import java.util.Arrays;

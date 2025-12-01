@@ -6,8 +6,8 @@ import com.teamx.fitness.controller.dto.PersonCreatedResponse;
 import com.teamx.fitness.controller.dto.PersonProfileResponse;
 import com.teamx.fitness.model.FitnessGoal;
 import com.teamx.fitness.model.Gender;
-import com.teamx.fitness.model.PlanStrategy;
 import com.teamx.fitness.model.PersonSimple;
+import com.teamx.fitness.model.PlanStrategy;
 import com.teamx.fitness.repository.PersonRepository;
 import com.teamx.fitness.security.ClientContext;
 import com.teamx.fitness.service.HealthInsightResult;
@@ -353,8 +353,9 @@ public class PersonController {
     }
 
     double dailyAdjustmentCalories =
-        (person.getTargetChangeKg() * CALORIES_PER_KG)
-            / (person.getTargetDurationWeeks() * DAYS_PER_WEEK);
+        person.getTargetChangeKg() * CALORIES_PER_KG
+            / person.getTargetDurationWeeks()
+            / DAYS_PER_WEEK;
     if (dailyAdjustmentCalories < 0) {
       dailyAdjustmentCalories = Math.abs(dailyAdjustmentCalories);
     }
@@ -494,8 +495,9 @@ public class PersonController {
     if (person.getTargetChangeKg() != null && person.getTargetDurationWeeks() != null
         && person.getTargetDurationWeeks() > 0) {
       adjustment = Math.abs(
-          (person.getTargetChangeKg() * CALORIES_PER_KG)
-              / (person.getTargetDurationWeeks() * DAYS_PER_WEEK));
+          person.getTargetChangeKg() * CALORIES_PER_KG
+              / person.getTargetDurationWeeks()
+              / DAYS_PER_WEEK);
     }
     adjustment = Math.round(adjustment / CALORIE_ROUNDING_STEP) * CALORIE_ROUNDING_STEP;
 

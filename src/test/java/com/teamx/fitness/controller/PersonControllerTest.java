@@ -19,8 +19,8 @@ import com.teamx.fitness.controller.dto.PersonCreatedResponse;
 import com.teamx.fitness.controller.dto.PersonProfileResponse;
 import com.teamx.fitness.model.FitnessGoal;
 import com.teamx.fitness.model.Gender;
-import com.teamx.fitness.model.PlanStrategy;
 import com.teamx.fitness.model.PersonSimple;
+import com.teamx.fitness.model.PlanStrategy;
 import com.teamx.fitness.repository.PersonRepository;
 import com.teamx.fitness.security.ClientContext;
 import com.teamx.fitness.service.HealthInsightResult;
@@ -550,8 +550,9 @@ class PersonControllerTest {
 
     Map<String, Object> body = response.getBody();
     double adjustment = Math.abs(
-        (stored.getTargetChangeKg() * CALORIES_PER_KG)
-            / (stored.getTargetDurationWeeks() * DAYS_PER_WEEK));
+        stored.getTargetChangeKg() * CALORIES_PER_KG
+            / stored.getTargetDurationWeeks()
+            / DAYS_PER_WEEK);
     assertEquals(-adjustment, (Double) body.get("calorieAdjustmentPerDay"));
     assertTrue((Double) body.get("recommendedDailyCalories") < MAINTENANCE_CALORIES);
   }

@@ -1,8 +1,8 @@
 package com.teamx.fitness.service;
 
 import com.teamx.fitness.model.FitnessGoal;
-import com.teamx.fitness.model.PlanStrategy;
 import com.teamx.fitness.model.PersonSimple;
+import com.teamx.fitness.model.PlanStrategy;
 import com.teamx.fitness.repository.PersonRepository;
 import java.util.ArrayList;
 import java.util.List;
@@ -202,7 +202,7 @@ public class HealthInsightService {
     long belowOrEqual = cohortScores.stream()
         .filter(score -> score <= personScore + PERCENTILE_EPSILON)
         .count();
-    double percentile = roundToOne((belowOrEqual * 100.0) / cohortScores.size());
+    double percentile = roundToOne(belowOrEqual * 100.0 / cohortScores.size());
     return new CohortSnapshot(percentile, null);
   }
 
