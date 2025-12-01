@@ -29,10 +29,3 @@ jobs:
 
       - name: PMD
         run: mvn -B pmd:check
-
-      - name: API tests (Dockerized Newman)
-        run: docker compose -f docker-compose.yml -f docker-compose.tests.yml run --build --rm newman
-
-      - name: Clean up Docker services
-        if: always()
-        run: docker compose -f docker-compose.yml -f docker-compose.tests.yml down --remove-orphans

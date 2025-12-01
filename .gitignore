@@ -20,14 +20,17 @@ Thumbs.db
 
 
 # Test results (keep only key HTML reports)
-# Ignore everything under testresult/ by default
+# Ignore everything under testresult/ by default, then re-include specific outputs
 testresult/**
-# Re-include the specific directories leading to allowed files
 !testresult/
 !testresult/unit-coverage/
 !testresult/unit-coverage/jacoco/
 !testresult/api/
-# Re-include the specific files
+!testresult/api/**
+!testresult/pmd/
+!testresult/pmd/**
+!testresult/checkstyle/
+!testresult/checkstyle/**
 !testresult/unit-coverage/jacoco/index.html
 !testresult/api/postman-report.html
 
