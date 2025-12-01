@@ -122,3 +122,4 @@ def generate_meal_plan(combined_input):
     Synchronous wrapper to call async POE API function.
     """
     return asyncio.run(get_meal_plan_from_poe(combined_input))
+

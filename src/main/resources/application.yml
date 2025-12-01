@@ -67,6 +67,11 @@ app:
       requests-per-minute: 60
       research-requests-per-minute: 30
 
+# Mealplan service configuration
+mealplan:
+  service:
+    base-url: ${MEALPLAN_SERVICE_URL:http://mealplan-service:5001}
+
 management:
   endpoints:
     web:

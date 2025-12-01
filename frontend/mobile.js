@@ -259,7 +259,6 @@ async function getCalories() {
 }
 
 async function getMealPlan() {
-  console.log("== getMealPlan() CALLED ==");
   try {
     // 1. Get client ID from storage
     const clientId = getClientId();
@@ -268,35 +267,52 @@ async function getMealPlan() {
       return;
     }
 
-    // 2. Retrieve user profile from Spring Boot (8080)
-    const profileRaw = await apiCall("GET", `/api/persons/${clientId}`, null, true);
-    const profile = JSON.parse(profileRaw);
-
-    // 3. Prepare FastAPI (5001) request body
-    const body = {
-      id: profile.id,
-      age: profile.age,
-      height: profile.height,
-      weight: profile.weight,
-      gender: profile.gender,
-      goal: profile.goal
-    };
-
-    // 4. Send POST to FastAPI
-    const mealPlanResp = await fetch("http://localhost:5001/mealplan", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
-    });
-
-    if (!mealPlanResp.ok) {
-      throw new Error("FastAPI returned error " + mealPlanResp.status);
+    // 2. Load profile if not cached
+    if (!cachedProfile) {
+      const profileRaw = await apiCall("GET", "/api/persons/me", null, true);
+      cachedProfile = JSON.parse(profileRaw);
     }
 
-    const mealPlanData = await mealPlanResp.json();
+    const profile = cachedProfile;
 
-    // 5. Display the result
-    displayResults("Meal Plan", mealPlanData.meal_plan);
+    // 3. Validate required fields
+    if (!profile.name || !profile.weight || !profile.height || !profile.birthDate 
+        || !profile.gender || !profile.goal) {
+      showStatus("Profile incomplete. Please update your profile with all required fields.", "error");
+      return;
+    }
+
+    if (!profile.targetChangeKg || !profile.targetDurationWeeks 
+        || !profile.trainingFrequencyPerWeek || !profile.planStrategy) {
+      showStatus("Goal plan incomplete. Please configure your goal plan first.", "error");
+      return;
+    }
+
+    // 4. Build request body matching MealPlanRequest DTO
+    const requestBody = {
+      name: profile.name,
+      weightKg: profile.weight,
+      heightCm: profile.height,
+      birthDate: profile.birthDate,
+      gender: profile.gender,
+      goal: profile.goal,
+      targetChangeKg: profile.targetChangeKg,
+      durationWeeks: profile.targetDurationWeeks,
+      trainingFrequencyPerWeek: profile.trainingFrequencyPerWeek,
+      planStrategy: profile.planStrategy
+    };
+
+    // 5. Call Java backend POST /api/mealplan (which will call Python service)
+    const response = await apiCall("POST", "/api/mealplan", requestBody, true);
+    const mealPlanData = JSON.parse(response);
+
+    // 6. Display the result
+    if (mealPlanData.mealPlan) {
+      displayResults("Meal Plan", mealPlanData.mealPlan);
+      showStatus("Meal plan generated successfully!", "success");
+    } else {
+      showStatus("Meal plan response is missing meal plan data.", "error");
+    }
   } catch (err) {
     showStatus("Failed to get meal plan: " + err.message, "error");
   }
