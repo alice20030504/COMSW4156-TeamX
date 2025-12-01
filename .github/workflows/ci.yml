@@ -31,7 +31,7 @@ jobs:
         run: mvn -B pmd:check
 
       - name: API tests (Dockerized Newman)
-        run: docker compose -f docker-compose.yml -f docker-compose.tests.yml up --build --abort-on-container-exit newman
+        run: docker compose -f docker-compose.yml -f docker-compose.tests.yml run --build --rm newman
 
       - name: Clean up Docker services
         if: always()
