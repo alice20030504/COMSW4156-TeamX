@@ -39,3 +39,12 @@ testresult/**
 ci-reports/**/*
 !ci-reports/.gitkeep
 !ci-reports/README.md
+!ci-reports/ci-summary.md
+# Allow sample reports for documentation
+!ci-reports/checkstyle/
+!ci-reports/checkstyle/*.xml
+!ci-reports/pmd/
+!ci-reports/pmd/*.xml
+!ci-reports/pmd/*.html
+!ci-reports/coverage/
+!ci-reports/coverage/index.html
