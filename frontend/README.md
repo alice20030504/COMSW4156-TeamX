@@ -7,7 +7,7 @@ A simple, modern web-based client for the Personal Fitness Management Service AP
 - **User Registration**: Register new fitness profiles with personal information
 - **Profile Management**: View and manage your fitness profile
 - **Goal Plan Configuration**: Set up personalized fitness plans with target changes, duration, and training frequency
-- **Fitness Metrics**: 
+- **Fitness Metrics**:
   - Calculate and view BMI (Body Mass Index)
   - Get daily calorie recommendations
   - Receive personalized fitness recommendations
@@ -37,6 +37,7 @@ The service supports multiple simultaneous client instances through the `X-Clien
   - Ensure data isolation between different clients
 
 This means you can:
+
 - Open multiple browser tabs, each with a different client ID
 - Run multiple instances of the web client on different machines
 - All instances can run simultaneously without interfering with each other
@@ -54,43 +55,57 @@ This means you can:
 1. Ensure the backend service is running (default: `http://localhost:8080`)
 2. Open `index.html` in your web browser:
    - **Windows**: Double-click `index.html` or right-click → "Open with" → your browser
-   - **Mac/Linux**: Open from file manager or use `open index.html` (Mac) / `xdg-open index.html` (Linux)
 
-### Option 2: Local Web Server (Recommended)
+### Option 2: Run with Docker (Backend + Frontend)
 
-For better security and CORS handling, use a local web server:
-
-#### Using Python (if installed):
+From the project root:
 
 ```bash
-# Python 3
+docker-compose up --build
+# Backend: http://localhost:8080
+# Frontend: http://localhost:3000
+```
+
+### Option 3: Test with GCP-Deployed Server
+
+The frontend can also connect to the service deployed on Google Cloud Platform:
+
+**GCP Server Details:**
+
+- IP Address: `35.188.26.134`
+- Backend Port: `8080`
+- Frontend Port: `3000`
+
+**Option 3a: Access Frontend Directly on GCP**
+
+Open your web browser and navigate to:
+
+```
+http://35.188.26.134:3000
+```
+
+The frontend will automatically connect to the backend service at `http://35.188.26.134:8080`.
+
+**Option 3b: Run Local Frontend Connected to GCP Backend**
+
+1. Run the local frontend web server:
+
+```bash
 cd frontend
 python -m http.server 3000
-
-# Then open: http://localhost:3000
+# Or: http-server -p 3000
 ```
 
-#### Using Node.js (if installed):
+2. Open your web browser to:
 
-```bash
-# Install http-server globally (one time)
-npm install -g http-server
-
-# Run the server
-cd frontend
-http-server -p 3000
-
-# Then open: http://localhost:3000
+```
+http://localhost:3000
 ```
 
-#### Using PHP (if installed):
-
-```bash
-cd frontend
-php -S localhost:3000
-
-# Then open: http://localhost:3000
-```
+3. The frontend will automatically detect the GCP backend, or you can manually configure it:
+   - Click on the API Configuration area
+   - Set the API Base URL to: `http://35.188.26.134:8080`
+   - Your setting will be saved and reused on refresh
 
 ## Configuration
 
@@ -143,6 +158,7 @@ Click "Load Profile" to see your complete profile information.
 ### 4. Get Fitness Metrics
 
 Use the quick action buttons:
+
 - **Get BMI**: Calculate your Body Mass Index
 - **Get Calories**: Get daily calorie recommendations based on your plan
 - **Get Recommendation**: Receive personalized motivational recommendations
@@ -153,11 +169,13 @@ Use the quick action buttons:
 To test multiple simultaneous clients:
 
 1. **Different Browser Tabs**:
+
    - Open the frontend in one tab and register a profile
    - Open a new tab (or incognito window) and register another profile
    - Each tab maintains its own client ID
 
 2. **Different Browsers**:
+
    - Open the frontend in Chrome and register
    - Open the same URL in Firefox and register
    - Each browser maintains separate localStorage
@@ -166,6 +184,16 @@ To test multiple simultaneous clients:
    - Run the frontend on multiple machines
    - Each machine can register and use different client IDs
    - All can connect to the same backend simultaneously
+
+## End-to-End Testing
+
+For comprehensive end-to-end (E2E) testing documentation covering all client and service workflows, see **[`docs/E2E_TESTING.md`](../docs/E2E_TESTING.md)**. This includes:
+
+- Step-by-step test procedures for mobile and research clients
+- Verification checklists for all functionality
+- Multi-client isolation testing
+- API error handling validation
+- Complete testing scenarios with expected outcomes
 
 ## Troubleshooting
 
