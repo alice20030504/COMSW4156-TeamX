@@ -414,26 +414,6 @@ CI reports are generated on every build and stored in:
 - **Health Check:** `http://34.30.81.33:8080/health`
 - **Swagger UI:** `http://34.30.81.33:8080/swagger-ui.html`
 
-### Environment Variables Required in Cloud
-
-**Database Configuration:**
-```bash
-DB_URL=jdbc:postgresql://<postgres-host>:5432/fitnessdb
-DB_USERNAME=postgres
-DB_PASSWORD=<secure-password>
-```
-
-**External API Keys (Optional):**
-```bash
-USDA_API_KEY=<usda-api-key>
-NUTRITIONIX_APP_ID=<app-id>
-NUTRITIONIX_API_KEY=<api-key>
-```
-
-**Application Configuration:**
-- Port: `8080` (default, configurable via `server.port` in [`application.yml`](src/main/resources/application.yml))
-- Logging: [`logs/fitness-app.log`](logs/fitness-app.log) (persisted to volume)
-
 ### Access for Mentors/Testers During Iteration 2 Demo
 
 **Backend API:**
@@ -443,17 +423,6 @@ NUTRITIONIX_API_KEY=<api-key>
 
 **Frontend:**
 - URL: `http://34.30.81.33:3000`
-
-**Testing Instructions:**
-1. Open Swagger UI to explore API endpoints
-2. Use Postman collection: [`postman/fitness-api-tests.postman_collection.json`](postman/fitness-api-tests.postman_collection.json)
-3. Set environment variable: `baseUrl = http://34.30.81.33:8080`
-4. Run collection to test all endpoints
-
-**Credentials:**
-- No authentication required (client ID-based isolation)
-- Register new clients via API to obtain `clientId`
-
 ---
 
 ## 10. Final Entry Point Documentation
