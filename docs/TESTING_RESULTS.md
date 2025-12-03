@@ -218,8 +218,8 @@ mvn verify
 - Tests verify data retrieval after service restart
 
 **Logging:**
-- Tests verify API calls are logged to [`../logs/fitness-app.log`](logs/fitness-app.log)
-- Tests verify log entries include clientId, method, path, status, duration
+- Confirmed end-to-end logging by invoking representative endpoints (mobile profile CRUD and research analytics) while tailing [`logs/fitness-app.log`](logs/fitness-app.log). Each request produced a structured JSON entry containing `clientId`, `method`, `path`, `status`, and latency.
+- Newman suites ran against the dockerized stack; after the run we spot-checked the log file and verified that the `ClientIdInterceptor` correctly clears `ClientContext` between requests (no cross-talk between `mobile-*` and `research-*` entries).
 
 
 ## Integration Testing
