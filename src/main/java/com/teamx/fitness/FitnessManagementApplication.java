@@ -8,12 +8,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * This service provides comprehensive fitness tracking and management capabilities
  * for individual users and research analysts.
  */
+@SuppressWarnings({"checkstyle:HideUtilityClassConstructor", "PMD.UseUtilityClass"})
 @SpringBootApplication
-public final class FitnessManagementApplication {
-
-    private FitnessManagementApplication() {
-        throw new UnsupportedOperationException("Utility class");
-    }
+public class FitnessManagementApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(FitnessManagementApplication.class, args);
