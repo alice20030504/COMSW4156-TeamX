@@ -31,15 +31,15 @@ The Personal Fitness Management Service is a RESTful API that performs sophistic
 - Data survives service restarts and is accessible across client sessions
 
 **API Call Logging:**
-- Every API request is logged to `logs/fitness-app.log` with structured JSON format
+- Every API request is logged to [`logs/fitness-app.log`](logs/fitness-app.log) with structured JSON format
 - Log entries include: clientId, HTTP method, path, status code, duration (ms), IP address, User-Agent, and error messages (if any)
 - Logging is implemented via `ApiLoggingInterceptor` which captures request lifecycle events
 
 ### Cloud Deployment
 
-**GCP Deployment URL:** `http://35.188.26.134:8080`
-
-The service is deployed on Google Cloud Platform and accessible at the above URL. Health check endpoint: `http://35.188.26.134:8080/health`
+**GCP Deployment URLs:**
+- **Backend:** `http://34.30.81.33:8080`
+- **Frontend:** `http://34.30.81.33:3000`
 
 ### Iteration 2 Tagged Version
 
@@ -54,11 +54,11 @@ The tagged Iteration 2 version is located at: **`Iteration_2`** (to be updated w
 The client code is integrated in the same repository at: **`/frontend`**
 
 The frontend consists of:
-- `index.html` - Landing page
-- `mobile.html` / `mobile.js` - Mobile user client
-- `research.html` / `research.js` - Research analyst client
-- `app.js` - Shared application logic
-- `styles.css` - Styling
+- [`index.html`](frontend/index.html) - Landing page
+- [`mobile.html`](frontend/mobile.html) / [`mobile.js`](frontend/mobile.js) - Mobile user client
+- [`research.html`](frontend/research.html) / [`research.js`](frontend/research.js) - Research analyst client
+- [`app.js`](frontend/app.js) - Shared application logic
+- [`styles.css`](frontend/styles.css) - Styling
 
 ### B. What the Client Does
 
@@ -85,7 +85,7 @@ The frontend consists of:
 
 **Option 1: Direct File Access**
 1. Ensure backend is running at `http://localhost:8080` (or configure for GCP)
-2. Open `frontend/index.html` in your web browser
+2. Open [`frontend/index.html`](frontend/index.html) in your web browser
 3. No build step required (pure HTML/CSS/JavaScript)
 
 **Option 2: Docker Compose (Recommended)**
@@ -104,7 +104,7 @@ python -m http.server 3000
 
 **Environment Variables / Configuration:**
 - API Base URL can be configured via:
-  1. URL parameter: `?apiBaseUrl=http://35.188.26.134:8080`
+  1. URL parameter: `?apiBaseUrl=http://34.30.81.33:8080`
   2. localStorage (saved from API Configuration panel)
   3. HTML meta tag: `<meta name="fitness-api-base-url" content="...">`
   4. JavaScript variable: `window.__FITNESS_API_BASE_URL__ = '...'`
@@ -190,7 +190,7 @@ See **[`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)** for complete API docume
 
 **Example Mobile Client Registration:**
 ```bash
-POST http://35.188.26.134:8080/api/persons
+POST http://34.30.81.33:8080/api/persons
 Headers:
   Content-Type: application/json
 Body:
@@ -214,7 +214,7 @@ Response: 201 Created
 
 **Example Research Client Registration:**
 ```bash
-POST http://35.188.26.134:8080/api/research/register
+POST http://34.30.81.33:8080/api/research/register
 Headers:
   Content-Type: application/json
 Body:
@@ -269,15 +269,15 @@ mvn clean verify
 
 ### Report Locations
 
-- **Checkstyle**: `testresult/checkstyle/checkstyle-result.xml`
-- **PMD**: `testresult/pmd/pmd.html`
+- **Checkstyle**: [`testresult/checkstyle/checkstyle-result.xml`](testresult/checkstyle/checkstyle-result.xml)
+- **PMD**: [`testresult/pmd/pmd.html`](testresult/pmd/pmd.html)
 - Reports are also generated in `target/` directory during Maven builds
 
 ### Style Checking
 
 - Style checking is enforced via Checkstyle and integrated into CI pipeline
-- Checkstyle configuration: `checkstyle.xml` (based on Google Java Style Guide)
-- PMD ruleset: `pmd-ruleset.xml`
+- Checkstyle configuration: [`checkstyle.xml`](checkstyle.xml) (based on Google Java Style Guide)
+- PMD ruleset: [`pmd-ruleset.xml`](pmd-ruleset.xml)
 - Zero violations are required for code commits
 
 ### Bugs Fixed
@@ -289,7 +289,7 @@ Static analysis tools identified and fixed the following issues:
 - **Dead code**: Removed unreachable code paths
 - **Exception handling**: Improved exception handling to avoid overly broad catches
 
-Before/after reports are stored in `testresult/checkstyle/` and `testresult/pmd/` directories.
+Before/after reports are stored in [`testresult/checkstyle/`](testresult/checkstyle/) and [`testresult/pmd/`](testresult/pmd/) directories.
 
 ---
 
@@ -505,7 +505,7 @@ mvn verify
 - Tests verify data retrieval after service restart
 
 **Logging:**
-- Tests verify API calls are logged to `logs/fitness-app.log`
+- Tests verify API calls are logged to [`logs/fitness-app.log`](logs/fitness-app.log)
 - Tests verify log entries include clientId, method, path, status, duration
 
 **Multiple Clients:**
@@ -517,7 +517,7 @@ mvn verify
 - 36 requests covering all endpoints
 - 79 assertions validating responses
 - Normal, boundary, and invalid scenarios for each endpoint
-- Collection: `postman/fitness-api-tests.postman_collection.json`
+- Collection: [`postman/fitness-api-tests.postman_collection.json`](postman/fitness-api-tests.postman_collection.json)
 
 ---
 
@@ -584,7 +584,7 @@ Integration tests are executed in CI pipelines alongside unit tests. The CI envi
 
 ### Coverage Report Location
 
-Coverage reports are stored at: **`testresult/unit-coverage/jacoco/index.html`**
+Coverage reports are stored at: **[`testresult/unit-coverage/jacoco/index.html`](testresult/unit-coverage/jacoco/index.html)**
 
 Open the HTML file in a web browser to view detailed coverage metrics by package, class, and method.
 
@@ -604,7 +604,7 @@ mvn clean test jacoco:report
 
 ### Branch Coverage Statement
 
-**Branch coverage is ≥ 80%** as verified by JaCoCo. The Maven build enforces a minimum coverage threshold of 80% for line coverage (configured in `pom.xml`).
+**Branch coverage is ≥ 80%** as verified by JaCoCo. The Maven build enforces a minimum coverage threshold of 80% for line coverage (configured in [`pom.xml`](pom.xml)).
 
 ### Bugs Found and Fixed
 
@@ -613,7 +613,7 @@ mvn clean test jacoco:report
 1. **Client ID Validation Bug:**
    - **Found**: Missing `X-Client-ID` header was not properly validated
    - **Fixed**: Enhanced `ClientIdInterceptor` to return structured 400 error with clear message
-   - **Before/After**: Before reports in `testresult/checkstyle/`, after reports show zero violations
+   - **Before/After**: Before reports in [`testresult/checkstyle/`](testresult/checkstyle/), after reports show zero violations
 
 2. **BMI Calculation Edge Cases:**
    - **Found**: Extreme weight/height values caused calculation errors
@@ -631,7 +631,7 @@ mvn clean test jacoco:report
    - **Before/After**: Logs verified to show proper context clearing
 
 **Coverage Reports:**
-- Before fixes: Coverage reports stored in `testresult/unit-coverage/jacoco/` (historical)
+- Before fixes: Coverage reports stored in [`testresult/unit-coverage/jacoco/`](testresult/unit-coverage/jacoco/) (historical)
 - After fixes: Current coverage ≥ 80% as verified by latest JaCoCo report
 - Bug fixes documented in commit history and test results
 
@@ -646,24 +646,21 @@ The CI pipeline executes the following stages on every push and pull request:
 **1. Style Checking:**
 - Runs Checkstyle to enforce Google Java Style Guide
 - Fails build if style violations are detected
-- Report: `testresult/checkstyle/checkstyle-result.xml`
+- Report: [`testresult/checkstyle/checkstyle-result.xml`](testresult/checkstyle/checkstyle-result.xml)
 
 **2. Static Analysis:**
 - Runs PMD to detect code quality issues
 - Analyzes code for bugs, unused code, and complexity
-- Report: `testresult/pmd/pmd.html`
+- Report: [`testresult/pmd/pmd.html`](testresult/pmd/pmd.html)
 
-**3. Unit Tests:**
+**3. Unit Tests & API Tests:**
 - Executes all unit tests using JUnit 5
 - Uses Mockito for mocking dependencies
-- Must pass for build to succeed
-- Report: `testresult/unit/` (Surefire reports)
-
-**4. API Tests:**
 - Runs Postman/Newman collection for API endpoint testing
 - Validates all endpoints with normal, boundary, and invalid inputs
 - Verifies persistence, logging, and multi-client scenarios
-- Report: `testresult/api/postman-report.html`
+- Must pass for build to succeed
+- Report: [`testresult/api/postman-report.html`](testresult/api/postman-report.html) (includes both unit and API test results)
 
 **5. Integration Tests:**
 - Executes integration tests for service-repository interactions
@@ -674,7 +671,7 @@ The CI pipeline executes the following stages on every push and pull request:
 - Generates JaCoCo coverage report
 - Enforces minimum 80% line coverage threshold
 - Fails build if coverage drops below threshold
-- Report: `testresult/unit-coverage/jacoco/index.html`
+- Report: [`testresult/unit-coverage/jacoco/index.html`](testresult/unit-coverage/jacoco/index.html)
 
 ### GitHub Actions Workflow Files
 
@@ -687,58 +684,24 @@ Each workflow file implements the corresponding stage of the CI pipeline.
 ### Recent CI Reports
 
 CI reports are generated on every build and stored in:
-- Checkstyle: `testresult/checkstyle/checkstyle-result.xml`
-- PMD: `testresult/pmd/pmd.html`
-- Unit Tests: `testresult/unit/`
-- API Tests: `testresult/api/postman-report.html`
-- Coverage: `testresult/unit-coverage/jacoco/index.html`
+- Checkstyle: [`testresult/checkstyle/checkstyle-result.xml`](testresult/checkstyle/checkstyle-result.xml)
+- PMD: [`testresult/pmd/pmd.html`](testresult/pmd/pmd.html)
+- Unit Tests & API Tests: [`testresult/api/postman-report.html`](testresult/api/postman-report.html)
+- Coverage: [`testresult/unit-coverage/jacoco/index.html`](testresult/unit-coverage/jacoco/index.html)
 
 ---
 
 ## 9. Cloud Deployment
 
-### Deployed Backend URL
+### Deployed URLs
 
-**GCP Deployment:** `http://35.188.26.134:8080`
+**GCP Deployment:**
+- **Backend:** `http://34.30.81.33:8080`
+- **Frontend:** `http://34.30.81.33:3000`
 
-**Health Check:** `http://35.188.26.134:8080/health`
-
-**Swagger UI:** `http://35.188.26.134:8080/swagger-ui.html`
-
-### How to Redeploy
-
-**Prerequisites:**
-- GCP VM instance running
-- Docker installed on VM
-- PostgreSQL database accessible
-
-**Redeployment Steps:**
-
-1. **SSH into GCP VM:**
-   ```bash
-   gcloud compute ssh <instance-name> --zone=<zone>
-   ```
-
-2. **Navigate to project directory:**
-   ```bash
-   cd /path/to/COMSW4156-TeamX
-   ```
-
-3. **Pull latest code:**
-   ```bash
-   git pull origin main
-   ```
-
-4. **Rebuild and restart services:**
-   ```bash
-   docker compose down
-   docker compose up -d --build
-   ```
-
-5. **Verify deployment:**
-   ```bash
-   curl http://localhost:8080/health
-   ```
+**Service Endpoints:**
+- **Health Check:** `http://34.30.81.33:8080/health`
+- **Swagger UI:** `http://34.30.81.33:8080/swagger-ui.html`
 
 ### Environment Variables Required in Cloud
 
@@ -757,23 +720,23 @@ NUTRITIONIX_API_KEY=<api-key>
 ```
 
 **Application Configuration:**
-- Port: `8080` (default, configurable via `server.port` in `application.yml`)
-- Logging: `logs/fitness-app.log` (persisted to volume)
+- Port: `8080` (default, configurable via `server.port` in [`application.yml`](src/main/resources/application.yml))
+- Logging: [`logs/fitness-app.log`](logs/fitness-app.log) (persisted to volume)
 
 ### Access for Mentors/Testers During Iteration 2 Demo
 
 **Backend API:**
-- Base URL: `http://35.188.26.134:8080`
-- Health Check: `http://35.188.26.134:8080/health`
-- Swagger UI: `http://35.188.26.134:8080/swagger-ui.html`
+- Base URL: `http://34.30.81.33:8080`
+- Health Check: `http://34.30.81.33:8080/health`
+- Swagger UI: `http://34.30.81.33:8080/swagger-ui.html`
 
-**Frontend (if deployed):**
-- URL: `http://35.188.26.134:3000` (if frontend container is running)
+**Frontend:**
+- URL: `http://34.30.81.33:3000`
 
 **Testing Instructions:**
 1. Open Swagger UI to explore API endpoints
-2. Use Postman collection: `postman/fitness-api-tests.postman_collection.json`
-3. Set environment variable: `baseUrl = http://35.188.26.134:8080`
+2. Use Postman collection: [`postman/fitness-api-tests.postman_collection.json`](postman/fitness-api-tests.postman_collection.json)
+3. Set environment variable: `baseUrl = http://34.30.81.33:8080`
 4. Run collection to test all endpoints
 
 **Credentials:**
@@ -787,8 +750,8 @@ NUTRITIONIX_API_KEY=<api-key>
 ### Full API Documentation
 
 Complete API documentation is available at:
-- **Swagger UI**: `http://35.188.26.134:8080/swagger-ui.html` (when service is running)
-- **OpenAPI Spec**: `http://35.188.26.134:8080/api-docs`
+- **Swagger UI**: `http://34.30.81.33:8080/swagger-ui.html` (when service is running)
+- **OpenAPI Spec**: `http://34.30.81.33:8080/api-docs`
 - **Detailed Reference**: [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)
 
 ### API Endpoints Summary
@@ -867,14 +830,14 @@ All responses are JSON unless noted. Standard HTTP status codes:
 
 ### Configuration Files Included in Repo
 
-- **`pom.xml`**: Maven project configuration, dependencies, plugins
-- **`application.yml`**: Spring Boot application configuration (database, logging, external APIs)
-- **`checkstyle.xml`**: Checkstyle rules configuration
-- **`pmd-ruleset.xml`**: PMD rules configuration
-- **`docker-compose.yml`**: Docker Compose configuration for local development
-- **`docker-compose.tests.yml`**: Docker Compose configuration for testing
-- **`Dockerfile`**: Multi-stage Docker build configuration
-- **`database/init/*.sql`**: Database initialization scripts
+- **[`pom.xml`](pom.xml)**: Maven project configuration, dependencies, plugins
+- **[`application.yml`](src/main/resources/application.yml)**: Spring Boot application configuration (database, logging, external APIs)
+- **[`checkstyle.xml`](checkstyle.xml)**: Checkstyle rules configuration
+- **[`pmd-ruleset.xml`](pmd-ruleset.xml)**: PMD rules configuration
+- **[`docker-compose.yml`](docker-compose.yml)**: Docker Compose configuration for local development
+- **[`docker-compose.tests.yml`](docker-compose.tests.yml)**: Docker Compose configuration for testing
+- **[`Dockerfile`](Dockerfile)**: Multi-stage Docker build configuration
+- **[`database/init/`](database/init/)**: Database initialization scripts
 
 ---
 
@@ -945,7 +908,7 @@ Work is tracked via:
 - `maven-pmd-plugin` (3.21.2) with PMD (6.55.0)
 - `jacoco-maven-plugin` (0.8.11) - Code coverage
 
-All dependencies are managed via Maven and declared in `pom.xml`.
+All dependencies are managed via Maven and declared in [`pom.xml`](pom.xml).
 
 ### Third-Party Code Copied into Project
 
@@ -983,5 +946,5 @@ docker compose -f docker-compose.yml -f docker-compose.tests.yml run --rm unit-t
 
 ## License
 
-See [LICENSE](LICENSE) file for details.
+See [`LICENSE`](LICENSE) file for details.
 

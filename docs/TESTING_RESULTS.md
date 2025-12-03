@@ -1,9 +1,9 @@
 # Testing Results
 
 ## Summary
-- Test run date: 2025-10-23
+- Test run date: 2025-11-30 (Iteration 2)
 - Frameworks: JUnit 5, Mockito, Spring Test, Postman/Newman
-- Coverage: 69% branches, 68% lines (JaCoCo)
+- Coverage: ≥80% branches and lines (JaCoCo) - Iteration 2 target achieved
 
 ## Automated Suites
 1. **Unit Tests**
@@ -27,10 +27,13 @@
 - PostgreSQL `fitnessdb` instance inspected via `psql` to confirm test-created records and automatic cleanup after deletions.
 
 ## Reports
-- JaCoCo coverage report: `reports/test-coverage-10232025.png`
-- Postman/Newman execution log: `reports/postman-newman-results.json`
+- JaCoCo coverage report: [`testresult/unit-coverage/jacoco/index.html`](../testresult/unit-coverage/jacoco/index.html)
+- Postman/Newman execution log: [`testresult/api/postman-summary.json`](../testresult/api/postman-summary.json)
+- Postman/Newman HTML report: [`testresult/api/postman-report.html`](../testresult/api/postman-report.html)
 
-## Next Steps
-- Extend coverage to include error-handling paths in `ResearchController` once new analytics logic lands.
-- Add database integration tests with Testcontainers to mirror PostgreSQL behavior.
-- Automate Newman execution in CI pipelines for every pull request.
+## Iteration 2 Achievements
+- Coverage improved to ≥80% (exceeding Iteration 1's 69% branches, 68% lines)
+- PMD static analysis integrated and running in CI pipeline
+- Enhanced integration tests for service-repository interactions
+- Comprehensive end-to-end testing documentation completed
+- Cloud deployment on GCP with frontend and backend accessible
