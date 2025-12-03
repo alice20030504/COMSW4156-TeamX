@@ -232,10 +232,10 @@ mvn clean test checkstyle:check pmd:check
 
 ```bash
 # Checkstyle only
-docker compose -f docker-compose.yml -f docker-compose.tests.yml run --rm unit-tests /bin/sh -lc "mvn -e -B checkstyle:check && mkdir -p testresult/checkstyle && cp -f target/checkstyle-result.xml testresult/checkstyle/checkstyle-result.xml 2>/dev/null || true"
+docker compose -f docker-compose.yml -f docker-compose.tests.yml run --rm checkstyle
 
 # PMD only
-docker compose -f docker-compose.yml -f docker-compose.tests.yml run --rm unit-tests /bin/sh -lc "mvn -e -B pmd:check && mkdir -p testresult/pmd && { cp target/site/pmd.xml testresult/pmd/ 2>/dev/null || true; } && { cp target/site/pmd.html testresult/pmd/ 2>/dev/null || true; }"
+docker compose -f docker-compose.yml -f docker-compose.tests.yml run --rm pmd
 ```
 
 ### Report Locations

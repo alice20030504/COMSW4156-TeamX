@@ -1,3 +1,10 @@
+x-maven-runner: &maven-runner
+  image: maven:3.9-eclipse-temurin-17
+  working_dir: /workspace
+  volumes:
+    - ./:/workspace
+    - maven-cache:/root/.m2
+
 services:
   newman:
     image: postman/newman:alpine
@@ -30,9 +37,8 @@ services:
       - ./:/etc/newman
 
   unit-tests:
-    image: maven:3.9-eclipse-temurin-17
+    <<: *maven-runner
     container_name: fitness-unit-tests
-    working_dir: /workspace
     command:
       - /bin/sh
       - -lc
@@ -41,9 +47,31 @@ services:
         mkdir -p testresult/unit testresult/unit-coverage &&
         cp -r target/surefire-reports testresult/unit/ 2>/dev/null || true &&
         cp -r target/site/jacoco testresult/unit-coverage/ 2>/dev/null || true
-    volumes:
-      - ./:/workspace
-      - maven-cache:/root/.m2
+
+  checkstyle:
+    <<: *maven-runner
+    container_name: fitness-checkstyle
+    command:
+      - /bin/sh
+      - -lc
+      - |
+        set -e
+        mvn -e -B checkstyle:check
+        mkdir -p testresult/checkstyle
+        cp -f target/checkstyle-result.xml testresult/checkstyle/checkstyle-result.xml 2>/dev/null || true
+
+  pmd:
+    <<: *maven-runner
+    container_name: fitness-pmd
+    command:
+      - /bin/sh
+      - -lc
+      - |
+        set -e
+        mvn -e -B pmd:check
+        mkdir -p testresult/pmd
+        cp target/site/pmd.xml testresult/pmd/ 2>/dev/null || true
+        cp target/site/pmd.html testresult/pmd/ 2>/dev/null || true
 
 volumes:
   maven-cache:
