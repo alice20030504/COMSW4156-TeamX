@@ -220,7 +220,6 @@ curl -v -X POST http://localhost:8080/api/persons \
     "goal": "CUT"
   }'
 
-
 Response: 201 Created
 {
   "id": 1,
