@@ -6,7 +6,7 @@ package com.teamx.fitness.service;
  * @param bmi calculated body mass index
  * @param bmiCategory textual category for BMI
  * @param healthIndex BMI-oriented score (0-100)
- * @param planAlignmentIndex plan alignment score (0-100)
+ * @param planAlignmentIndex plan alignment score (0-100), null when plan data is incomplete
  * @param overallScore combined score surfaced to users
  * @param percentile percentile compared to anonymous cohort (nullable)
  * @param cohortWarning message when percentile cannot be computed (nullable)
@@ -16,7 +16,7 @@ public record HealthInsightResult(
     Double bmi,
     String bmiCategory,
     double healthIndex,
-    double planAlignmentIndex,
+    Double planAlignmentIndex,
     double overallScore,
     Double percentile,
     String cohortWarning,

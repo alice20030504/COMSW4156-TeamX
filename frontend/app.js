@@ -180,7 +180,16 @@ async function handlePlanSubmit(e) {
 
     try {
         const response = await apiCall('POST', '/api/persons/plan', formData, true);
-        displayResults('Plan Configuration', response);
+        let data = null;
+        try {
+            data = JSON.parse(response);
+        } catch (parseError) {
+            // Keep raw response if parsing fails
+        }
+        displayResults('Plan Configuration', data ?? response);
+        if (data) {
+            displayProfile(data);
+        }
         showStatus('Plan saved successfully!', 'success');
     } catch (error) {
         showStatus('Failed to save plan: ' + error.message, 'error');
@@ -302,7 +311,10 @@ function renderRecommendationSummary(data) {
         {
             key: 'planAlignmentIndex',
             label: 'Plan Alignment',
-            hasValue: () => true,
+            hasValue: () =>
+                data.planAlignmentIndex !== null
+                && data.planAlignmentIndex !== undefined
+                && !Number.isNaN(data.planAlignmentIndex),
             value: () => formatMetric(data.planAlignmentIndex),
             description: () => '0-100 gauge for how realistic your goal/pace/training combo is right now.'
         },
