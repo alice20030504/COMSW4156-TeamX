@@ -107,26 +107,6 @@ http://localhost:3000
    - Set the API Base URL to: `http://35.188.26.134:8080`
    - Your setting will be saved and reused on refresh
 
-## Configuration
-
-### API Base URL
-
-The frontend now determines which backend to talk to in the following order:
-
-1. **URL override** – append `?apiBaseUrl=<url>` (or `?api=<url>`) to `mobile.html`/`research.html`/`landing.html`. Example: `mobile.html?apiBaseUrl=http://35.188.26.134:8080`. The value is normalized, stored in localStorage, and reused on refresh.
-2. **Saved configuration** – if you previously saved a URL (via the "API Configuration" panel on the main dashboard) it is loaded from localStorage.
-3. **HTML/JS override** – set `window.__FITNESS_API_BASE_URL__ = '<url>'` before the client script runs, or add `<meta name="fitness-api-base-url" content="https://api.example.com">` (optionally pair with `data-fitness-api-port` / `window.__FITNESS_API_PORT__`). This is handy when templating HTML during deployment.
-4. **Auto-detection** – when no override exists, the client pings `/health` on the current origin. If that endpoint responds, the origin is used; otherwise it automatically retries the same hostname on port `8080` (or the provided port hint) which covers split static/frontend hosting on a VM such as `http://35.188.26.134:8080`.
-5. **Fallback** – if none of the above apply, the client uses `http://localhost:8080` for local development.
-
-You can still change the value at any time from the "API Configuration" area, which updates localStorage for that browser/tab.
-
-Each dashboard displays the currently resolved backend URL (and how it was derived) directly under the page header so you can immediately confirm which host/port is in use when debugging VM deployments.
-
-### Connecting to Remote Services
-
-If your backend is deployed remotely (GCP VM, Cloud Run, etc.), either rely on the auto-detection (same host, different port) or set one of the overrides above (`?apiBaseUrl=…`, `<meta name="fitness-api-base-url">`, `window.__FITNESS_API_BASE_URL__`). Port-specific hints can be supplied with `<meta name="fitness-api-port" content="8081">` or `data-fitness-api-port="9090"` on the `<body>`/`<html>` tags. Every option persists per browser, so you only need to configure it once.
-
 ## Usage
 
 ### 1. Register a New Profile
@@ -187,6 +167,10 @@ To test multiple simultaneous clients:
 
 ## End-to-End Testing
 
+To run end-to-end tests, see **[`docs/E2E_TESTING.md`](../docs/E2E_TESTING.md)** for a complete checklist of test scenarios.
+
+### Test Coverage
+
 For comprehensive end-to-end (E2E) testing documentation covering all client and service workflows, see **[`docs/E2E_TESTING.md`](../docs/E2E_TESTING.md)**. This includes:
 
 - Step-by-step test procedures for mobile and research clients
@@ -198,6 +182,7 @@ For comprehensive end-to-end (E2E) testing documentation covering all client and
 ## F. Instructions for Third-Party Developers
 
 **Authentication:**
+
 - All API requests (except `/health`, `/swagger-ui.html`, `/api-docs`) require `X-Client-ID` header
 - Client ID format: `mobile-<identifier>` or `research-<identifier>`
 - Obtain client ID by registering via:
@@ -205,6 +190,7 @@ For comprehensive end-to-end (E2E) testing documentation covering all client and
   - Research: `POST /api/research/register` (returns `clientId` in response)
 
 **Required Headers:**
+
 ```
 X-Client-ID: mobile-abc123
 Content-Type: application/json
@@ -214,12 +200,14 @@ Content-Type: application/json
 See **[`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)** for complete API documentation.
 
 **Request/Response Formats:**
+
 - All requests and responses use JSON
 - Dates: `YYYY-MM-DD` format (e.g., `"1990-04-15"`)
 - Numbers: Standard JSON numbers (no quotes)
 - Enums: String values (e.g., `"MALE"`, `"FEMALE"`, `"CUT"`, `"BULK"`)
 
 **Example Mobile Client Registration:**
+
 ```bash
 curl -v -X POST http://localhost:8080/api/persons \
   -H "Content-Type: application/json" \
@@ -242,7 +230,61 @@ Response: 201 Created
 }
 ```
 
+**Example: Retrieve User Profile**
+
+```bash
+curl -v -X GET http://localhost:8080/api/persons/me \
+  -H "X-Client-ID: mobile-abc123"
+
+Response: 200 OK
+{
+  "id": 1,
+  "clientId": "mobile-abc123",
+  "name": "John Doe",
+  "weight": 75.5,
+  "height": 180.0,
+  "birthDate": "1990-01-15",
+  "gender": "MALE",
+  "goal": "CUT",
+  "targetChangeKg": 10.0,
+  "targetDurationWeeks": 12,
+  "trainingFrequencyPerWeek": 4,
+  "planStrategy": "BOTH"
+}
+```
+
+**Example: Get BMI Calculation**
+
+```bash
+curl -v -X GET http://localhost:8080/api/persons/bmi \
+  -H "X-Client-ID: mobile-abc123"
+
+Response: 200 OK
+{
+  "bmi": 23.4,
+  "bmiCategory": "NORMAL"
+}
+```
+
+**Example: Get Calorie Recommendation**
+
+```bash
+curl -v -X GET http://localhost:8080/api/persons/calories \
+  -H "X-Client-ID: mobile-abc123"
+
+Response: 200 OK
+{
+  "dailyCalorieIntake": 2100,
+  "macroBreakdown": {
+    "protein": "25%",
+    "carbs": "50%",
+    "fat": "25%"
+  }
+}
+```
+
 **Error Responses:**
+
 - `400 Bad Request`: Missing/invalid `X-Client-ID`, invalid request body, validation errors
 - `403 Forbidden`: Mobile client accessing research endpoint
 - `404 Not Found`: Resource not found for the client ID
