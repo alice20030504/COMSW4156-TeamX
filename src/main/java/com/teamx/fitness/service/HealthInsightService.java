@@ -7,7 +7,6 @@ import com.teamx.fitness.repository.PersonRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -34,6 +33,36 @@ public class HealthInsightService {
   private static final double PERCENTILE_EPSILON = 1e-6;
   /** Factor used when rounding derived metrics to a single decimal place. */
   private static final double ROUNDING_FACTOR = 10.0;
+  /** Target-weight proximity used to guess whether targetChangeKg is absolute weight. */
+  private static final double TARGET_WEIGHT_PROXIMITY_KG = 40.0;
+  /** Weekly change tolerated without penalty for bulk goals. */
+  private static final double BULK_WEEKLY_TOLERANCE = 2.0;
+  /** Weekly change tolerated without penalty for cut goals. */
+  private static final double CUT_WEEKLY_TOLERANCE = 1.3;
+  /** Relative change (as % of weight) tolerated without penalty. */
+  private static final double RELATIVE_CHANGE_FREE_THRESHOLD = 0.05;
+  /** Penalty factor applied per kg/week beyond tolerance. */
+  private static final double WEEKLY_PENALTY_FACTOR = 30.0;
+  /** Penalty factor per additional percent of bodyweight shift. */
+  private static final double RELATIVE_PENALTY_FACTOR = 120.0;
+  /** Bonus when training frequency is excellent for the active goal. */
+  private static final double TRAINING_BONUS_HIGH = 8.0;
+  /** Bonus when training frequency is solid for the active goal. */
+  private static final double TRAINING_BONUS_MEDIUM = 4.0;
+  /** Neutral bonus for acceptable training frequency. */
+  private static final double TRAINING_BONUS_LIGHT = 2.0;
+  /** Penalty when training commitment is very low. */
+  private static final double TRAINING_PENALTY_LOW = -6.0;
+  /** Penalty when training info is not provided. */
+  private static final double TRAINING_PENALTY_MISSING = -4.0;
+  /** Bonus when plan strategy perfectly complements the goal. */
+  private static final double STRATEGY_BONUS_MATCH = 6.0;
+  /** Bonus when plan strategy moderately supports the goal. */
+  private static final double STRATEGY_BONUS_SUPPORT = 3.0;
+  /** Penalty when plan strategy contradicts the goal. */
+  private static final double STRATEGY_PENALTY_MISMATCH = -4.0;
+  /** Penalty when no plan strategy is specified. */
+  private static final double STRATEGY_PENALTY_MISSING = -5.0;
 
   /** Baseline score used when BMI is categorised as underweight. */
   private static final double BMI_SCORE_UNDERWEIGHT_VALUE = 45.0;
@@ -56,71 +85,6 @@ public class HealthInsightService {
   private static final double STRATEGY_SCORE_MATCH = 8.0;
   /** Bonus when the plan strategy mismatches the goal. */
   private static final double STRATEGY_SCORE_MISMATCH = 5.0;
-
-  /** Neutral suitability score returned for most combinations. */
-  private static final double SUITABILITY_DEFAULT = 20.0;
-  /** Maximum suitability score when goal perfectly matches BMI range. */
-  private static final double SUITABILITY_MAX = 40.0;
-  /** Suitability score for overweight cutters. */
-  private static final double SUITABILITY_OVERWEIGHT = 35.0;
-  /** Suitability score for normal-weight bulkers. */
-  private static final double SUITABILITY_NORMAL_WEIGHT = 30.0;
-  /** Partial suitability score for mildly mismatched goals. */
-  private static final double SUITABILITY_PARTIAL = 15.0;
-  /** Minimum suitability score for obviously mismatched goals. */
-  private static final double SUITABILITY_MIN = 5.0;
-
-  /** Default intensity when the plan lacks change and duration data. */
-  private static final double PLAN_INTENSITY_BASE = 15.0;
-  /** Score when the plan attempts a very rapid rate of change. */
-  private static final double PLAN_INTENSITY_FAST = 10.0;
-  /** Score for moderately aggressive plans. */
-  private static final double PLAN_INTENSITY_MODERATE = 20.0;
-  /** Score for steady-paced plans. */
-  private static final double PLAN_INTENSITY_STEADY = 30.0;
-  /** Score when the plan change rate is very light. */
-  private static final double PLAN_INTENSITY_LIGHT = 18.0;
-  /** Weekly change rate considered very high. */
-  private static final double RATE_HIGH = 1.0;
-  /** Weekly change rate considered moderate. */
-  private static final double RATE_MEDIUM = 0.7;
-  /** Weekly change rate indicative of a steady approach. */
-  private static final double RATE_STEADY = 0.2;
-
-  /** Weekly training frequency treated as heavy. */
-  private static final int FREQ_HEAVY = 5;
-  /** Weekly training frequency treated as moderate. */
-  private static final int FREQ_MODERATE = 3;
-  /** Minimum weekly training frequency that counts as active. */
-  private static final int FREQ_MIN = 1;
-  /** Weekly training frequency seen as high for diet-only plans. */
-  private static final int FREQ_DIET_HIGH = 4;
-  /** Weekly training frequency seen as moderate for diet-only plans. */
-  private static final int FREQ_DIET_MED = 2;
-
-  /** Consistency score for very high training adherence. */
-  private static final double CONSISTENCY_TOP = 20.0;
-  /** Consistency score for strong training adherence. */
-  private static final double CONSISTENCY_STRONG = 17.0;
-  /** Consistency score for basic recommended adherence. */
-  private static final double CONSISTENCY_BASE = 12.0;
-  /** Consistency score applied when adherence is minimal. */
-  private static final double CONSISTENCY_LOW = 5.0;
-  /** Consistency score for high frequency in diet-focused plans. */
-  private static final double CONSISTENCY_DIET_HIGH = 16.0;
-  /** Consistency score for moderate frequency in diet-focused plans. */
-  private static final double CONSISTENCY_DIET_MED = 12.0;
-  /** Consistency score for light frequency in diet-focused plans. */
-  private static final double CONSISTENCY_DIET_LIGHT = 8.0;
-  /** Consistency score when diet-focused plans have minimal training. */
-  private static final double CONSISTENCY_DIET_MIN = 6.0;
-
-  /** Bonus when a plan balances both diet and workout strategies. */
-  private static final double BALANCE_SCORE_HIGH = 10.0;
-  /** Bonus when a plan's single strategy still suits the BMI. */
-  private static final double BALANCE_SCORE_POSITIVE = 8.0;
-  /** Bonus when the plan's strategy is neutral for the BMI. */
-  private static final double BALANCE_SCORE_NEUTRAL = 6.0;
 
   /** Weekly change threshold warning for aggressive cutting plans. */
   private static final double CUT_RATE_WARNING = 0.9;
@@ -160,9 +124,11 @@ public class HealthInsightService {
     String bmiCategory = categorizeBmi(bmi);
 
     double healthIndex = calculateHealthIndex(person, bmi);
-    double planAlignmentIndex = calculatePlanAlignmentIndex(person, bmiCategory);
-    double overallScore = roundToOne(
-        clamp(healthIndex * HEALTH_WEIGHT + planAlignmentIndex * PLAN_WEIGHT, 0, MAX_OVERALL_SCORE));
+    boolean hasPlanInputs = hasPlanInputs(person);
+    Double planAlignmentIndex = hasPlanInputs ? calculatePlanAlignmentIndex(person) : null;
+    double overallScore = planAlignmentIndex != null
+        ? roundToOne(clamp(healthIndex * HEALTH_WEIGHT + planAlignmentIndex * PLAN_WEIGHT, 0, MAX_OVERALL_SCORE))
+        : healthIndex;
 
     CohortSnapshot cohortSnapshot = buildCohortSnapshot(overallScore);
 
@@ -188,12 +154,13 @@ public class HealthInsightService {
         continue;
       }
       double peerHealth = calculateHealthIndex(peer, bmi);
-      double peerPlan = calculatePlanAlignmentIndex(peer, categorizeBmi(bmi));
-      double peerScore = clamp(peerHealth * HEALTH_WEIGHT + peerPlan * PLAN_WEIGHT, 0, MAX_OVERALL_SCORE);
+      boolean peerHasPlan = hasPlanInputs(peer);
+      Double peerPlan = peerHasPlan ? calculatePlanAlignmentIndex(peer) : null;
+      double peerScore = peerPlan != null
+          ? clamp(peerHealth * HEALTH_WEIGHT + peerPlan * PLAN_WEIGHT, 0, MAX_OVERALL_SCORE)
+          : peerHealth;
       cohortScores.add(peerScore);
     }
-    cohortScores.removeIf(Objects::isNull);
-
     if (cohortScores.size() < minCohortSize) {
       return new CohortSnapshot(null,
           "Need at least " + minCohortSize + " profiles for percentile comparison.");
@@ -246,97 +213,39 @@ public class HealthInsightService {
     return roundToOne(clamp(bmiScore + trainingScore + strategyScore, 0, MAX_OVERALL_SCORE));
   }
 
-  private double calculatePlanAlignmentIndex(PersonSimple person, String bmiCategory) {
-    double suitability = goalSuitabilityScore(person.getGoal(), bmiCategory);
-    double intensity = planIntensityScore(person);
-    double trainingConsistency = trainingConsistencyScore(person);
-    double strategyBalance = strategyBalanceScore(person.getPlanStrategy(), bmiCategory);
-
-    return roundToOne(
-        clamp(suitability + intensity + trainingConsistency + strategyBalance, 0, MAX_OVERALL_SCORE));
-  }
-
-  private double goalSuitabilityScore(FitnessGoal goal, String bmiCategory) {
-    if (goal == null) {
-      return SUITABILITY_DEFAULT;
-    }
-    return switch (goal) {
-      case CUT -> switch (bmiCategory) {
-        case "Obese" -> SUITABILITY_MAX;
-        case "Overweight" -> SUITABILITY_OVERWEIGHT;
-        case "Normal weight" -> SUITABILITY_DEFAULT;
-        default -> SUITABILITY_MIN;
-      };
-      case BULK -> switch (bmiCategory) {
-        case "Underweight" -> SUITABILITY_MAX;
-        case "Normal weight" -> SUITABILITY_NORMAL_WEIGHT;
-        case "Overweight" -> SUITABILITY_PARTIAL;
-        default -> SUITABILITY_MIN;
-      };
-    };
-  }
-
-  private double planIntensityScore(PersonSimple person) {
-    Double change = person.getTargetChangeKg();
+  private double calculatePlanAlignmentIndex(PersonSimple person) {
+    Double delta = resolvePlanDelta(person);
+    Double currentWeight = person.getWeight();
     Integer duration = person.getTargetDurationWeeks();
-    if (change == null || duration == null || duration <= 0) {
-      return PLAN_INTENSITY_BASE;
+    FitnessGoal goal = person.getGoal();
+    if (delta == null || currentWeight == null || duration == null || duration <= 0 || goal == null) {
+      return 0.0;
     }
-    double weeklyChange = Math.abs(change) / duration;
-    if (weeklyChange >= RATE_HIGH) {
-      return PLAN_INTENSITY_FAST;
-    }
-    if (weeklyChange >= RATE_MEDIUM) {
-      return PLAN_INTENSITY_MODERATE;
-    }
-    if (weeklyChange >= RATE_STEADY) {
-      return PLAN_INTENSITY_STEADY;
-    }
-    return PLAN_INTENSITY_LIGHT;
-  }
 
-  private double trainingConsistencyScore(PersonSimple person) {
-    PlanStrategy strategy = person.getPlanStrategy();
-    int frequency = person.getTrainingFrequencyPerWeek() != null
-        ? Math.max(person.getTrainingFrequencyPerWeek(), 0)
-        : 0;
-    if (strategy == PlanStrategy.WORKOUT || strategy == PlanStrategy.BOTH) {
-      if (frequency >= FREQ_HEAVY) {
-        return CONSISTENCY_TOP;
-      } else if (frequency >= FREQ_MODERATE) {
-        return CONSISTENCY_STRONG;
-      } else if (frequency >= FREQ_MIN) {
-        return CONSISTENCY_BASE;
-      }
-      return CONSISTENCY_LOW;
+    if (goal == FitnessGoal.CUT && delta >= 0) {
+      return 0.0;
     }
-    if (frequency >= FREQ_DIET_HIGH) {
-      return CONSISTENCY_DIET_HIGH;
-    } else if (frequency >= FREQ_DIET_MED) {
-      return CONSISTENCY_DIET_MED;
-    } else if (frequency >= FREQ_MIN) {
-      return CONSISTENCY_DIET_LIGHT;
+    if (goal == FitnessGoal.BULK && delta <= 0) {
+      return 0.0;
     }
-    return CONSISTENCY_DIET_MIN;
-  }
 
-  private double strategyBalanceScore(PlanStrategy strategy, String bmiCategory) {
-    if (strategy == null) {
-      return STRATEGY_SCORE_NONE;
-    }
-    return switch (strategy) {
-      case BOTH -> STRATEGY_SCORE_BOTH;
-      case DIET -> "Overweight".equals(bmiCategory) || "Obese".equals(bmiCategory) ? BALANCE_SCORE_POSITIVE
-          : BALANCE_SCORE_NEUTRAL;
-      case WORKOUT -> "Underweight".equals(bmiCategory) ? BALANCE_SCORE_POSITIVE : BALANCE_SCORE_NEUTRAL;
-    };
+    double weeklyChange = Math.abs(delta) / duration;
+    double relativeChange = Math.abs(delta) / currentWeight;
+    double weeklyTolerance = goal == FitnessGoal.BULK ? BULK_WEEKLY_TOLERANCE : CUT_WEEKLY_TOLERANCE;
+
+    double weeklyPenalty = Math.max(0, weeklyChange - weeklyTolerance) * WEEKLY_PENALTY_FACTOR;
+    double relativePenalty = Math.max(0, relativeChange - RELATIVE_CHANGE_FREE_THRESHOLD) * RELATIVE_PENALTY_FACTOR;
+    double score = 100.0 - weeklyPenalty - relativePenalty;
+    score += trainingFrequencyAdjustment(person);
+    score += strategyAdjustment(person);
+    return roundToOne(clamp(score, 0, MAX_OVERALL_SCORE));
   }
 
   private String buildRecommendation(
       PersonSimple person,
       double bmi,
       String bmiCategory,
-      double planAlignmentIndex,
+      Double planAlignmentIndex,
       double overallScore) {
 
     FitnessGoal goal = person.getGoal();
@@ -370,7 +279,9 @@ public class HealthInsightService {
       return "Lean bulk focus looks good. Prioritize progressive overload and adequate sleep.";
     }
 
-    if (overallScore >= SCORE_STRONG_THRESHOLD && planAlignmentIndex >= PLAN_ALIGNMENT_STRONG_THRESHOLD) {
+    if (overallScore >= SCORE_STRONG_THRESHOLD
+        && planAlignmentIndex != null
+        && planAlignmentIndex >= PLAN_ALIGNMENT_STRONG_THRESHOLD) {
       return "Solid balance between health metrics and your plan—maintain the current approach.";
     }
     if (overallScore < SCORE_LOW_THRESHOLD) {
@@ -380,12 +291,75 @@ public class HealthInsightService {
   }
 
   private double calculateWeeklyChange(PersonSimple person) {
-    Double change = person.getTargetChangeKg();
+    Double delta = resolvePlanDelta(person);
     Integer duration = person.getTargetDurationWeeks();
-    if (change == null || duration == null || duration <= 0) {
+    if (delta == null || duration == null || duration <= 0) {
       return Double.NaN;
     }
-    return Math.abs(change) / duration;
+    return Math.abs(delta) / duration;
+  }
+
+  private double trainingFrequencyAdjustment(PersonSimple person) {
+    Integer rawFrequency = person.getTrainingFrequencyPerWeek();
+    FitnessGoal goal = person.getGoal();
+    if (goal == null) {
+      return 0.0;
+    }
+    if (rawFrequency == null) {
+      return TRAINING_PENALTY_MISSING;
+    }
+    int frequency = Math.max(rawFrequency, 0);
+    if (goal == FitnessGoal.BULK) {
+      if (frequency >= 5) {
+        return TRAINING_BONUS_HIGH;
+      }
+      if (frequency >= 3) {
+        return TRAINING_BONUS_MEDIUM;
+      }
+      if (frequency >= 2) {
+        return TRAINING_BONUS_LIGHT;
+      }
+      return TRAINING_PENALTY_LOW;
+    }
+    if (goal == FitnessGoal.CUT) {
+      if (frequency >= 4) {
+        return TRAINING_BONUS_HIGH;
+      }
+      if (frequency >= 2) {
+        return TRAINING_BONUS_MEDIUM;
+      }
+      if (frequency >= 1) {
+        return TRAINING_BONUS_LIGHT;
+      }
+      return TRAINING_PENALTY_LOW;
+    }
+    return 0.0;
+  }
+
+  private double strategyAdjustment(PersonSimple person) {
+    PlanStrategy strategy = person.getPlanStrategy();
+    FitnessGoal goal = person.getGoal();
+    if (goal == null) {
+      return 0.0;
+    }
+    if (strategy == null) {
+      return STRATEGY_PENALTY_MISSING;
+    }
+    if (goal == FitnessGoal.BULK) {
+      return switch (strategy) {
+        case BOTH -> STRATEGY_BONUS_MATCH;
+        case WORKOUT -> STRATEGY_BONUS_SUPPORT;
+        case DIET -> STRATEGY_PENALTY_MISMATCH;
+      };
+    }
+    if (goal == FitnessGoal.CUT) {
+      return switch (strategy) {
+        case BOTH -> STRATEGY_BONUS_MATCH;
+        case DIET -> STRATEGY_BONUS_SUPPORT;
+        case WORKOUT -> STRATEGY_PENALTY_MISMATCH;
+      };
+    }
+    return 0.0;
   }
 
   private double roundToOne(double value) {
@@ -414,6 +388,35 @@ public class HealthInsightService {
 
   private String formatRate(double weeklyChange) {
     return String.format(Locale.US, "%.2f", weeklyChange);
+  }
+
+  private boolean hasPlanInputs(PersonSimple person) {
+    return resolvePlanDelta(person) != null
+        && person.getGoal() != null
+        && person.getTargetDurationWeeks() != null
+        && person.getTargetDurationWeeks() > 0;
+  }
+
+  private Double resolvePlanDelta(PersonSimple person) {
+    Double current = person.getWeight();
+    Double rawInput = person.getTargetChangeKg();
+    FitnessGoal goal = person.getGoal();
+    if (current == null || rawInput == null || goal == null) {
+      return null;
+    }
+
+    if (Math.abs(rawInput - current) <= TARGET_WEIGHT_PROXIMITY_KG) {
+      return rawInput - current;
+    }
+
+    double changeMagnitude = rawInput;
+    if (goal == FitnessGoal.CUT) {
+      return -Math.abs(changeMagnitude);
+    }
+    if (goal == FitnessGoal.BULK) {
+      return Math.abs(changeMagnitude);
+    }
+    return changeMagnitude;
   }
 
   private record CohortSnapshot(Double percentile, String warning) { }

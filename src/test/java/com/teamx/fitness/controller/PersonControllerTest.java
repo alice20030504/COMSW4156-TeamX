@@ -3,6 +3,7 @@ package com.teamx.fitness.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -630,6 +631,31 @@ class PersonControllerTest {
     assertEquals(INSIGHT_PLAN_SCORE, body.get("planAlignmentIndex"));
     assertEquals(INSIGHT_OVERALL_SCORE, body.get("overallScore"));
     assertEquals(INSIGHT_PERCENTILE, body.get("percentile"));
+  }
+
+  @Test
+  @DisplayName("provideRecommendation omits plan alignment when insight is missing")
+  void provideRecommendationOmitsPlanAlignmentWhenNull() {
+    PersonSimple stored = basePerson("mobile-reco-noplan");
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(healthInsightService.buildInsights(stored))
+        .thenReturn(new HealthInsightResult(
+            INSIGHT_BMI_VALUE,
+            INSIGHT_BMI_CATEGORY,
+            INSIGHT_HEALTH_INDEX,
+            null,
+            INSIGHT_HEALTH_INDEX,
+            null,
+            null,
+            "Plan pending"));
+
+    ResponseEntity<Map<String, Object>> response = personController.provideRecommendation();
+
+    Map<String, Object> body = response.getBody();
+    assertNotNull(body);
+    assertNull(body.get("planAlignmentIndex"), "planAlignmentIndex should be null when insight omits it");
+    assertEquals(INSIGHT_HEALTH_INDEX, body.get("overallScore"), "Overall score should fall back to health index");
   }
 
   @Test
