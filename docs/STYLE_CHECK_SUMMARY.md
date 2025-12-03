@@ -31,7 +31,7 @@ mvn clean verify
 ### Report Locations
 
 - **Checkstyle**: [`testresult/checkstyle/checkstyle-result.xml`](../testresult/checkstyle/checkstyle-result.xml)
-- **PMD**: [`testresult/pmd/cmd.html`](../testresult/pmd/cmd.html)
+- **PMD**: [`testresult/pmd/cmd.html`](../testresult/pmd/pmd.html)
 - Reports are also generated in `target/` directory during Maven builds
 
 ### Style Checking
