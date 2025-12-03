@@ -53,3 +53,9 @@ Static-analysis passes recently produced actionable findings; highlights include
 
 All the fixes above are demonstrated in the latest testresult/checkstyle/ and testresult/pmd/, which now record clean runs.
 
+### Functional Bugs Found and Fixed
+
+1. **Client ID Validation** – Missing `X-Client-ID` headers previously leaked through to controllers. The `ClientIdInterceptor` now short-circuits such requests with a structured `400` response and a clear remediation message. Reports in `testresult/checkstyle/` confirm the interceptor is covered and logged.
+2. **BMI Edge Cases** – Extreme weight/height combinations triggered invalid BMI math. Guard rails (max 635 kg / 272 cm) were added, and boundary unit tests ensure input validation fires before calculations.
+3. **Repository Isolation** – A few repository methods ignored the active `clientId`, risking cross-tenant reads. All queries now pull the client identifier from `ClientContext`, with integration tests proving isolation.
+4. **Logging Context Cleanup** – `ClientContext` used to persist between requests. The interceptor’s `afterCompletion` hook now clears the context reliably, preventing log contamination across concurrent clients.
