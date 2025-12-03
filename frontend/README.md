@@ -195,6 +195,79 @@ For comprehensive end-to-end (E2E) testing documentation covering all client and
 - API error handling validation
 - Complete testing scenarios with expected outcomes
 
+## F. Instructions for Third-Party Developers
+
+**Authentication:**
+- All API requests (except `/health`, `/swagger-ui.html`, `/api-docs`) require `X-Client-ID` header
+- Client ID format: `mobile-<identifier>` or `research-<identifier>`
+- Obtain client ID by registering via:
+  - Mobile: `POST /api/persons` (returns `clientId` in response)
+  - Research: `POST /api/research/register` (returns `clientId` in response)
+
+**Required Headers:**
+```
+X-Client-ID: mobile-abc123
+Content-Type: application/json
+```
+
+**Endpoints:**
+See **[`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)** for complete API documentation.
+
+**Request/Response Formats:**
+- All requests and responses use JSON
+- Dates: `YYYY-MM-DD` format (e.g., `"1990-04-15"`)
+- Numbers: Standard JSON numbers (no quotes)
+- Enums: String values (e.g., `"MALE"`, `"FEMALE"`, `"CUT"`, `"BULK"`)
+
+**Example Mobile Client Registration:**
+```bash
+POST http://35.188.26.134:8080/api/persons
+Headers:
+  Content-Type: application/json
+Body:
+{
+  "name": "John Doe",
+  "weight": 75.5,
+  "height": 180.0,
+  "birthDate": "1990-01-15",
+  "gender": "MALE",
+  "goal": "CUT"
+}
+
+Response: 201 Created
+{
+  "id": 1,
+  "clientId": "mobile-abc123",
+  "name": "John Doe",
+  ...
+}
+```
+
+**Example Research Client Registration:**
+```bash
+POST http://35.188.26.134:8080/api/research/register
+Headers:
+  Content-Type: application/json
+Body:
+{
+  "name": "Dr. Smith",
+  "email": "smith@research.edu"
+}
+
+Response: 201 Created
+{
+  "id": 1,
+  "clientId": "research-xyz789",
+  ...
+}
+```
+
+**Error Responses:**
+- `400 Bad Request`: Missing/invalid `X-Client-ID`, invalid request body, validation errors
+- `403 Forbidden`: Mobile client accessing research endpoint
+- `404 Not Found`: Resource not found for the client ID
+- `500 Internal Server Error`: Server-side errors
+
 ## Troubleshooting
 
 ### "Cannot connect to API" Error
