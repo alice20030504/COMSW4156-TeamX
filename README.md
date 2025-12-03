@@ -20,7 +20,7 @@ This project runs as a full Dockerized stack—Spring Boot backend, React fronte
    - PostgreSQL data volume: `database/data` (persisted between runs)
 4. **Shutdown / Reset** – Use `docker compose down` to stop services. For a clean slate including DB data, run `docker compose down -v`.
 
-See `DockerCommandInstruction.md` for additional commands (clean builds, unit tests, Checkstyle/PMD, Newman API tests) executed via Docker.
+See [`DockerCommandInstruction.md`](DockerCommandInstruction.md) for the full matrix of clean/build/test commands (unit tests, Checkstyle, PMD, Newman, DB resets) executed via Docker.
 
 ---
 
@@ -49,12 +49,14 @@ A modern web-based client is available in the `frontend/` directory, providing u
 
 ## 3. Static Analysis & Style Checker
 
-**Please refer to [`docs/STYLE_CHECK_SUMMARY`](docs/STYLE_CHECK_SUMMARY.md)**
+Detailed configuration, tooling, and findings are documented in [`docs/STYLE_CHECK_SUMMARY.md`](docs/STYLE_CHECK_SUMMARY.md).
+
 ---
 
 ## 4. Unit Testing, API Testing, Integration Testing
 
-**Please refer to [`docs/TESTING_RESULTS`](docs/TESTING_RESULTS.md)**
+Execution summaries for JUnit suites, Newman API runs, and integration tests live in [`docs/TESTING_RESULTS.md`](docs/TESTING_RESULTS.md).
+
 ---
 
 ## 5. CI Execution Overview
