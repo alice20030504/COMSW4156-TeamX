@@ -45,11 +45,11 @@ mvn clean verify
 
 Static-analysis passes recently produced actionable findings; highlights include:
 
-Exception handling – narrowed multiple broad catch (Exception e) blocks to the specific checked exceptions so PMD’s SignatureDeclareThrowsException and EmptyCatchBlock rules stay satisfied.
-Dead code & unused members – removed redundant helper methods and stale logging hooks that Checkstyle/PMD marked as unused, trimming bytecode size and reducing confusion.
-Naming & visibility – brought lingering snake_case identifiers and package-private helper classes in line with the Checkstyle naming rules, and tightened visibility on a few service helpers to satisfy PMD’s UnusedPrivateMethod.
-Complexity spikes – broke up a couple of “god” controller methods that exceeded PMD’s cognitive-complexity threshold; the refactor also made unit tests easier to target.
-Imports & formatting – cleaned up straggling wildcard imports plus whitespace/brace issues so the formatter and Checkstyle hooks report zero violations.
+- **Exception handling**: – narrowed multiple broad catch (Exception e) blocks to the specific checked exceptions so PMD’s SignatureDeclareThrowsException and EmptyCatchBlock rules stay satisfied.
+- **Dead code & unused members**: – removed redundant helper methods and stale logging hooks that Checkstyle/PMD marked as unused, trimming bytecode size and reducing confusion.
+- **Naming & visibility**: – brought lingering snake_case identifiers and package-private helper classes in line with the Checkstyle naming rules, and tightened visibility on a few service helpers to satisfy PMD’s UnusedPrivateMethod.
+- **Complexity spikes**: – broke up a couple of “god” controller methods that exceeded PMD’s cognitive-complexity threshold; the refactor also made unit tests easier to target.
+- **Imports & formatting**: – cleaned up straggling wildcard imports plus whitespace/brace issues so the formatter and Checkstyle hooks report zero violations.
 
 All the fixes above are demonstrated in the latest testresult/checkstyle/ and testresult/pmd/ artifacts, which now record clean runs.
 
