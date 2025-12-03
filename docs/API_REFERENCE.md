@@ -207,3 +207,32 @@ These endpoints are provided by system controllers and do not require client aut
 
 All sequences may be repeated with different client IDs to validate isolation and authorization policies.
 
+### 4.3 Dependency Graph
+
+**Mobile Client Endpoints:**
+```
+GET /health (independent)
+    ↓
+POST /api/persons (independent - generates clientId)
+    ↓
+    ├─→ GET /api/persons/me (requires: POST /api/persons)
+    ├─→ PUT /api/persons/me (requires: POST /api/persons)
+    ├─→ DELETE /api/persons/me (requires: POST /api/persons)
+    ├─→ POST /api/persons/plan (requires: POST /api/persons)
+    │       ↓
+    │       └─→ GET /api/persons/calories (requires: POST /api/persons + POST /api/persons/plan)
+    │
+    ├─→ GET /api/persons/bmi (optional: can use query params OR stored profile)
+    └─→ GET /api/persons/recommendation (requires: POST /api/persons, enhanced with plan)
+```
+
+**Research Client Endpoints:**
+```
+GET /health (independent)
+    ↓
+POST /api/research (independent - generates research clientId)
+    ↓
+    ├─→ GET /api/research/demographics (requires: POST /api/research + ≥3 mobile profiles)
+    └─→ GET /api/research/population-health (requires: POST /api/research + ≥1 CUT + ≥1 BULK profile)
+```
+
