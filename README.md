@@ -51,247 +51,39 @@ The tagged Iteration 2 version is located at: **`Iteration_2`** (to be updated w
 
 A modern web-based client is available in the `frontend/` directory, providing user-friendly browser interfaces for both mobile users to manage fitness profiles and research analysts to access population health analytics. It supports simultaneous multi-client sessions with complete data isolation via `X-Client-ID` header authentication.
 
-**For complete documentation on building, running, testing locally, and connecting to the GCP-deployed backend server, see [`frontend/README.md`](frontend/README.md).**
+**For complete documentation on building, running, testing locally, and connecting to the GCP-deployed backend server, see [`frontend/README.md`](../frontend/README.md).**
 
 ---
 
-## 3. Static Analysis
+## 3. Static Analysis & Style Checker
 
-### Tools Used
+**Please refer to [`docs/STYLE_CHECK_SUMMARY`](../docs/STYCLE_CHECK_SUMMARY.md)
+---
 
-- **Checkstyle 10.12.5**: Enforces Google Java Style Guide conventions
-- **PMD 6.55.0**: Detects code quality issues, unused code, and potential bugs
+## 4. Unit Testing, API Testing, Integration Testing
 
-### How to Run Static Analysis Locally
+**Please refer to [`docs/STYLE_CHECK_SUMMARY`](../docs/TESTING_RESULTS.md)
+---
 
-**Checkstyle:**
-```bash
-mvn checkstyle:check
-# Or via Docker:
-docker compose -f docker-compose.yml -f docker-compose.tests.yml run --rm checkstyle
-```
+## 5. CI Execution Overview
+Our GitHub Actions workflow (`.github/workflows/ci.yml`) runs on every pull request targeting `main` and on all pushes. The job executes on `ubuntu-latest` and uses JDK 17 (Temurin distribution) via `actions/setup-java@v4`.
 
-**PMD:**
-```bash
-mvn pmd:check
-# Or via Docker:
-docker compose -f docker-compose.yml -f docker-compose.tests.yml run --rm pmd
-```
+## Stages & Commands
+1. **Checkout** – `actions/checkout@v4` pulls the repository contents.
+2. **JDK Setup** – `actions/setup-java@v4` installs Temurin 17 and enables Maven caching.
+3. **Unit Tests & Build** – `mvn -B clean test` compiles the project and runs the test suite (Surefire reports under `target/surefire-reports`).
+4. **Checkstyle** – `mvn -B checkstyle:check` enforces Google-style formatting; failures surface directly in the Actions log and can be inspected via `target/site/checkstyle.html` if downloaded.
+5. **PMD** – `mvn -B pmd:check` executes the PMD ruleset. Results are written to `target/site/pmd.html` and `target/pmd.xml` when you collect artifacts locally.
 
-**Both (during Maven verify):**
-```bash
-mvn clean verify
-```
-
-### Report Locations
-
-- **Checkstyle**: [`testresult/checkstyle/checkstyle-result.xml`](testresult/checkstyle/checkstyle-result.xml)
-- **PMD**: [`testresult/pmd/pmd.html`](testresult/pmd/pmd.html)
-- Reports are also generated in `target/` directory during Maven builds
-
-### Style Checking
-
-- Style checking is enforced via Checkstyle and integrated into CI pipeline
-- Checkstyle configuration: [`checkstyle.xml`](checkstyle.xml) (based on Google Java Style Guide)
-- PMD ruleset: [`pmd-ruleset.xml`](pmd-ruleset.xml)
-- Zero violations are required for code commits
-
-### Bugs Fixed
-
-Static analysis tools identified and fixed the following issues:
-- **Unused imports**: Removed unused import statements
-- **Code complexity**: Refactored methods exceeding complexity thresholds
-- **Naming conventions**: Fixed variable and method naming to match conventions
-- **Dead code**: Removed unreachable code paths
-- **Exception handling**: Improved exception handling to avoid overly broad catches
-
-Before/after reports are stored in [`testresult/checkstyle/`](testresult/checkstyle/) and [`testresult/pmd/`](testresult/pmd/) directories.
+## Notes
+- No Docker services run inside CI; the workflow relies on Maven alone.
+- API/Newman regression tests remain outside the workflow because spinning up the dockerized Newman runner causes excessive wait times on GitHub-hosted runners. Those tests run on-demand using `docker compose ... run --rm newman` in local/QA environments.
+- CI runs in parallel for multiple pushes but fails fast if any Maven goal returns non-zero.
+- Artifacts (Surefire XML, Checkstyle/PMD reports) are available locally by rerunning the same Maven commands; we currently don’t upload them as CI artifacts.
 
 ---
 
-## 4. Unit Testing
-
-### How to Run Unit Tests
-
-```bash
-mvn test
-# Or via Docker:
-docker compose -f docker-compose.yml -f docker-compose.tests.yml run --rm unit-tests
-```
-
-Unit tests are automatically executed during Maven `verify` phase and in CI pipelines.
-
-### Equivalence Partitions and Boundary Testing
-
-**Service Layer (`PersonServiceTest`):**
-
-**BMI Calculation:**
-- **Inputs Tested**: `weight` (kg), `height` (cm)
-- **Equivalence Classes**:
-  - Valid: Typical adult metrics (70kg, 175cm)
-  - Boundary: Underweight threshold (BMI < 18.5)
-  - Boundary: Normal weight threshold (BMI = 18.5-25.0)
-  - Boundary: Overweight threshold (BMI = 25.0-30.0)
-  - Boundary: Obese threshold (BMI ≥ 30.0)
-  - Invalid: Null inputs
-  - Invalid: Non-positive values (≤ 0)
-  - Invalid: Unreasonably large values (> 635kg weight, > 272cm height)
-- **Boundaries Tested**:
-  - BMI = 18.5 (underweight/normal boundary)
-  - BMI = 25.0 (normal/overweight boundary)
-  - BMI = 30.0 (overweight/obese boundary)
-  - Weight = 0, Height = 0 (zero boundary)
-  - Weight = MAX_PLAUSIBLE_WEIGHT_KG, Height = MAX_PLAUSIBLE_HEIGHT_CM (upper bounds)
-
-**BMR Calculation:**
-- **Inputs Tested**: `weight`, `height`, `age`, `isMale` (boolean)
-- **Equivalence Classes**:
-  - Valid: Male with typical metrics
-  - Valid: Female with typical metrics
-  - Invalid: Null weight/height/age
-- **Boundaries Tested**:
-  - Age = 0 (newborn)
-  - Age = 100+ (elderly)
-
-**Daily Calorie Needs:**
-- **Inputs Tested**: `bmr`, `weeklyTrainingFreq`
-- **Equivalence Classes**:
-  - Sedentary: 0 training days (factor 1.2)
-  - Light activity: 1-2 training days (factor 1.375)
-  - Moderate activity: 3-4 training days (factor 1.55)
-  - Very active: 5-6 training days (factor 1.725)
-  - Extra active: 7+ training days (factor 1.9)
-- **Boundaries Tested**:
-  - Training frequency = 0, 1, 2, 3, 4, 5, 6, 7 (activity level boundaries)
-
-**Security Layer (`ClientIdInterceptorTest`):**
-- **Inputs Tested**: `X-Client-ID` header values
-- **Equivalence Classes**:
-  - Valid: `mobile-abc123`, `research-xyz789`
-  - Invalid: Missing header
-  - Invalid: Empty header
-  - Invalid: Wrong format (e.g., `invalid-123`)
-- **Boundaries Tested**:
-  - Header present vs. absent
-  - Valid format vs. invalid format
-
-### Test Grouping
-
-**Setup/Teardown:**
-- `@BeforeEach`: Initializes service instances and test data
-- `@AfterEach`: Cleans up thread-local `ClientContext` to prevent test interference
-
-**Mocks:**
-- `@Mock`: Repository interfaces (`PersonRepository`, `ResearcherRepository`)
-- `@InjectMocks`: Controllers and services under test
-- `@ExtendWith(MockitoExtension.class)`: Enables Mockito annotations
-
-**Test Doubles:**
-- Mock repositories return controlled test data
-- Thread-local `ClientContext` is manually set/cleared for isolation testing
-
-**Test Organization:**
-- Unit tests: `src/test/java/com/teamx/fitness/service/`, `src/test/java/com/teamx/fitness/security/`
-- Controller tests: `src/test/java/com/teamx/fitness/controller/`
-- Integration tests: `src/test/java/com/teamx/fitness/integration/`
-
-### CI Execution
-
-Unit tests are automatically executed in CI pipelines on every push and pull request. Test results are reported in CI logs and must pass for builds to succeed.
-
----
-
-## 5. API Testing
-
-### How to Run API Tests
-
-**Using Postman/Newman (Recommended):**
-```bash
-# Via Docker:
-docker compose -f docker-compose.yml -f docker-compose.tests.yml run --rm newman
-
-# Or locally (requires Newman CLI):
-newman run postman/fitness-api-tests.postman_collection.json \
-  -e postman/fitness-api-tests.postman_environment.json \
-  --reporters html,json \
-  --reporter-html-export testresult/api/postman-report.html \
-  --reporter-json-export testresult/api/postman-summary.json
-```
-
-**Using Maven (REST Assured):**
-```bash
-mvn verify
-```
-
-### API Endpoints and Test Coverage
-For complete API documentation including all endpoints, request/response formats, parameters, status codes, and calling sequences, see **[`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)**.
-
-**Quick Access:**
-- **Swagger UI**: `http://34.30.81.33:8080/swagger-ui.html` (when service is running)
-- **OpenAPI Spec**: `http://34.30.81.33:8080/api-docs`
-
----
-
-## 6. Integration Testing
-
-### Definition of Integration
-
-For this project, integration testing verifies:
-- **Service + Repository Layer Interactions**: Controllers calling services, services calling repositories
-- **Database Integration**: Real database operations (create, read, update, delete) with data persistence
-- **Client Isolation**: Multi-client scenarios where different client IDs access the same database
-- **Security Integration**: `ClientIdInterceptor` working with controllers and repositories
-- **Cross-Layer Data Flow**: End-to-end request processing from HTTP request to database and back
-
-### Integration Tests
-
-**1. Client Isolation Integration (`ClientIsolationIntegrationTest`):**
-- Tests that `PersonController` enforces client isolation using mocked repositories
-- Verifies that repository queries filter by `clientId` from `ClientContext`
-- Tests CRUD operations with different client IDs to ensure data isolation
-- Uses `@ExtendWith(MockitoExtension.class)` with mocked repositories
-
-**2. Research Controller Integration (`ResearchControllerTest`):**
-- Tests `ResearchController` with mocked `PersonRepository` and `ResearcherRepository`
-- Verifies research endpoints return aggregate data from multiple mobile clients
-- Tests access control (mobile clients receive 403, research clients receive 200)
-- Verifies anonymization of personal data in research responses
-
-**3. Service + Repository Integration:**
-- Tests `PersonService` calculations with real data flow
-- Tests `HealthInsightService` building insights from repository data
-- Verifies business logic correctly processes persisted data
-
-**4. Database Integration:**
-- Tests run against PostgreSQL database (via Docker Compose)
-- Verifies schema migrations and data persistence
-- Tests transaction boundaries and data consistency
-
-### How to Run Integration Tests
-
-```bash
-# Ensure database is running:
-docker compose up -d postgres
-
-# Run integration tests:
-mvn test -Dtest=*IntegrationTest
-
-# Or via Docker:
-docker compose -f docker-compose.yml -f docker-compose.tests.yml run --rm unit-tests
-```
-
-Integration tests are included in the standard `mvn test` execution and run automatically in CI.
-
-### CI Execution
-
-Integration tests are executed in CI pipelines alongside unit tests. The CI environment includes:
-- PostgreSQL database container
-- Application container with test execution
-- Test results reported in CI logs
-
----
-
-## 7. Branch Coverage & Bug Fixing
+## 6. Branch Coverage & Bug Fixing
 
 ### Coverage Report Location
 
@@ -299,23 +91,9 @@ Coverage reports are stored at: **[`testresult/unit-coverage/jacoco/index.html`]
 
 Open the HTML file in a web browser to view detailed coverage metrics by package, class, and method.
 
-### How to Regenerate Coverage Reports
+### API Regression Tests
 
-```bash
-# Run tests with coverage:
-mvn clean test
-
-# Coverage report is automatically generated at:
-# target/site/jacoco/index.html
-# testresult/unit-coverage/jacoco/index.html (via Docker)
-
-# Or explicitly:
-mvn clean test jacoco:report
-```
-
-### Branch Coverage Statement
-
-**Branch coverage is ≥ 80%** as verified by JaCoCo. The Maven build enforces a minimum coverage threshold of 80% for line coverage (configured in [`pom.xml`](pom.xml)).
+Postman/Newman runs write their HTML and JSON summaries to **[`testresult/api/postman-report.html`](testresult/api/postman-report.html)** (plus raw logs under `testresult/api/postman-summary.json`). Open the HTML report to inspect pass/fail status, response assertions, and run metadata for each endpoint.
 
 ### Bugs Found and Fixed
 
@@ -341,68 +119,8 @@ mvn clean test jacoco:report
    - **Fixed**: Added cleanup in `ClientIdInterceptor.afterCompletion()`
    - **Before/After**: Logs verified to show proper context clearing
 
-**Coverage Reports:**
-- Before fixes: Coverage reports stored in [`testresult/unit-coverage/jacoco/`](testresult/unit-coverage/jacoco/) (historical)
-- After fixes: Current coverage ≥ 80% as verified by latest JaCoCo report
-- Bug fixes documented in commit history and test results
 
----
-
-## 8. Continuous Integration
-
-### CI Pipeline Description
-
-The CI pipeline executes the following stages on every push and pull request:
-
-**1. Style Checking:**
-- Runs Checkstyle to enforce Google Java Style Guide
-- Fails build if style violations are detected
-- Report: [`testresult/checkstyle/checkstyle-result.xml`](testresult/checkstyle/checkstyle-result.xml)
-
-**2. Static Analysis:**
-- Runs PMD to detect code quality issues
-- Analyzes code for bugs, unused code, and complexity
-- Report: [`testresult/pmd/pmd.html`](testresult/pmd/pmd.html)
-
-**3. Unit Tests & API Tests:**
-- Executes all unit tests using JUnit 5
-- Uses Mockito for mocking dependencies
-- Runs Postman/Newman collection for API endpoint testing
-- Validates all endpoints with normal, boundary, and invalid inputs
-- Verifies persistence, logging, and multi-client scenarios
-- Must pass for build to succeed
-- Report: [`testresult/api/postman-report.html`](testresult/api/postman-report.html) (includes both unit and API test results)
-
-**5. Integration Tests:**
-- Executes integration tests for service-repository interactions
-- Tests database integration and client isolation
-- Runs against PostgreSQL container
-
-**6. Coverage:**
-- Generates JaCoCo coverage report
-- Enforces minimum 80% line coverage threshold
-- Fails build if coverage drops below threshold
-- Report: [`testresult/unit-coverage/jacoco/index.html`](testresult/unit-coverage/jacoco/index.html)
-
-### GitHub Actions Workflow Files
-
-**Note**: GitHub Actions workflow files are located at `.github/workflows/`. The CI pipeline can be implemented using:
-
-- `.github/workflows/ci.yml` - Main CI workflow
-
-Each workflow file implements the corresponding stage of the CI pipeline.
-
-### Recent CI Reports
-
-CI reports are generated on every build and stored in:
-- Checkstyle: [`testresult/checkstyle/checkstyle-result.xml`](testresult/checkstyle/checkstyle-result.xml)
-- PMD: [`testresult/pmd/pmd.html`](testresult/pmd/pmd.html)
-- Unit Tests & API Tests: [`testresult/api/postman-report.html`](testresult/api/postman-report.html)
-- Coverage: [`testresult/unit-coverage/jacoco/index.html`](testresult/unit-coverage/jacoco/index.html)
-
----
-
-## 9. Cloud Deployment
+## 7. Cloud Deployment
 
 ### Deployed URLs
 
@@ -425,7 +143,7 @@ CI reports are generated on every build and stored in:
 - URL: `http://34.30.81.33:3000`
 ---
 
-## 10. Final Entry Point Documentation
+## 8. Final Entry Point Documentation
 
 For complete API documentation including all endpoints, request/response formats, parameters, and detailed specifications, see:
 
@@ -474,7 +192,7 @@ For complete API documentation including all endpoints, request/response formats
 - **[`database/init/`](database/init/)**: Database initialization scripts
 ---
 
-## 11. Project Management
+## 9. Project Management
 
 ### Task Tracking
 
@@ -509,7 +227,7 @@ Work is tracked via:
 
 ---
 
-## 12. Third-Party Code Disclosure
+## 10. Third-Party Code Disclosure
 
 ### External Libraries
 
@@ -577,7 +295,7 @@ docker compose -f docker-compose.yml -f docker-compose.tests.yml run --rm unit-t
 
 ---
 
-## 13. Project Proposal Implementation Status
+## 11. Project Proposal Implementation Status
 
 This section provides a comprehensive comparison between our original project proposal and the implemented features in Iteration 2.
 
