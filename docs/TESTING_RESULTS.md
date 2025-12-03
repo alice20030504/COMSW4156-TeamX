@@ -218,21 +218,9 @@ mvn verify
 - Tests verify data retrieval after service restart
 
 **Logging:**
-- Tests verify API calls are logged to [`logs/fitness-app.log`](logs/fitness-app.log)
+- Tests verify API calls are logged to [`../logs/fitness-app.log`](logs/fitness-app.log)
 - Tests verify log entries include clientId, method, path, status, duration
 
-**Multiple Clients:**
-- Tests create multiple client IDs and verify isolation
-- Tests verify concurrent requests from different clients
-- Tests verify mobile and research clients can operate simultaneously
-
-**Postman Collection:**
-- 36 requests covering all endpoints
-- 79 assertions validating responses
-- Normal, boundary, and invalid scenarios for each endpoint
-- Collection: [`postman/fitness-api-tests.postman_collection.json`](postman/fitness-api-tests.postman_collection.json)
-
----
 
 ## Integration Testing
 
@@ -312,4 +300,5 @@ Integration tests are executed in CI pipelines alongside unit tests. The CI envi
 - Enhanced integration tests for service-repository interactions
 - Comprehensive end-to-end testing documentation completed
 - Cloud deployment on GCP with frontend and backend accessible
+
 
