@@ -43,7 +43,7 @@ The service is deployed on Google Cloud Platform and accessible at the above URL
 
 ### Iteration 2 Tagged Version
 
-The tagged Iteration 2 version is located at: **`[TAG_NAME]`** (to be updated with actual git tag)
+The tagged Iteration 2 version is located at: **`Iteration_2`** (to be updated with actual git tag)
 
 ---
 
@@ -678,11 +678,9 @@ The CI pipeline executes the following stages on every push and pull request:
 
 ### GitHub Actions Workflow Files
 
-**Note**: GitHub Actions workflow files are located at `.github/workflows/` (to be configured). The CI pipeline can be implemented using:
+**Note**: GitHub Actions workflow files are located at `.github/workflows/`. The CI pipeline can be implemented using:
 
 - `.github/workflows/ci.yml` - Main CI workflow
-- `.github/workflows/checkstyle.yml` - Style checking workflow
-- `.github/workflows/test.yml` - Test execution workflow
 
 Each workflow file implements the corresponding stage of the CI pipeline.
 
@@ -886,7 +884,7 @@ All responses are JSON unless noted. Standard HTTP status codes:
 
 **GitHub Projects Board:** [Link to be added]
 
-**Jira Board:** [Link to be added if applicable]
+**Jira Board:** https://columbia-teamx-coms4156.atlassian.net/jira/software/projects/SCRUM/boards/1
 
 ### Team Task Distribution
 
