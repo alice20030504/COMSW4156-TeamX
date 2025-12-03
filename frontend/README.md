@@ -197,8 +197,6 @@ For comprehensive end-to-end (E2E) testing documentation covering all client and
 
 ## F. Instructions for Third-Party Developers
 
-F. Instructions for Third-Party Developers
-
 **Authentication:**
 - All API requests (except `/health`, `/swagger-ui.html`, `/api-docs`) require `X-Client-ID` header
 - Client ID format: `mobile-<identifier>` or `research-<identifier>`
