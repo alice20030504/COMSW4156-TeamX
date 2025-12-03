@@ -427,64 +427,16 @@ CI reports are generated on every build and stored in:
 
 ## 10. Final Entry Point Documentation
 
-### Full API Documentation
+For complete API documentation including all endpoints, request/response formats, parameters, and detailed specifications, see:
 
-Complete API documentation is available at:
+- **Detailed API Reference**: [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)
 - **Swagger UI**: `http://34.30.81.33:8080/swagger-ui.html` (when service is running)
-- **OpenAPI Spec**: `http://34.30.81.33:8080/api-docs`
-- **Detailed Reference**: [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)
+- **Frontend Client Examples**: [`frontend/README.md`](frontend/README.md) - Includes curl examples for all endpoints
 
-### API Endpoints Summary
-
-**Personal Endpoints (`/api/persons`):**
-
-| Method | Path | Description | Status Codes |
-|--------|------|-------------|--------------|
-| POST | `/api/persons` | Create fitness profile | 201, 400 |
-| GET | `/api/persons/me` | Get current profile | 200, 404 |
-| PUT | `/api/persons/me` | Update profile | 200, 404, 400 |
-| DELETE | `/api/persons/me` | Delete profile | 204, 404 |
-| GET | `/api/persons/bmi` | Calculate BMI | 200, 400 |
-| GET | `/api/persons/calories` | Calculate daily calories | 200, 400 |
-
-**Research Endpoints (`/api/research`):**
-
-| Method | Path | Description | Status Codes |
-|--------|------|-------------|--------------|
-| POST | `/api/research/register` | Register researcher | 201, 400 |
-| GET | `/api/research/demographics` | Get demographics analytics | 200, 403, 400 |
-| GET | `/api/research/population-health` | Get population health | 200, 403 |
-
-**System Endpoints:**
-
-| Method | Path | Description | Status Codes |
-|--------|------|-------------|--------------|
-| GET | `/health` | Health check | 200 |
-| GET | `/swagger-ui.html` | Swagger UI | 200 |
-| GET | `/api-docs` | OpenAPI spec | 200 |
-
-### Query/Body Parameters
-
-See [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) for detailed parameter specifications.
-
-**Common Parameters:**
-- `X-Client-ID` header: Required for all authenticated endpoints (format: `mobile-*` or `research-*`)
-- `Content-Type: application/json`: Required for POST/PUT requests
-
-### Responses
-
-All responses are JSON unless noted. Standard HTTP status codes:
-- `200 OK`: Successful GET/PUT request
-- `201 Created`: Successful POST request
-- `204 No Content`: Successful DELETE request
-- `400 Bad Request`: Invalid input, missing required fields
-- `403 Forbidden`: Unauthorized access (e.g., mobile client accessing research endpoint)
-- `404 Not Found`: Resource not found
-- `500 Internal Server Error`: Server error
-
-### Ordering Constraints Between API Calls
+### Calling Sequence Requirements
 
 **Mobile Client Onboarding Sequence:**
+
 1. `GET /health` - Verify service availability
 2. `POST /api/persons` - Register profile (obtain `clientId`)
 3. `GET /api/persons/me` - Verify profile was saved
@@ -494,14 +446,16 @@ All responses are JSON unless noted. Standard HTTP status codes:
 7. `DELETE /api/persons/me` - Cleanup (optional)
 
 **Research Client Sequence:**
+
 1. `GET /health` - Verify service availability
 2. `POST /api/research/register` - Register researcher (obtain `research-*` clientId)
 3. `GET /api/research/demographics` - Get demographics (requires mobile users to exist)
 4. `GET /api/research/population-health` - Get population health
 
-### Endpoints That Should Not Be Called in Certain Orders
+### Endpoints That Should NOT Be Called in Certain Orders
 
 **Do NOT:**
+
 - Call `GET /api/persons/me` before `POST /api/persons` (will return 404)
 - Call `PUT /api/persons/me` before `POST /api/persons` (will return 404)
 - Call `DELETE /api/persons/me` before `POST /api/persons` (will return 404)
@@ -518,7 +472,6 @@ All responses are JSON unless noted. Standard HTTP status codes:
 - **[`docker-compose.tests.yml`](docker-compose.tests.yml)**: Docker Compose configuration for testing
 - **[`Dockerfile`](Dockerfile)**: Multi-stage Docker build configuration
 - **[`database/init/`](database/init/)**: Database initialization scripts
-
 ---
 
 ## 11. Project Management
