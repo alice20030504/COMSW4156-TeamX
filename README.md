@@ -47,7 +47,7 @@ The tagged Iteration 2 version is located at: **`Iteration_2`** (to be updated w
 
 ---
 
-## 2. Frontend Web Client
+## 2. Client Program
 
 A modern web-based client is available in the `frontend/` directory, providing user-friendly browser interfaces for both mobile users to manage fitness profiles and research analysts to access population health analytics. It supports simultaneous multi-client sessions with complete data isolation via `X-Client-ID` header authentication.
 
