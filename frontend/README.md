@@ -197,6 +197,8 @@ For comprehensive end-to-end (E2E) testing documentation covering all client and
 
 ## F. Instructions for Third-Party Developers
 
+F. Instructions for Third-Party Developers
+
 **Authentication:**
 - All API requests (except `/health`, `/swagger-ui.html`, `/api-docs`) require `X-Client-ID` header
 - Client ID format: `mobile-<identifier>` or `research-<identifier>`
@@ -221,43 +223,23 @@ See **[`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)** for complete API docume
 
 **Example Mobile Client Registration:**
 ```bash
-POST http://35.188.26.134:8080/api/persons
-Headers:
-  Content-Type: application/json
-Body:
-{
-  "name": "John Doe",
-  "weight": 75.5,
-  "height": 180.0,
-  "birthDate": "1990-01-15",
-  "gender": "MALE",
-  "goal": "CUT"
-}
+curl -v -X POST http://localhost:8080/api/persons \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "John Doe",
+    "weight": 75.5,
+    "height": 180.0,
+    "birthDate": "1990-01-15",
+    "gender": "MALE",
+    "goal": "CUT"
+  }'
+
 
 Response: 201 Created
 {
   "id": 1,
   "clientId": "mobile-abc123",
   "name": "John Doe",
-  ...
-}
-```
-
-**Example Research Client Registration:**
-```bash
-POST http://35.188.26.134:8080/api/research/register
-Headers:
-  Content-Type: application/json
-Body:
-{
-  "name": "Dr. Smith",
-  "email": "smith@research.edu"
-}
-
-Response: 201 Created
-{
-  "id": 1,
-  "clientId": "research-xyz789",
   ...
 }
 ```
