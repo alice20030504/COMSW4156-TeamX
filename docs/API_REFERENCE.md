@@ -331,7 +331,7 @@ These endpoints are provided by system controllers and do not require client aut
 1. `GET /health` - Verify service availability
 2. `POST /api/persons` - Register profile and receive `clientId` (store this for subsequent requests)
 3. `GET /api/persons/me` - Verify the stored profile
-4. `POST /api/persons/plan` - Configure goal plan (target change, duration, training frequency, strategy)
+4. `POST /api/persons/plan` - Configure goal plan (target weight, duration, training frequency, strategy)
 5. `GET /api/persons/bmi` - Calculate BMI (optional, can use query params or stored profile)
 6. `GET /api/persons/calories` - Get calorie recommendations (uses stored profile and plan)
 7. `GET /api/persons/recommendation` - Get personalized fitness recommendations

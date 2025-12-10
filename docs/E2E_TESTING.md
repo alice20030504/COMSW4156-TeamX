@@ -62,7 +62,7 @@ docker compose up -d --build
 | Step | Action                    | Input                                                                                    | Expected Outcome                            | Actual Outcome             | Status |
 | ---- | ------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------- | -------------------------- | ------ |
 | 1    | Access plan configuration | Click "Configure Goal Plan" button after registration                                    | Plan configuration form appears             | ✓ Form displayed           | ✓ PASS |
-| 2    | Fill plan details         | Target Change: 3.5kg, Duration: 6 weeks, Training Frequency: 4 days/week, Strategy: BOTH | Form accepts all inputs                     | ✓ Form filled successfully | ✓ PASS |
+| 2    | Fill plan details         | Target Weight: 70kg, Duration: 6 weeks, Training Frequency: 4 days/week, Strategy: BOTH | Form accepts all inputs                     | ✓ Form filled successfully | ✓ PASS |
 | 3    | Submit plan               | Click "Save Plan" button                                                                 | Response confirms plan saved with client ID | ✓ Plan saved successfully  | ✓ PASS |
 | 4    | Verify plan persists      | Refresh page                                                                             | Plan data retrieved from backend            | ✓ Plan data persisted      | ✓ PASS |
 

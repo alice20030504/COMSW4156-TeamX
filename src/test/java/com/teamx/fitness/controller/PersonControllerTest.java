@@ -378,12 +378,15 @@ class PersonControllerTest {
   @DisplayName("configureGoalPlan updates plan fields")
   void configureGoalPlanUpdatesPlan() {
     PersonSimple stored = basePerson("mobile-plan");
+    // basePerson has weight 80.0 kg, so use a valid target weight for CUT goal
+    // Target weight 75.0 kg (losing 5 kg) is valid: >= 30.0 kg minimum
+    double validTargetWeight = 75.0;
     ClientContext.setClientId(stored.getClientId());
     when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
     when(personRepository.save(any(PersonSimple.class))).thenAnswer(inv -> inv.getArgument(0));
 
     GoalPlanRequest request = new GoalPlanRequest();
-    request.setTargetChangeKg(TARGET_CHANGE_CONFIG_KG);
+    request.setTargetChangeKg(validTargetWeight);
     request.setDurationWeeks(TRAINING_DURATION_WEEKS);
     request.setTrainingFrequencyPerWeek(TRAINING_FREQ_FOUR);
     request.setPlanStrategy(PlanStrategy.BOTH);
@@ -394,7 +397,7 @@ class PersonControllerTest {
     ArgumentCaptor<PersonSimple> captor = ArgumentCaptor.forClass(PersonSimple.class);
     verify(personRepository).save(captor.capture());
     PersonSimple saved = captor.getValue();
-    assertEquals(TARGET_CHANGE_CONFIG_KG, saved.getTargetChangeKg());
+    assertEquals(validTargetWeight, saved.getTargetChangeKg());
     assertEquals(TRAINING_DURATION_WEEKS, saved.getTargetDurationWeeks());
     assertEquals(TRAINING_FREQ_FOUR, saved.getTrainingFrequencyPerWeek());
     assertEquals(PlanStrategy.BOTH, saved.getPlanStrategy());
@@ -535,10 +538,11 @@ class PersonControllerTest {
   }
 
   @Test
-  @DisplayName("calculateDailyCalories handles negative target changes")
-  void calculateDailyCaloriesHandlesNegativeTargetChange() {
-    PersonSimple stored = basePerson("mobile-calories-negative");
-    stored.setTargetChangeKg(-TARGET_CHANGE_PLAN_KG);
+  @DisplayName("calculateDailyCalories uses target weight difference")
+  void calculateDailyCaloriesUsesTargetWeightDifference() {
+    PersonSimple stored = basePerson("mobile-calories-target-weight");
+    // Target weight 2kg below current weight
+    stored.setTargetChangeKg(stored.getWeight() - TARGET_CHANGE_PLAN_KG);
     ClientContext.setClientId(stored.getClientId());
     when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
     when(personService.calculateAge(stored.getBirthDate())).thenReturn(AGE_THIRTY);
@@ -550,8 +554,9 @@ class PersonControllerTest {
     ResponseEntity<Map<String, Object>> response = personController.calculateDailyCalories();
 
     Map<String, Object> body = response.getBody();
+    double deltaKg = stored.getTargetChangeKg() - stored.getWeight();
     double adjustment = Math.abs(
-        stored.getTargetChangeKg() * CALORIES_PER_KG
+        deltaKg * CALORIES_PER_KG
             / stored.getTargetDurationWeeks()
             / DAYS_PER_WEEK);
     assertEquals(-adjustment, (Double) body.get("calorieAdjustmentPerDay"));
@@ -827,7 +832,7 @@ class PersonControllerTest {
     when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
 
     GoalPlanRequest request = new GoalPlanRequest();
-    request.setTargetChangeKg(10.0); // Would result in 25kg target weight (< 30kg)
+    request.setTargetChangeKg(25.0); // Target weight 25kg (< 30kg minimum)
     request.setDurationWeeks(10);
     request.setTrainingFrequencyPerWeek(4);
     request.setPlanStrategy(PlanStrategy.BOTH);
@@ -850,8 +855,8 @@ class PersonControllerTest {
     when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
 
     GoalPlanRequest request = new GoalPlanRequest();
-    // Target weight = 50 - 20 = 30kg (passes weight check), BMI = 30/(2.0^2) = 7.5 (< 15, fails BMI check)
-    request.setTargetChangeKg(20.0); // Would result in 30kg (at minimum weight), BMI = 7.5 (< 15)
+    // Target weight = 30kg (passes weight check), BMI = 30/(2.0^2) = 7.5 (< 15, fails BMI check)
+    request.setTargetChangeKg(30.0); // Target weight 30kg, BMI = 7.5 (< 15)
     request.setDurationWeeks(10);
     request.setTrainingFrequencyPerWeek(4);
     request.setPlanStrategy(PlanStrategy.BOTH);
@@ -875,7 +880,7 @@ class PersonControllerTest {
     when(personRepository.save(any(PersonSimple.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
     GoalPlanRequest request = new GoalPlanRequest();
-    request.setTargetChangeKg(5.0); // Would result in 65kg target weight (valid)
+    request.setTargetChangeKg(65.0); // Target weight 65kg (valid)
     request.setDurationWeeks(10);
     request.setTrainingFrequencyPerWeek(4);
     request.setPlanStrategy(PlanStrategy.BOTH);
@@ -895,7 +900,7 @@ class PersonControllerTest {
     when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
 
     GoalPlanRequest request = new GoalPlanRequest();
-    request.setTargetChangeKg(10.0); // Would result in 205kg target weight (> 200kg)
+    request.setTargetChangeKg(205.0); // Target weight 205kg (> 200kg maximum)
     request.setDurationWeeks(10);
     request.setTrainingFrequencyPerWeek(4);
     request.setPlanStrategy(PlanStrategy.BOTH);
@@ -918,7 +923,7 @@ class PersonControllerTest {
     when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
 
     GoalPlanRequest request = new GoalPlanRequest();
-    request.setTargetChangeKg(50.0); // Would result in 130kg, BMI = 130/(1.5^2) = 57.8 (> 50)
+    request.setTargetChangeKg(130.0); // Target weight 130kg, BMI = 130/(1.5^2) = 57.8 (> 50)
     request.setDurationWeeks(10);
     request.setTrainingFrequencyPerWeek(4);
     request.setPlanStrategy(PlanStrategy.BOTH);
@@ -942,7 +947,7 @@ class PersonControllerTest {
     when(personRepository.save(any(PersonSimple.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
     GoalPlanRequest request = new GoalPlanRequest();
-    request.setTargetChangeKg(5.0); // Would result in 75kg target weight (valid)
+    request.setTargetChangeKg(75.0); // Target weight 75kg (valid)
     request.setDurationWeeks(10);
     request.setTrainingFrequencyPerWeek(4);
     request.setPlanStrategy(PlanStrategy.BOTH);
@@ -1020,7 +1025,8 @@ class PersonControllerTest {
   void provideRecommendationReturnsDietPlanCutWithCappedDeficit() {
     PersonSimple stored = basePerson("mobile-reco-cut-capped");
     stored.setGoal(FitnessGoal.CUT);
-    stored.setTargetChangeKg(20.0); // Large target change
+    // Very aggressive target: drop from 80kg to 50kg in 2 weeks
+    stored.setTargetChangeKg(50.0); // Target weight 50kg
     stored.setTargetDurationWeeks(2); // Short duration -> high daily deficit
     stored.setPlanStrategy(PlanStrategy.DIET);
     ClientContext.setClientId(stored.getClientId());
@@ -1040,7 +1046,8 @@ class PersonControllerTest {
   void provideRecommendationReturnsDietPlanCutWithoutCappedDeficit() {
     PersonSimple stored = basePerson("mobile-reco-cut-normal");
     stored.setGoal(FitnessGoal.CUT);
-    stored.setTargetChangeKg(2.0);
+    // Moderate target: reduce from 80kg to 78kg over 8 weeks
+    stored.setTargetChangeKg(78.0); // Target weight 78kg
     stored.setTargetDurationWeeks(8);
     stored.setPlanStrategy(PlanStrategy.DIET);
     ClientContext.setClientId(stored.getClientId());
@@ -1061,7 +1068,8 @@ class PersonControllerTest {
   void provideRecommendationReturnsDietPlanBulkWithCappedSurplus() {
     PersonSimple stored = basePerson("mobile-reco-bulk-capped");
     stored.setGoal(FitnessGoal.BULK);
-    stored.setTargetChangeKg(15.0); // Large target change
+    // Very aggressive target: bulk from 80kg to 110kg in 2 weeks
+    stored.setTargetChangeKg(110.0); // Target weight 110kg
     stored.setTargetDurationWeeks(2); // Short duration -> high daily surplus
     stored.setPlanStrategy(PlanStrategy.DIET);
     ClientContext.setClientId(stored.getClientId());
@@ -1081,7 +1089,8 @@ class PersonControllerTest {
   void provideRecommendationReturnsDietPlanBulkWithoutCappedSurplus() {
     PersonSimple stored = basePerson("mobile-reco-bulk-normal");
     stored.setGoal(FitnessGoal.BULK);
-    stored.setTargetChangeKg(3.0);
+    // Moderate target: increase from 80kg to 83kg over 12 weeks
+    stored.setTargetChangeKg(83.0); // Target weight 83kg
     stored.setTargetDurationWeeks(12);
     stored.setPlanStrategy(PlanStrategy.DIET);
     ClientContext.setClientId(stored.getClientId());
@@ -1130,7 +1139,7 @@ class PersonControllerTest {
     updatedPerson.setWeight(35.0);
     updatedPerson.setHeight(175.0);
     updatedPerson.setGoal(FitnessGoal.CUT);
-    updatedPerson.setTargetChangeKg(10.0); // Would result in 25kg (< 30kg)
+    updatedPerson.setTargetChangeKg(25.0); // Target weight 25kg (< 30kg)
     updatedPerson.setTargetDurationWeeks(10);
     updatedPerson.setTrainingFrequencyPerWeek(4);
     updatedPerson.setPlanStrategy(PlanStrategy.BOTH);
@@ -1159,7 +1168,7 @@ class PersonControllerTest {
     updatedPerson.setWeight(195.0);
     updatedPerson.setHeight(175.0);
     updatedPerson.setGoal(FitnessGoal.BULK);
-    updatedPerson.setTargetChangeKg(10.0); // Would result in 205kg (> 200kg)
+    updatedPerson.setTargetChangeKg(205.0); // Target weight 205kg (> 200kg)
     updatedPerson.setTargetDurationWeeks(10);
     updatedPerson.setTrainingFrequencyPerWeek(4);
     updatedPerson.setPlanStrategy(PlanStrategy.BOTH);
@@ -1211,7 +1220,7 @@ class PersonControllerTest {
     when(personRepository.save(any(PersonSimple.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
     GoalPlanRequest request = new GoalPlanRequest();
-    request.setTargetChangeKg(5.0); // Would result in 30kg (exactly at minimum)
+    request.setTargetChangeKg(30.0); // Target weight 30kg (exactly at minimum)
     request.setDurationWeeks(10);
     request.setTrainingFrequencyPerWeek(4);
     request.setPlanStrategy(PlanStrategy.BOTH);
@@ -1233,7 +1242,7 @@ class PersonControllerTest {
     when(personRepository.save(any(PersonSimple.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
     GoalPlanRequest request = new GoalPlanRequest();
-    request.setTargetChangeKg(5.0); // Would result in 30kg (exactly at minimum)
+    request.setTargetChangeKg(30.0); // Target weight 30kg (exactly at minimum)
     request.setDurationWeeks(10);
     request.setTrainingFrequencyPerWeek(4);
     request.setPlanStrategy(PlanStrategy.BOTH);
@@ -1255,7 +1264,7 @@ class PersonControllerTest {
     when(personRepository.save(any(PersonSimple.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
     GoalPlanRequest request = new GoalPlanRequest();
-    request.setTargetChangeKg(5.0); // Would result in 195kg (below maximum)
+    request.setTargetChangeKg(195.0); // Target weight 195kg (below maximum)
     request.setDurationWeeks(10);
     request.setTrainingFrequencyPerWeek(4);
     request.setPlanStrategy(PlanStrategy.BOTH);
@@ -1277,7 +1286,7 @@ class PersonControllerTest {
     when(personRepository.save(any(PersonSimple.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
     GoalPlanRequest request = new GoalPlanRequest();
-    request.setTargetChangeKg(5.0); // Would result in 195kg (below maximum)
+    request.setTargetChangeKg(195.0); // Target weight 195kg (below maximum)
     request.setDurationWeeks(10);
     request.setTrainingFrequencyPerWeek(4);
     request.setPlanStrategy(PlanStrategy.BOTH);
@@ -1447,7 +1456,7 @@ class PersonControllerTest {
     when(personRepository.save(any(PersonSimple.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
     GoalPlanRequest request = new GoalPlanRequest();
-    request.setTargetChangeKg(5.0); // Would result in exactly 30kg (at minimum weight)
+    request.setTargetChangeKg(30.0); // Target weight 30kg (at minimum weight)
     // BMI = 30 / (1.4^2) = 30 / 1.96 ≈ 15.3 (>= 15.0, passes BMI check)
     request.setDurationWeeks(10);
     request.setTrainingFrequencyPerWeek(4);
@@ -1471,8 +1480,8 @@ class PersonControllerTest {
 
     GoalPlanRequest request = new GoalPlanRequest();
     // For BMI = 15: weight = 15 * (2.0^2) = 15 * 4 = 60kg
-    // Current weight = 70kg, so target change = 10kg -> target weight = 60kg, BMI = 60/4 = 15 (exactly at minimum)
-    request.setTargetChangeKg(10.0); // Would result in 60kg, BMI = 15.0 (exactly at minimum)
+    // Target weight = 60kg, BMI = 60/4 = 15 (exactly at minimum)
+    request.setTargetChangeKg(60.0); // Target weight 60kg, BMI = 15.0 (exactly at minimum)
     request.setDurationWeeks(10);
     request.setTrainingFrequencyPerWeek(4);
     request.setPlanStrategy(PlanStrategy.BOTH);
@@ -1494,7 +1503,7 @@ class PersonControllerTest {
     when(personRepository.save(any(PersonSimple.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
     GoalPlanRequest request = new GoalPlanRequest();
-    request.setTargetChangeKg(5.0); // Would result in exactly 200kg (at maximum)
+    request.setTargetChangeKg(200.0); // Target weight 200kg (at maximum)
     request.setDurationWeeks(10);
     request.setTrainingFrequencyPerWeek(4);
     request.setPlanStrategy(PlanStrategy.BOTH);
@@ -1517,8 +1526,8 @@ class PersonControllerTest {
 
     GoalPlanRequest request = new GoalPlanRequest();
     // For BMI = 50: weight = 50 * (1.5^2) = 50 * 2.25 = 112.5kg
-    // Current weight = 100kg, so target change = 12.5kg to reach BMI = 50
-    request.setTargetChangeKg(12.5); // Would result in 112.5kg, BMI = 50.0 (exactly at maximum)
+    // Target weight = 112.5kg, BMI = 50.0 (exactly at maximum)
+    request.setTargetChangeKg(112.5); // Target weight 112.5kg, BMI = 50.0 (exactly at maximum)
     request.setDurationWeeks(10);
     request.setTrainingFrequencyPerWeek(4);
     request.setPlanStrategy(PlanStrategy.BOTH);

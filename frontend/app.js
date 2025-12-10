@@ -235,7 +235,7 @@ async function getRecommendation() {
         // Validate that all goal plan fields are present
         const missingFields = [];
         if (profileData.targetChangeKg === null || profileData.targetChangeKg === undefined) {
-            missingFields.push('Target Change (kg)');
+            missingFields.push('Target Weight (kg)');
         }
         if (profileData.targetDurationWeeks === null || profileData.targetDurationWeeks === undefined) {
             missingFields.push('Duration (weeks)');
@@ -280,7 +280,20 @@ function displayProfile(data) {
     if (data.birthDate) html += `<div class="profile-item"><strong>Birth Date</strong><span>${data.birthDate}</span></div>`;
     if (data.gender) html += `<div class="profile-item"><strong>Gender</strong><span>${data.gender}</span></div>`;
     if (data.goal) html += `<div class="profile-item"><strong>Goal</strong><span>${data.goal}</span></div>`;
-    if (data.targetChangeKg) html += `<div class="profile-item"><strong>Target Change</strong><span>${data.targetChangeKg} kg</span></div>`;
+    if (data.targetChangeKg) {
+        const targetWeight = Number(data.targetChangeKg);
+        const currentWeight = data.weight != null ? Number(data.weight) : null;
+        let displayValue = `${targetWeight} kg`;
+        if (!Number.isNaN(targetWeight) && currentWeight !== null && !Number.isNaN(currentWeight)) {
+            const delta = targetWeight - currentWeight;
+            if (delta !== 0) {
+                const sign = delta > 0 ? '+' : '-';
+                const magnitude = Math.abs(delta);
+                displayValue += ` (${sign}${magnitude} kg)`;
+            }
+        }
+        html += `<div class="profile-item"><strong>Target Weight</strong><span>${displayValue}</span></div>`;
+    }
     if (data.targetDurationWeeks) html += `<div class="profile-item"><strong>Duration</strong><span>${data.targetDurationWeeks} weeks</span></div>`;
     if (data.trainingFrequencyPerWeek) html += `<div class="profile-item"><strong>Training Frequency</strong><span>${data.trainingFrequencyPerWeek} per week</span></div>`;
     if (data.planStrategy) html += `<div class="profile-item"><strong>Plan Strategy</strong><span>${data.planStrategy}</span></div>`;

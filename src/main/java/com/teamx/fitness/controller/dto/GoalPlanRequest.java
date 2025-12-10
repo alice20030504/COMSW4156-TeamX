@@ -11,7 +11,7 @@ import jakarta.validation.constraints.Positive;
  */
 public class GoalPlanRequest {
 
-  /** Target change in kilograms for the plan. */
+  /** Target weight in kilograms for the plan. */
   @NotNull(message = "targetChangeKg is required")
   @Positive(message = "targetChangeKg must be greater than 0")
   private Double targetChangeKg;
