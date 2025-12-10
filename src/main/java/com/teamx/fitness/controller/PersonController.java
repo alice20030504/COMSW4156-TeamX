@@ -84,6 +84,24 @@ public class PersonController {
   /** Rounding step used for diet suggestions. */
   private static final double CALORIE_ROUNDING_STEP = 10.0;
 
+  /** Maximum reasonable daily calorie deficit (kcal/day). */
+  private static final double MAX_DAILY_CALORIE_DEFICIT = 1500.0;
+
+  /** Maximum reasonable daily calorie surplus (kcal/day). */
+  private static final double MAX_DAILY_CALORIE_SURPLUS = 1000.0;
+
+  /** Minimum healthy weight in kg (for adults). */
+  private static final double MIN_HEALTHY_WEIGHT_KG = 30.0;
+
+  /** Maximum reasonable weight in kg. */
+  private static final double MAX_REASONABLE_WEIGHT_KG = 200.0;
+
+  /** Minimum healthy BMI. */
+  private static final double MIN_HEALTHY_BMI = 15.0;
+
+  /** Maximum reasonable BMI. */
+  private static final double MAX_REASONABLE_BMI = 50.0;
+
   /** Default workouts per week when plan data is absent. */
   private static final int DEFAULT_WEEKLY_WORKOUTS = 4;
 
@@ -185,6 +203,7 @@ public class PersonController {
     PersonSimple person = requirePersonForClient(requireClientId());
 
     validatePlanRequest(person.getGoal(), request);
+    validateTargetWeight(person, request.getTargetChangeKg());
 
     person.setTargetChangeKg(request.getTargetChangeKg());
     person.setTargetDurationWeeks(request.getDurationWeeks());
@@ -227,6 +246,11 @@ public class PersonController {
     }
     if (updatedPerson.getGender() == null) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "gender is required");
+    }
+
+    // Validate target weight if target change is being set
+    if (updatedPerson.getTargetChangeKg() != null && updatedPerson.getWeight() != null) {
+      validateTargetWeight(updatedPerson, updatedPerson.getTargetChangeKg());
     }
 
     String trimmedName = updatedPerson.getName() != null ? updatedPerson.getName().trim() : existing.getName();
@@ -360,7 +384,14 @@ public class PersonController {
       dailyAdjustmentCalories = Math.abs(dailyAdjustmentCalories);
     }
 
+    // Apply boundary checks for calorie adjustments
     boolean isCut = FitnessGoal.CUT.equals(person.getGoal());
+    if (isCut && dailyAdjustmentCalories > MAX_DAILY_CALORIE_DEFICIT) {
+      dailyAdjustmentCalories = MAX_DAILY_CALORIE_DEFICIT;
+    } else if (!isCut && dailyAdjustmentCalories > MAX_DAILY_CALORIE_SURPLUS) {
+      dailyAdjustmentCalories = MAX_DAILY_CALORIE_SURPLUS;
+    }
+
     double recommendedCalories = isCut
         ? Math.max(0, dailyCalories - dailyAdjustmentCalories)
         : dailyCalories + dailyAdjustmentCalories;
@@ -375,7 +406,7 @@ public class PersonController {
     response.put("maintenanceCalories", dailyCalories);
     response.put("calorieAdjustmentPerDay", isCut ? -dailyAdjustmentCalories : dailyAdjustmentCalories);
     response.put("recommendedDailyCalories", recommendedCalories);
-    response.putAll(buildPlanDetails(person));
+    response.putAll(buildPlanDetails(person, null));
 
     return ResponseEntity.ok(response);
   }
@@ -437,6 +468,18 @@ public class PersonController {
   public ResponseEntity<Map<String, Object>> provideRecommendation() {
     PersonSimple person = requirePersonForClient(requireClientId());
 
+    // Validate that all goal plan fields are present
+    if (person.getTargetChangeKg() == null
+        || person.getTargetDurationWeeks() == null
+        || person.getTrainingFrequencyPerWeek() == null
+        || person.getPlanStrategy() == null) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST,
+          "Cannot provide recommendation. All goal plan fields must be configured: "
+              + "targetChangeKg, targetDurationWeeks, trainingFrequencyPerWeek, and planStrategy. "
+              + "Please configure your goal plan first.");
+    }
+
     HealthInsightResult insight = healthInsightService.buildInsights(person);
 
     Map<String, Object> response = new HashMap<>();
@@ -451,11 +494,20 @@ public class PersonController {
     if (insight.cohortWarning() != null) {
       response.put("cohortWarning", insight.cohortWarning());
     }
+    // Add warning when plan alignment is 0
+    if (insight.planAlignmentIndex() != null && insight.planAlignmentIndex() == 0.0) {
+      response.put("planAlignmentWarning", 
+          "Plan Alignment of 0 means your goal plan is unrealistic. "
+          + "This could be due to: goal contradiction (e.g., BULK goal with weight loss target), "
+          + "extremely aggressive weight change rates, unrealistic timeline, "
+          + "insufficient training frequency, or mismatched plan strategy. "
+          + "Please review and adjust your plan configuration to create a realistic plan.");
+    }
     response.put("planStrategy", person.getPlanStrategy());
     response.put("targetChangeKg", person.getTargetChangeKg());
     response.put("targetDurationWeeks", person.getTargetDurationWeeks());
     response.put("trainingFrequencyPerWeek", person.getTrainingFrequencyPerWeek());
-    response.putAll(buildPlanDetails(person));
+    response.putAll(buildPlanDetails(person, insight.planAlignmentIndex()));
     return ResponseEntity.ok(response);
   }
 
@@ -471,7 +523,81 @@ public class PersonController {
     }
   }
 
-  private Map<String, String> buildPlanDetails(PersonSimple person) {
+  /**
+   * Validates that the target weight (current weight +/- target change) is within reasonable bounds.
+   * 
+   * @param person The person entity with current weight, height, and goal
+   * @param targetChangeKg The target weight change in kg
+   * @throws ResponseStatusException if target weight is unreasonable
+   */
+  private void validateTargetWeight(PersonSimple person, Double targetChangeKg) {
+    if (person.getWeight() == null || targetChangeKg == null || person.getGoal() == null) {
+      return; // Skip validation if required fields are missing
+    }
+
+    double currentWeight = person.getWeight();
+    double targetWeight;
+    
+    if (person.getGoal() == FitnessGoal.CUT) {
+      // For CUT, targetChangeKg is positive but represents weight loss
+      targetWeight = currentWeight - Math.abs(targetChangeKg);
+      
+      // Check minimum weight
+      if (targetWeight < MIN_HEALTHY_WEIGHT_KG) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST,
+            String.format(
+                "Target weight (%.1f kg) is below the minimum healthy weight (%.1f kg). "
+                    + "Losing %.1f kg from your current weight of %.1f kg would be unsafe. "
+                    + "Please set a more realistic target change.",
+                targetWeight, MIN_HEALTHY_WEIGHT_KG, Math.abs(targetChangeKg), currentWeight));
+      }
+      
+      // Check BMI if height is available
+      if (person.getHeight() != null && person.getHeight() > 0) {
+        double targetBmi = targetWeight / Math.pow(person.getHeight() / 100.0, 2);
+        if (targetBmi < MIN_HEALTHY_BMI) {
+          throw new ResponseStatusException(
+              HttpStatus.BAD_REQUEST,
+              String.format(
+                  "Target BMI (%.1f) would be below the minimum healthy BMI (%.1f). "
+                      + "Losing %.1f kg from your current weight of %.1f kg would result in an unsafe BMI. "
+                      + "Please set a more realistic target change.",
+                  targetBmi, MIN_HEALTHY_BMI, Math.abs(targetChangeKg), currentWeight));
+        }
+      }
+    } else if (person.getGoal() == FitnessGoal.BULK) {
+      // For BULK, targetChangeKg is positive and represents weight gain
+      targetWeight = currentWeight + Math.abs(targetChangeKg);
+      
+      // Check maximum weight
+      if (targetWeight > MAX_REASONABLE_WEIGHT_KG) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST,
+            String.format(
+                "Target weight (%.1f kg) exceeds the maximum reasonable weight (%.1f kg). "
+                    + "Gaining %.1f kg from your current weight of %.1f kg would be excessive. "
+                    + "Please set a more realistic target change.",
+                targetWeight, MAX_REASONABLE_WEIGHT_KG, Math.abs(targetChangeKg), currentWeight));
+      }
+      
+      // Check BMI if height is available
+      if (person.getHeight() != null && person.getHeight() > 0) {
+        double targetBmi = targetWeight / Math.pow(person.getHeight() / 100.0, 2);
+        if (targetBmi > MAX_REASONABLE_BMI) {
+          throw new ResponseStatusException(
+              HttpStatus.BAD_REQUEST,
+              String.format(
+                  "Target BMI (%.1f) would exceed the maximum reasonable BMI (%.1f). "
+                      + "Gaining %.1f kg from your current weight of %.1f kg would result in an unsafe BMI. "
+                      + "Please set a more realistic target change.",
+                  targetBmi, MAX_REASONABLE_BMI, Math.abs(targetChangeKg), currentWeight));
+        }
+      }
+    }
+  }
+
+  private Map<String, String> buildPlanDetails(PersonSimple person, Double planAlignmentIndex) {
     Map<String, String> details = new HashMap<>();
     PlanStrategy strategy = person.getPlanStrategy();
     if (strategy == null) {
@@ -479,17 +605,24 @@ public class PersonController {
     }
 
     if (strategy == PlanStrategy.DIET || strategy == PlanStrategy.BOTH) {
-      details.put("dietPlan", defaultDietPlan(person));
+      details.put("dietPlan", defaultDietPlan(person, planAlignmentIndex));
     }
 
     if (strategy == PlanStrategy.WORKOUT || strategy == PlanStrategy.BOTH) {
-      details.put("workoutPlan", defaultWorkoutPlan(person));
+      details.put("workoutPlan", defaultWorkoutPlan(person, planAlignmentIndex));
     }
 
     return details;
   }
 
-  private String defaultDietPlan(PersonSimple person) {
+  private String defaultDietPlan(PersonSimple person, Double planAlignmentIndex) {
+    // If plan alignment is 0, provide a warning message instead of specific diet plan
+    if (planAlignmentIndex != null && planAlignmentIndex == 0.0) {
+      return "Cannot provide a diet plan because your goal plan is unrealistic (Plan Alignment = 0). "
+          + "Please review and adjust your plan configuration (target change, duration, training frequency, strategy) "
+          + "to create a realistic plan before generating a diet plan.";
+    }
+
     FitnessGoal goal = person.getGoal();
     double adjustment = DEFAULT_PLAN_ADJUSTMENT;
     if (person.getTargetChangeKg() != null && person.getTargetDurationWeeks() != null
@@ -499,6 +632,14 @@ public class PersonController {
               / person.getTargetDurationWeeks()
               / DAYS_PER_WEEK);
     }
+    
+    // Apply boundary checks for calorie adjustments
+    if (goal == FitnessGoal.CUT && adjustment > MAX_DAILY_CALORIE_DEFICIT) {
+      adjustment = MAX_DAILY_CALORIE_DEFICIT;
+    } else if (goal == FitnessGoal.BULK && adjustment > MAX_DAILY_CALORIE_SURPLUS) {
+      adjustment = MAX_DAILY_CALORIE_SURPLUS;
+    }
+    
     adjustment = Math.round(adjustment / CALORIE_ROUNDING_STEP) * CALORIE_ROUNDING_STEP;
 
     if (goal == null) {
@@ -506,17 +647,54 @@ public class PersonController {
     }
 
     if (goal == FitnessGoal.CUT) {
+      // Check if the adjustment was capped
+      double uncappedAdjustment = person.getTargetChangeKg() != null && person.getTargetDurationWeeks() != null
+          && person.getTargetDurationWeeks() > 0
+          ? Math.abs(person.getTargetChangeKg() * CALORIES_PER_KG / person.getTargetDurationWeeks() / DAYS_PER_WEEK)
+          : DEFAULT_PLAN_ADJUSTMENT;
+      
+      if (uncappedAdjustment > MAX_DAILY_CALORIE_DEFICIT) {
+        return String.format(
+            "Aim for about %.0f kcal deficit per day (capped at maximum safe deficit) "
+                + "with high-protein, veggie-rich meals and adequate hydration. "
+                + "Your original plan would require %.0f kcal/day deficit, which is unsafe. "
+                + "Consider extending your duration or reducing your target change.",
+            adjustment, Math.round(uncappedAdjustment / CALORIE_ROUNDING_STEP) * CALORIE_ROUNDING_STEP);
+      }
       return String.format(
           "Aim for about %.0f kcal deficit per day with high-protein, veggie-rich meals and adequate hydration.",
           adjustment);
     }
+    
+    // Check if surplus was capped
+    double uncappedSurplus = person.getTargetChangeKg() != null && person.getTargetDurationWeeks() != null
+        && person.getTargetDurationWeeks() > 0
+        ? Math.abs(person.getTargetChangeKg() * CALORIES_PER_KG / person.getTargetDurationWeeks() / DAYS_PER_WEEK)
+        : DEFAULT_PLAN_ADJUSTMENT;
+    
+    if (uncappedSurplus > MAX_DAILY_CALORIE_SURPLUS) {
+      return String.format(
+          "Target roughly %.0f kcal surplus daily (capped at maximum safe surplus) "
+              + "using lean proteins, complex carbs, and healthy fats spread across meals. "
+              + "Your original plan would require %.0f kcal/day surplus, which may lead to excessive fat gain. "
+              + "Consider extending your duration or reducing your target change.",
+          adjustment, Math.round(uncappedSurplus / CALORIE_ROUNDING_STEP) * CALORIE_ROUNDING_STEP);
+    }
+    
     return String.format(
         "Target roughly %.0f kcal surplus daily using lean proteins, complex carbs, "
             + "and healthy fats spread across meals.",
         adjustment);
   }
 
-  private String defaultWorkoutPlan(PersonSimple person) {
+  private String defaultWorkoutPlan(PersonSimple person, Double planAlignmentIndex) {
+    // If plan alignment is 0, provide a warning message instead of specific workout plan
+    if (planAlignmentIndex != null && planAlignmentIndex == 0.0) {
+      return "Cannot provide a workout plan because your goal plan is unrealistic (Plan Alignment = 0). "
+          + "Please review and adjust your plan configuration (target change, duration, training frequency, strategy) "
+          + "to create a realistic plan before generating a workout plan.";
+    }
+
     int frequency = person.getTrainingFrequencyPerWeek() != null
         ? person.getTrainingFrequencyPerWeek()
         : DEFAULT_WEEKLY_WORKOUTS;

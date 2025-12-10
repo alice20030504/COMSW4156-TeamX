@@ -255,6 +255,37 @@ public class HealthInsightService {
         : 0;
     String formattedBmi = String.format(Locale.US, "%.1f", bmi);
 
+    // Check for plan alignment = 0 first (unrealistic plan)
+    if (planAlignmentIndex != null && planAlignmentIndex == 0.0) {
+      Double delta = resolvePlanDelta(person);
+      Integer duration = person.getTargetDurationWeeks();
+      
+      // Check for specific issues that cause plan alignment to be 0
+      if (delta == null || duration == null || duration <= 0) {
+        return "Your plan alignment is 0 because required plan information is missing or invalid. "
+            + "Please ensure all plan fields (target change, duration, training frequency) are properly configured.";
+      }
+      
+      if (goal == FitnessGoal.BULK && delta <= 0) {
+        return "Your plan is unrealistic: You've set a BULK goal but your target change would result in weight loss. "
+            + "Please revise your target change to be positive (weight gain) to align with your bulking goal, "
+            + "or change your goal to CUT if you want to lose weight.";
+      }
+      
+      if (goal == FitnessGoal.CUT && delta >= 0) {
+        return "Your plan is unrealistic: You've set a CUT goal but your target change would result in weight gain. "
+            + "Please revise your target change to be negative (weight loss) to align with your cutting goal, "
+            + "or change your goal to BULK if you want to gain weight.";
+      }
+      
+      // Generic message for other cases (e.g., extremely aggressive rates, very low training frequency, etc.)
+      return "Your plan alignment is 0, indicating your goal plan is unrealistic. "
+          + "This could be due to: extremely aggressive weight change targets, unrealistic timeline, "
+          + "insufficient training frequency, or mismatched plan strategy. "
+          + "Please review and adjust your target change, duration, training frequency, "
+          + "and plan strategy to create a realistic plan.";
+    }
+
     if (goal == FitnessGoal.BULK && "Obese".equals(bmiCategory)) {
       return "Keep bulking cautiously: BMI is " + formattedBmi
           + " (obese). Consider a short CUT phase before resuming bulk work.";

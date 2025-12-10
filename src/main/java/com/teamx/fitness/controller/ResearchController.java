@@ -139,14 +139,6 @@ public class ResearchController {
     return persons;
   }
 
-  private double safeAverage(List<Double> values) {
-    return values.stream()
-        .filter(Objects::nonNull)
-        .mapToDouble(Double::doubleValue)
-        .average()
-        .orElse(Double.NaN);
-  }
-
   private double safeAverageInt(List<Integer> values) {
     return values.stream()
         .filter(Objects::nonNull)
@@ -170,8 +162,9 @@ public class ResearchController {
 
   @GetMapping("/demographics")
   @Operation(
-      summary = "Aggregated demographic snapshot",
-      description = "Returns sample size, averages, and distribution by gender and goal.",
+      summary = "Demographic characteristics and distributions",
+      description = "Returns detailed demographic breakdowns including age ranges, gender distribution, "
+          + "and physical characteristics. Focuses on WHO the users are rather than health outcomes.",
       parameters = {
           @Parameter(
               name = "X-Client-ID",
@@ -183,19 +176,30 @@ public class ResearchController {
   @ApiResponses({
       @ApiResponse(
           responseCode = "200",
-          description = "Demographic snapshot computed",
+          description = "Demographic analysis computed",
           content = @Content(schema = @Schema(implementation = Map.class),
               examples = @ExampleObject("""
                   {
-                    "cohortSummary": {
-                      "sampleSize": 4,
+                    "sampleSize": 4,
+                    "ageDistribution": {
                       "averageAge": 32.5,
-                      "averageWeight": 72.5,
-                      "averageHeight": 175.0
+                      "ageRanges": {
+                        "18-25": 1,
+                        "26-35": 2,
+                        "36-45": 1,
+                        "46+": 0
+                      }
                     },
-                    "breakdown": {
-                      "byGender": {"MALE": 2, "FEMALE": 2},
-                      "byGoal": {"CUT": 2, "BULK": 2}
+                    "genderDistribution": {
+                      "MALE": 2,
+                      "FEMALE": 2,
+                      "percentage": {"MALE": 50.0, "FEMALE": 50.0}
+                    },
+                    "physicalCharacteristics": {
+                      "averageWeight": 72.5,
+                      "averageHeight": 175.0,
+                      "weightRange": {"min": 65.0, "max": 80.0},
+                      "heightRange": {"min": 160.0, "max": 190.0}
                     }
                   }
                   """))),
@@ -235,35 +239,74 @@ public class ResearchController {
               + " Ensure weight, height, and birthDate are provided.");
     }
 
-    Map<String, Object> summary = new HashMap<>();
-    summary.put("sampleSize", persons.size());
-    summary.put("averageAge", round(safeAverageInt(ages)));
-    summary.put("averageWeight", round(safeAverage(weights)));
-    summary.put("averageHeight", round(safeAverage(heights)));
+    // Age distribution by ranges
+    Map<String, Long> ageRanges = ages.stream()
+        .collect(Collectors.groupingBy(age -> {
+          if (age < 26) {
+            return "18-25";
+          }
+          if (age < 36) {
+            return "26-35";
+          }
+          if (age < 46) {
+            return "36-45";
+          }
+          return "46+";
+        }, Collectors.counting()));
 
-    Map<String, Long> byGender = persons.stream()
+    Map<String, Object> ageDistribution = new HashMap<>();
+    ageDistribution.put("averageAge", round(safeAverageInt(ages)));
+    ageDistribution.put("ageRanges", ageRanges);
+
+    // Gender distribution with percentages
+    Map<String, Long> genderCounts = persons.stream()
         .filter(p -> p.getGender() != null)
         .collect(Collectors.groupingBy(p -> p.getGender().name(), Collectors.counting()));
+    
+    long totalWithGender = genderCounts.values().stream().mapToLong(Long::longValue).sum();
+    Map<String, Double> genderPercentages = new HashMap<>();
+    genderCounts.forEach((gender, count) -> {
+      genderPercentages.put(gender, round((count * 100.0) / totalWithGender));
+    });
 
-    Map<String, Long> byGoal = persons.stream()
-        .filter(p -> p.getGoal() != null)
-        .collect(Collectors.groupingBy(p -> p.getGoal().name(), Collectors.counting()));
+    Map<String, Object> genderDistribution = new HashMap<>();
+    genderDistribution.putAll(genderCounts);
+    genderDistribution.put("percentage", genderPercentages);
 
-    Map<String, Object> breakdown = new HashMap<>();
-    breakdown.put("byGender", byGender);
-    breakdown.put("byGoal", byGoal);
+    // Physical characteristics with ranges
+    DoubleSummaryStatistics weightStats = weights.stream()
+        .mapToDouble(Double::doubleValue)
+        .summaryStatistics();
+    DoubleSummaryStatistics heightStats = heights.stream()
+        .mapToDouble(Double::doubleValue)
+        .summaryStatistics();
+
+    Map<String, Object> physicalCharacteristics = new HashMap<>();
+    physicalCharacteristics.put("averageWeight", round(weightStats.getAverage()));
+    physicalCharacteristics.put("averageHeight", round(heightStats.getAverage()));
+    Map<String, Double> weightRange = new HashMap<>();
+    weightRange.put("min", round(weightStats.getMin()));
+    weightRange.put("max", round(weightStats.getMax()));
+    physicalCharacteristics.put("weightRange", weightRange);
+    Map<String, Double> heightRange = new HashMap<>();
+    heightRange.put("min", round(heightStats.getMin()));
+    heightRange.put("max", round(heightStats.getMax()));
+    physicalCharacteristics.put("heightRange", heightRange);
 
     Map<String, Object> response = new HashMap<>();
-    response.put("cohortSummary", summary);
-    response.put("breakdown", breakdown);
+    response.put("sampleSize", persons.size());
+    response.put("ageDistribution", ageDistribution);
+    response.put("genderDistribution", genderDistribution);
+    response.put("physicalCharacteristics", physicalCharacteristics);
 
     return ResponseEntity.ok(response);
   }
 
   @GetMapping("/population-health")
   @Operation(
-      summary = "Population health overview",
-      description = "Basic averages split by goal along with BMI insights.",
+      summary = "Health outcomes and plan effectiveness metrics",
+      description = "Returns health metrics, plan configurations, and outcomes grouped by fitness goal. "
+          + "Focuses on WHAT users are doing and achieving rather than demographic characteristics.",
       parameters = {
           @Parameter(
               name = "X-Client-ID",
@@ -283,13 +326,39 @@ public class ResearchController {
                     "goalSegments": {
                       "CUT": {
                         "count": 2,
-                        "averageWeight": 68.0,
-                        "averageBMI": 23.5
+                        "healthMetrics": {
+                          "averageBMI": 23.5,
+                          "bmiDistribution": {
+                            "underweight": 0,
+                            "normal": 1,
+                            "overweight": 1,
+                            "obese": 0
+                          }
+                        },
+                        "planMetrics": {
+                          "averageTargetChange": 5.0,
+                          "averageDurationWeeks": 12.0,
+                          "averageTrainingFrequency": 3.5,
+                          "planStrategies": {"DIET": 1, "BOTH": 1}
+                        }
                       },
                       "BULK": {
                         "count": 2,
-                        "averageWeight": 77.0,
-                        "averageBMI": 24.8
+                        "healthMetrics": {
+                          "averageBMI": 24.8,
+                          "bmiDistribution": {
+                            "underweight": 0,
+                            "normal": 2,
+                            "overweight": 0,
+                            "obese": 0
+                          }
+                        },
+                        "planMetrics": {
+                          "averageTargetChange": 8.0,
+                          "averageDurationWeeks": 16.0,
+                          "averageTrainingFrequency": 4.0,
+                          "planStrategies": {"WORKOUT": 1, "BOTH": 1}
+                        }
                       }
                     }
                   }
@@ -319,42 +388,84 @@ public class ResearchController {
     response.put("totalProfiles", persons.size());
 
     Map<String, Object> goalSegments = new HashMap<>();
-    goalSegments.put("CUT", goalMetrics(cutters));
-    goalSegments.put("BULK", goalMetrics(bulkers));
+    goalSegments.put("CUT", goalHealthMetrics(cutters));
+    goalSegments.put("BULK", goalHealthMetrics(bulkers));
 
     response.put("goalSegments", goalSegments);
     return ResponseEntity.ok(response);
   }
 
-  private Map<String, Object> goalMetrics(List<PersonSimple> people) {
-    DoubleSummaryStatistics weightStats = people.stream()
-        .map(PersonSimple::getWeight)
-        .filter(Objects::nonNull)
-        .mapToDouble(Double::doubleValue)
-        .summaryStatistics();
-
-    DoubleSummaryStatistics bmiStats = people.stream()
+  private Map<String, Object> goalHealthMetrics(List<PersonSimple> people) {
+    // Health metrics (BMI and distribution)
+    List<Double> bmis = people.stream()
         .filter(p -> p.getWeight() != null && p.getHeight() != null)
         .map(p -> personService.calculateBMI(p.getWeight(), p.getHeight()))
         .filter(Objects::nonNull)
-        .mapToDouble(Double::doubleValue)
-        .summaryStatistics();
+        .toList();
 
-    if (weightStats.getCount() == 0 || bmiStats.getCount() == 0) {
+    if (bmis.isEmpty()) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST,
-          "Not enough complete data to compute goal metrics.");
+          "Not enough complete data to compute health metrics.");
+    }
+
+    Map<String, Long> bmiDistribution = bmis.stream()
+        .collect(Collectors.groupingBy(bmi -> {
+          if (bmi < 18.5) {
+            return "underweight";
+          }
+          if (bmi < 25.0) {
+            return "normal";
+          }
+          if (bmi < 30.0) {
+            return "overweight";
+          }
+          return "obese";
+        }, Collectors.counting()));
+
+    Map<String, Object> healthMetrics = new HashMap<>();
+    healthMetrics.put("averageBMI",
+        round(bmis.stream().mapToDouble(Double::doubleValue).average().orElse(Double.NaN)));
+    healthMetrics.put("bmiDistribution", bmiDistribution);
+
+    // Plan metrics (what users are planning to do)
+    List<Double> targetChanges = people.stream()
+        .map(PersonSimple::getTargetChangeKg)
+        .filter(Objects::nonNull)
+        .toList();
+    List<Integer> durations = people.stream()
+        .map(PersonSimple::getTargetDurationWeeks)
+        .filter(Objects::nonNull)
+        .toList();
+    List<Integer> trainingFreqs = people.stream()
+        .map(PersonSimple::getTrainingFrequencyPerWeek)
+        .filter(Objects::nonNull)
+        .toList();
+    Map<String, Long> planStrategies = people.stream()
+        .filter(p -> p.getPlanStrategy() != null)
+        .collect(Collectors.groupingBy(p -> p.getPlanStrategy().name(), Collectors.counting()));
+
+    Map<String, Object> planMetrics = new HashMap<>();
+    if (!targetChanges.isEmpty()) {
+      planMetrics.put("averageTargetChange",
+          round(targetChanges.stream().mapToDouble(Double::doubleValue).average().orElse(Double.NaN)));
+    }
+    if (!durations.isEmpty()) {
+      planMetrics.put("averageDurationWeeks",
+          round(durations.stream().mapToInt(Integer::intValue).average().orElse(Double.NaN)));
+    }
+    if (!trainingFreqs.isEmpty()) {
+      planMetrics.put("averageTrainingFrequency",
+          round(trainingFreqs.stream().mapToInt(Integer::intValue).average().orElse(Double.NaN)));
+    }
+    if (!planStrategies.isEmpty()) {
+      planMetrics.put("planStrategies", planStrategies);
     }
 
     Map<String, Object> metrics = new HashMap<>();
     metrics.put("count", people.size());
-    metrics.put("averageWeight", round(weightStats.getAverage()));
-    metrics.put("averageBMI", round(bmiStats.getAverage()));
-
-    Map<String, Long> genderSplit = people.stream()
-        .filter(p -> p.getGender() != null)
-        .collect(Collectors.groupingBy(p -> p.getGender().name(), Collectors.counting()));
-    metrics.put("genderSplit", genderSplit);
+    metrics.put("healthMetrics", healthMetrics);
+    metrics.put("planMetrics", planMetrics);
 
     return metrics;
   }

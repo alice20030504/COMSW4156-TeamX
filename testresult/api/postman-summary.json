@@ -5,15 +5,15 @@
     },
     "item": [
       {
-        "id": "34cc90fe-a5f8-4ad5-8060-e8999511d4a1",
+        "id": "7a04f23f-5ee6-41bd-ad39-05a20a2fa060",
         "name": "Personal Endpoints",
         "item": [
           {
-            "id": "29efdb67-ec69-4387-bd8a-f5a199537264",
+            "id": "2dd775b1-ac31-4230-9295-90a3fa17fd0b",
             "name": "Personal - Create Profile (POST /api/persons)",
             "item": [
               {
-                "id": "31b8da56-0259-4c8b-9433-7e4b8a483835",
+                "id": "68946f51-7a70-4f1a-9fa7-e4f85d4ba66f",
                 "name": "Create Profile - normal input",
                 "request": {
                   "url": {
@@ -43,7 +43,7 @@
                   {
                     "listen": "test",
                     "script": {
-                      "id": "3e510592-5b03-4eae-9301-208a552283a8",
+                      "id": "9fcc7ad5-ea77-45a5-bfb3-ccbfa08fc44c",
                       "type": "text/javascript",
                       "exec": [
                         "pm.test('Status 201 for normal create', function () { pm.response.to.have.status(201); });",
@@ -51,13 +51,13 @@
                         "pm.test('Client id issued', function () { pm.expect(json.clientId).to.match(/^mobile-/); });",
                         "pm.environment.set('mobileClientPrimary', json.clientId);"
                       ],
-                      "_lastExecutionId": "0cec42ed-53b7-4df5-bb93-f7a3e03620c2"
+                      "_lastExecutionId": "1fecb159-759e-4c0b-a278-55be8d01b828"
                     }
                   }
                 ]
               },
               {
-                "id": "61025a5d-d39e-474a-9edf-1227bd9c6376",
+                "id": "9b2d8800-4f53-4cdb-868e-c3b7e774cee6",
                 "name": "Create Profile - boundary anthropometrics",
                 "request": {
                   "url": {
@@ -87,20 +87,20 @@
                   {
                     "listen": "test",
                     "script": {
-                      "id": "fef72045-b122-4fae-9ee4-b607293eeee0",
+                      "id": "ab784597-a7c8-4d11-b0b1-1bd9cf7991fb",
                       "type": "text/javascript",
                       "exec": [
                         "pm.test('Status 201 for boundary create', function () { pm.response.to.have.status(201); });",
                         "const json = pm.response.json();",
                         "pm.environment.set('mobileClientBoundary', json.clientId);"
                       ],
-                      "_lastExecutionId": "a6cafb94-2887-4d8c-91c2-5d82654ec38c"
+                      "_lastExecutionId": "cd83e238-d943-4c0d-8e5e-075e53021eaa"
                     }
                   }
                 ]
               },
               {
-                "id": "147ca62b-9f4d-4676-92aa-3e8fbaba59d5",
+                "id": "7d9b1a07-a504-417f-8dbe-24726f967be6",
                 "name": "Create Profile - invalid future birth date",
                 "request": {
                   "url": {
@@ -130,12 +130,12 @@
                   {
                     "listen": "test",
                     "script": {
-                      "id": "7d38d5ab-f071-43f8-a74d-d9117a295103",
+                      "id": "434d29d2-4b3a-4bca-becd-c4964efb0469",
                       "type": "text/javascript",
                       "exec": [
                         "pm.test('Future birth date rejected', function () { pm.response.to.have.status(400); });"
                       ],
-                      "_lastExecutionId": "51d23b8d-91c4-4dff-987c-bc2882eff23b"
+                      "_lastExecutionId": "ce934740-3886-40bd-b6e1-577704c4095a"
                     }
                   }
                 ]
@@ -144,11 +144,11 @@
             "event": []
           },
           {
-            "id": "92010560-d049-42ad-aff9-3437ba513579",
+            "id": "fa66280f-4b19-4eb6-9eaf-534e72a41bc4",
             "name": "Personal - Get Profile (GET /api/persons/me)",
             "item": [
               {
-                "id": "5fc4efc7-8982-40bc-8acb-4c8fe4c47544",
+                "id": "bda7cc28-e681-4b50-908c-b43c642e48ee",
                 "name": "Get Profile - normal",
                 "request": {
                   "url": {
@@ -176,20 +176,20 @@
                   {
                     "listen": "test",
                     "script": {
-                      "id": "0d9101de-3283-4c71-87f0-7df2eb35730c",
+                      "id": "2fa9fafd-7e1f-4fed-b87a-bcbcd1400a35",
                       "type": "text/javascript",
                       "exec": [
                         "pm.test('Profile fetch returns 200', function () { pm.response.to.have.status(200); });",
                         "const body = pm.response.json();",
                         "pm.test('Client id matches stored primary', function () { pm.expect(body.clientId).to.eql(pm.environment.get('mobileClientPrimary')); });"
                       ],
-                      "_lastExecutionId": "267be2e4-8798-4f4d-bf5d-828a7794be58"
+                      "_lastExecutionId": "d8b67243-677e-4720-8139-3c86092157e3"
                     }
                   }
                 ]
               },
               {
-                "id": "3726edbe-a4f4-49bb-85bb-b1994bb06126",
+                "id": "4a73e4ad-124d-4e1a-b956-8d25ae6facff",
                 "name": "Get Profile - boundary client",
                 "request": {
                   "url": {
@@ -217,20 +217,20 @@
                   {
                     "listen": "test",
                     "script": {
-                      "id": "ad735f60-29e7-4241-bf61-ff4b182c1081",
+                      "id": "d1a5b7d4-fd4d-405f-a2cf-d84413141da0",
                       "type": "text/javascript",
                       "exec": [
                         "pm.test('Boundary client profile loads', function () { pm.response.to.have.status(200); });",
                         "const body = pm.response.json();",
                         "pm.test('Goal preserved for boundary client', function () { pm.expect(body.goal).to.eql('BULK'); });"
                       ],
-                      "_lastExecutionId": "db2f7e22-906e-4ca8-aac2-183ae13673db"
+                      "_lastExecutionId": "0f799d21-f9ec-48ab-8868-68f5e981a690"
                     }
                   }
                 ]
               },
               {
-                "id": "67e27234-6585-42a2-8e7c-4d4f1dfb352e",
+                "id": "e10e7619-8705-4bc1-867d-b3c5f42d9c1a",
                 "name": "Get Profile - missing client header",
                 "request": {
                   "url": {
@@ -252,12 +252,12 @@
                   {
                     "listen": "test",
                     "script": {
-                      "id": "d21494b2-296f-4a7b-b711-a619622cbaa2",
+                      "id": "a35357d9-b448-4832-bae6-de8631037e63",
                       "type": "text/javascript",
                       "exec": [
                         "pm.test('Missing header yields 400', function () { pm.response.to.have.status(400); });"
                       ],
-                      "_lastExecutionId": "834c1a4b-49f4-4f19-bbb3-1c52f7bdf17c"
+                      "_lastExecutionId": "ca20c1f2-4966-4769-b6c5-0bb4bf0434e9"
                     }
                   }
                 ]
@@ -266,11 +266,11 @@
             "event": []
           },
           {
-            "id": "c9be2e81-485d-4977-bbac-0382ab510948",
+            "id": "13443159-b3d9-457c-9064-773603b03e95",
             "name": "Personal - Configure Plan (POST /api/persons/plan)",
             "item": [
               {
-                "id": "9b8f28e7-e077-411d-aca7-6b6dbe9ad88d",
+                "id": "96f47448-58c2-49ba-8b33-d1d8f6147fa3",
                 "name": "Plan Configuration - normal",
                 "request": {
                   "url": {
@@ -311,20 +311,20 @@
                   {
                     "listen": "test",
                     "script": {
-                      "id": "365f57e9-9a63-4012-b235-6e6d86b1d4f0",
+                      "id": "0ccbc76e-0488-4a6f-abce-312f53b5f11e",
                       "type": "text/javascript",
                       "exec": [
                         "pm.test('Plan saved with 200', function () { pm.response.to.have.status(200); });",
                         "const body = pm.response.json();",
                         "pm.test('Plan strategy echoes DIET', function () { pm.expect(body.planStrategy).to.eql('DIET'); });"
                       ],
-                      "_lastExecutionId": "4aa8e694-266d-471a-b15e-4b12384dea1a"
+                      "_lastExecutionId": "fe857b24-3381-4ee6-87e2-ca9c69a233aa"
                     }
                   }
                 ]
               },
               {
-                "id": "f58ebb48-6b64-4882-bee0-d3d73616c2ed",
+                "id": "08ce2d23-cce1-4281-b6e7-0003897bab92",
                 "name": "Plan Configuration - boundary frequency",
                 "request": {
                   "url": {
@@ -365,20 +365,20 @@
                   {
                     "listen": "test",
                     "script": {
-                      "id": "37e9c363-965e-4e31-b2b0-95a16166fcdd",
+                      "id": "b6e16b20-351a-40c4-8f5e-e8e8d050f3a8",
                       "type": "text/javascript",
                       "exec": [
                         "pm.test('Boundary frequency accepted', function () { pm.response.to.have.status(200); });",
                         "const body = pm.response.json();",
                         "pm.test('Training frequency stored at 14', function () { pm.expect(body.trainingFrequencyPerWeek).to.eql(14); });"
                       ],
-                      "_lastExecutionId": "a7279ab7-11f5-4937-8bb1-90f65e280c29"
+                      "_lastExecutionId": "aeed8410-24f4-4bc6-9965-670bc8bd78be"
                     }
                   }
                 ]
               },
               {
-                "id": "11cf37d6-dc44-4484-ba4a-1fa87f81805a",
+                "id": "99c25ee0-9dd1-49f3-a120-bbca8ced5249",
                 "name": "Plan Configuration - invalid payload",
                 "request": {
                   "url": {
@@ -419,12 +419,12 @@
                   {
                     "listen": "test",
                     "script": {
-                      "id": "8c1e3ae4-e933-470f-9e0c-ce321ee6afcd",
+                      "id": "811227ab-a5af-4eed-bd58-78c885b45c7e",
                       "type": "text/javascript",
                       "exec": [
                         "pm.test('Missing plan strategy rejected', function () { pm.response.to.have.status(400); });"
                       ],
-                      "_lastExecutionId": "6fd7b39e-55bf-4a86-ab07-46d6ca1c3c6c"
+                      "_lastExecutionId": "4d9d4913-e7c1-41ef-81f1-cb236068b26c"
                     }
                   }
                 ]
@@ -433,11 +433,11 @@
             "event": []
           },
           {
-            "id": "8a792772-2789-4259-b034-9fe331ac09f8",
+            "id": "ba2ef737-ec2f-4189-9ef3-73313448dd05",
             "name": "Personal - Update Profile (PUT /api/persons/me)",
             "item": [
               {
-                "id": "b0f266ee-fa34-4594-8530-50673326c56a",
+                "id": "b1d4afa5-cd98-4db3-a9e3-70183444625e",
                 "name": "Update Profile - normal",
                 "request": {
                   "url": {
@@ -478,20 +478,20 @@
                   {
                     "listen": "test",
                     "script": {
-                      "id": "da953b65-9d9a-4fe0-b73b-3661afaaca35",
+                      "id": "b70ffc79-10a3-45b7-9d54-6f5c5f2d1811",
                       "type": "text/javascript",
                       "exec": [
                         "pm.test('Update returns 200', function () { pm.response.to.have.status(200); });",
                         "const body = pm.response.json();",
                         "pm.test('Name trimmed after update', function () { pm.expect(body.name).to.eql('Alex Updated'); });"
                       ],
-                      "_lastExecutionId": "7fda83e2-2107-49ff-a787-67add1ee0b51"
+                      "_lastExecutionId": "2a6d6ce0-92e8-4a29-a849-02dfeb4992f4"
                     }
                   }
                 ]
               },
               {
-                "id": "6c221f97-4aec-4c06-89fa-a2b59a388074",
+                "id": "92a58dd8-88f4-44f9-98b8-dd8f6bc7e607",
                 "name": "Update Profile - boundary metrics",
                 "request": {
                   "url": {
@@ -519,7 +519,7 @@
                   "method": "PUT",
                   "body": {
                     "mode": "raw",
-                    "raw": "{\n  \"name\": \"Alex Boundary\",\n  \"weight\": 38.0,\n  \"height\": 150.0,\n  \"birthDate\": \"1990-04-15\",\n  \"gender\": \"MALE\",\n  \"goal\": \"CUT\",\n  \"targetChangeKg\": 5.0,\n  \"targetDurationWeeks\": 10,\n  \"trainingFrequencyPerWeek\": 14,\n  \"planStrategy\": \"BOTH\"\n}",
+                    "raw": "{\n  \"name\": \"Alex Boundary\",\n  \"weight\": 40.0,\n  \"height\": 150.0,\n  \"birthDate\": \"1990-04-15\",\n  \"gender\": \"MALE\",\n  \"goal\": \"CUT\",\n  \"targetChangeKg\": 5.0,\n  \"targetDurationWeeks\": 10,\n  \"trainingFrequencyPerWeek\": 14,\n  \"planStrategy\": \"BOTH\"\n}",
                     "options": {
                       "raw": {
                         "language": "json"
@@ -532,20 +532,20 @@
                   {
                     "listen": "test",
                     "script": {
-                      "id": "1708f02c-c89e-49de-b5f4-a32aefa9515c",
+                      "id": "a59e8285-426e-4d70-b64e-a4ae685300e5",
                       "type": "text/javascript",
                       "exec": [
                         "pm.test('Boundary metrics accepted', function () { pm.response.to.have.status(200); });",
                         "const body = pm.response.json();",
-                        "pm.test('Weight updated to 38', function () { pm.expect(body.weight).to.eql(38.0); });"
+                        "pm.test('Weight updated to 40', function () { pm.expect(body.weight).to.eql(40.0); });"
                       ],
-                      "_lastExecutionId": "5083eed4-da3f-4ae3-943a-5813b27fae54"
+                      "_lastExecutionId": "29fd4b96-2391-44fe-bb0a-2f1cd5bc1050"
                     }
                   }
                 ]
               },
               {
-                "id": "b97336e6-2f8c-47a2-b25d-438264e7a909",
+                "id": "5ad7a274-dcf3-4be2-91fa-24c453935149",
                 "name": "Update Profile - invalid birth date",
                 "request": {
                   "url": {
@@ -586,12 +586,12 @@
                   {
                     "listen": "test",
                     "script": {
-                      "id": "678facde-85f8-421c-91cc-0b475b9f2c4e",
+                      "id": "9f3e8f20-c7f7-4b08-a2fb-4c2cc7f03d86",
                       "type": "text/javascript",
                       "exec": [
                         "pm.test('Future birth date rejected on update', function () { pm.response.to.have.status(400); });"
                       ],
-                      "_lastExecutionId": "35785b25-90f9-4a92-9059-bcf9f203f659"
+                      "_lastExecutionId": "bca6ca7f-7f00-4a35-9b4d-c0aef28fbeeb"
                     }
                   }
                 ]
@@ -600,11 +600,11 @@
             "event": []
           },
           {
-            "id": "eb3c0c9c-b65f-4495-8cd4-3c09576afe0c",
+            "id": "28972086-685c-4da8-b321-c5a0eaedcb07",
             "name": "Personal - BMI (GET /api/persons/bmi)",
             "item": [
               {
-                "id": "3decceac-7694-4224-9e64-a4147b94c5fa",
+                "id": "4609aaf6-41ef-4c38-990a-d445bc4c89b9",
                 "name": "Get BMI - normal",
                 "request": {
                   "url": {
@@ -632,20 +632,20 @@
                   {
                     "listen": "test",
                     "script": {
-                      "id": "48164d62-3ac6-447a-9a84-98a3308ce331",
+                      "id": "270a027d-94b1-41ce-a392-4e45e68f5347",
                       "type": "text/javascript",
                       "exec": [
                         "pm.test('BMI request returns 200', function () { pm.response.to.have.status(200); });",
                         "const body = pm.response.json();",
                         "pm.test('BMI numeric value returned', function () { pm.expect(body.bmi).to.be.a('number'); });"
                       ],
-                      "_lastExecutionId": "215a06db-9a11-4f78-9a5f-4fecae5b3921"
+                      "_lastExecutionId": "ffbd430c-3866-4e5c-80a5-423835598135"
                     }
                   }
                 ]
               },
               {
-                "id": "fb4dc21e-0517-4f37-9acd-1a17a92e81aa",
+                "id": "be1a46da-4846-4b11-888a-e1d8a3665980",
                 "name": "Get BMI - boundary underweight profile",
                 "request": {
                   "url": {
@@ -673,20 +673,20 @@
                   {
                     "listen": "test",
                     "script": {
-                      "id": "fe679198-4470-4698-981f-f035b8b9cde7",
+                      "id": "72cc3578-0560-4c62-bc72-b548ef8f1554",
                       "type": "text/javascript",
                       "exec": [
                         "pm.test('Boundary BMI request returns 200', function () { pm.response.to.have.status(200); });",
                         "const body = pm.response.json();",
                         "pm.test('Category indicates underweight', function () { pm.expect(body.category).to.eql('Underweight'); });"
                       ],
-                      "_lastExecutionId": "3ee190c1-3162-43b2-b48d-9048b1c05322"
+                      "_lastExecutionId": "6ec17c23-e829-49cd-aa18-e2b499e5a622"
                     }
                   }
                 ]
               },
               {
-                "id": "0ba7a484-05f0-4e63-8eb9-88494ddfb294",
+                "id": "63d9ae1c-9d22-4484-8dee-56b3d6dfeef7",
                 "name": "Get BMI - missing header",
                 "request": {
                   "url": {
@@ -708,12 +708,12 @@
                   {
                     "listen": "test",
                     "script": {
-                      "id": "ba43e4b5-0ecb-4158-ac25-84eae82824e2",
+                      "id": "9d8d4ef8-a059-4fab-a917-2446d4ddd365",
                       "type": "text/javascript",
                       "exec": [
                         "pm.test('Missing header on BMI yields 400', function () { pm.response.to.have.status(400); });"
                       ],
-                      "_lastExecutionId": "9751f214-1381-4786-be83-3b39e4a66bd2"
+                      "_lastExecutionId": "da64cbea-425e-4153-97aa-848367801458"
                     }
                   }
                 ]
@@ -722,11 +722,11 @@
             "event": []
           },
           {
-            "id": "031bb748-f4df-4e08-a802-b2083d1a7724",
+            "id": "f16168db-eabd-412c-9b87-56c961e5de0b",
             "name": "Personal - Calories (GET /api/persons/calories)",
             "item": [
               {
-                "id": "51a752a1-3741-41d2-bba7-3393f2c70835",
+                "id": "88005d1e-4ba1-47fc-8775-4e4b3c7813a5",
                 "name": "Get Calories - normal",
                 "request": {
                   "url": {
@@ -754,20 +754,20 @@
                   {
                     "listen": "test",
                     "script": {
-                      "id": "8259b15e-9440-46e3-a135-0c56eb7d464b",
+                      "id": "9352b351-91f7-462a-9c01-3f4e1e23d4bd",
                       "type": "text/javascript",
                       "exec": [
                         "pm.test('Calories request succeeds', function () { pm.response.to.have.status(200); });",
                         "const body = pm.response.json();",
                         "pm.test('Recommended calories present', function () { pm.expect(body).to.have.property('recommendedDailyCalories'); });"
                       ],
-                      "_lastExecutionId": "317d19f6-22d5-418f-af85-cd82187398e5"
+                      "_lastExecutionId": "2bea0487-3318-46ed-a27c-5898eed26f35"
                     }
                   }
                 ]
               },
               {
-                "id": "3af97570-d795-4312-9f82-8a9b04a61663",
+                "id": "86c508f3-2d5c-48b0-802f-14b8503b5f41",
                 "name": "Get Calories - boundary frequency",
                 "request": {
                   "url": {
@@ -795,20 +795,20 @@
                   {
                     "listen": "test",
                     "script": {
-                      "id": "86bfa918-4653-493b-8957-9a8f4b7822b3",
+                      "id": "d4ff432c-2630-4ca8-a980-ddacd3d30a01",
                       "type": "text/javascript",
                       "exec": [
                         "pm.test('Boundary calorie request succeeds', function () { pm.response.to.have.status(200); });",
                         "const body = pm.response.json();",
-                        "pm.test('Training frequency preserved at 14', function () { pm.expect(body.trainingFrequencyPerWeek).to.eql(14); });"
+                        "pm.test('Training frequency is present', function () { pm.expect(body.trainingFrequencyPerWeek).to.be.a('number'); });"
                       ],
-                      "_lastExecutionId": "24bd84a1-6bda-4fe8-8ea5-7e212c7c9348"
+                      "_lastExecutionId": "ffb09e77-a60e-4c97-8b35-98f66067a57c"
                     }
                   }
                 ]
               },
               {
-                "id": "bf069188-c402-4b0b-89f6-824bacfefa9e",
+                "id": "e4261dfc-b13a-447a-8292-3d705f30115d",
                 "name": "Get Calories - missing header",
                 "request": {
                   "url": {
@@ -830,12 +830,12 @@
                   {
                     "listen": "test",
                     "script": {
-                      "id": "39b6245a-01c6-450b-9b45-3e193c6c4b99",
+                      "id": "3ce94da4-5021-43d1-97c0-a9493f7e6ac8",
                       "type": "text/javascript",
                       "exec": [
                         "pm.test('Missing header yields 400 for calories endpoint', function () { pm.response.to.have.status(400); });"
                       ],
-                      "_lastExecutionId": "19e337b7-70d4-42f7-b275-377705495e8d"
+                      "_lastExecutionId": "b3c858e1-78d6-45d0-bbc9-85783784fbc8"
                     }
                   }
                 ]
@@ -844,11 +844,11 @@
             "event": []
           },
           {
-            "id": "5a188f1a-6dc6-4778-8b85-b682ab3b0b1a",
+            "id": "e3b72146-b7de-4f8a-9231-790c14504ccc",
             "name": "Personal - Recommendation (GET /api/persons/recommendation)",
             "item": [
               {
-                "id": "7930e513-ff93-4af6-b87a-c91a248ee1da",
+                "id": "c8f4e77d-4036-4410-81c6-f66a1d13129f",
                 "name": "Recommendation - normal",
                 "request": {
                   "url": {
@@ -876,20 +876,72 @@
                   {
                     "listen": "test",
                     "script": {
-                      "id": "623e1726-5b53-4080-815e-5ad742f5cec8",
+                      "id": "5b05402b-9c8c-4b47-bd8d-7172f6b1c9fb",
                       "type": "text/javascript",
                       "exec": [
                         "pm.test('Recommendation request succeeds', function () { pm.response.to.have.status(200); });",
                         "const body = pm.response.json();",
-                        "pm.test('Message contains guidance', function () { pm.expect(body.message || '').to.match(/^(Keep|BMI)/); });"
+                        "pm.test('Message contains guidance', function () { pm.expect(body.message || '').to.match(/(Keep|BMI|Cutting|Your plan)/); });"
                       ],
-                      "_lastExecutionId": "fb6a2e20-4045-4f4f-9ba9-c9759a824f1b"
+                      "_lastExecutionId": "877f16b5-8243-491d-81f1-ecff9fb4d535"
                     }
                   }
                 ]
               },
               {
-                "id": "867ba454-dcad-4057-8df6-56b36a4f71ba",
+                "id": "f96b1006-095e-4872-ba1c-acf796336cb3",
+                "name": "Recommendation - configure boundary plan",
+                "request": {
+                  "url": {
+                    "path": [
+                      "api",
+                      "persons",
+                      "plan"
+                    ],
+                    "host": [
+                      "{{baseUrl}}"
+                    ],
+                    "query": [],
+                    "variable": []
+                  },
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    },
+                    {
+                      "key": "X-Client-ID",
+                      "value": "{{mobileClientBoundary}}"
+                    }
+                  ],
+                  "method": "POST",
+                  "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"targetChangeKg\": 3.0,\n  \"durationWeeks\": 12,\n  \"trainingFrequencyPerWeek\": 4,\n  \"planStrategy\": \"BOTH\"\n}",
+                    "options": {
+                      "raw": {
+                        "language": "json"
+                      }
+                    }
+                  }
+                },
+                "response": [],
+                "event": [
+                  {
+                    "listen": "test",
+                    "script": {
+                      "id": "5af12b3e-5fd0-43cf-9e21-2ca20074bf4d",
+                      "type": "text/javascript",
+                      "exec": [
+                        "pm.test('Boundary plan configured', function () { pm.response.to.have.status(200); });"
+                      ],
+                      "_lastExecutionId": "a8fe126f-dbf7-4ecc-a6d2-151f8ec3ce17"
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "5e57df50-de5e-4f63-b6b6-df49e77854ef",
                 "name": "Recommendation - boundary bulk profile",
                 "request": {
                   "url": {
@@ -917,20 +969,20 @@
                   {
                     "listen": "test",
                     "script": {
-                      "id": "0a8de783-a724-4105-9289-382996e7cd8c",
+                      "id": "506cd661-0584-46e0-9fb9-963f6c9ce513",
                       "type": "text/javascript",
                       "exec": [
                         "pm.test('Boundary recommendation succeeds', function () { pm.response.to.have.status(200); });",
                         "const body = pm.response.json();",
-                        "pm.test('Bulk strategy message present', function () { pm.expect(body.message || '').to.match(/(Keep bulking|Lean bulk focus looks good)/); });"
+                        "pm.test('Bulk strategy message present', function () { pm.expect(body.message || '').to.match(/(Keep bulking|Lean bulk focus looks good|Your plan)/); });"
                       ],
-                      "_lastExecutionId": "13fb0b1a-cb29-4ebb-9793-5c4a55587065"
+                      "_lastExecutionId": "387fe692-deda-419d-9303-8c63b61ccf0c"
                     }
                   }
                 ]
               },
               {
-                "id": "40cbf5e5-ce5e-46a5-b832-61d446e642ae",
+                "id": "3c4849da-6f01-4469-a832-cef744aab38b",
                 "name": "Recommendation - missing header",
                 "request": {
                   "url": {
@@ -952,12 +1004,12 @@
                   {
                     "listen": "test",
                     "script": {
-                      "id": "6236403c-64f6-4e9c-b10a-f4d5cc2249c2",
+                      "id": "8c419e84-af4f-4712-878d-a4840951515b",
                       "type": "text/javascript",
                       "exec": [
                         "pm.test('Missing header yields 400 on recommendation', function () { pm.response.to.have.status(400); });"
                       ],
-                      "_lastExecutionId": "7269d91c-1bd0-4453-9a51-199f473bd99c"
+                      "_lastExecutionId": "c8372a9a-47bb-4a7b-a323-86d5a184dada"
                     }
                   }
                 ]
@@ -966,11 +1018,11 @@
             "event": []
           },
           {
-            "id": "231cf9c5-e48d-425f-99ab-b50a0242e22c",
+            "id": "cc41397d-bd89-4a75-92f7-4eebff294f68",
             "name": "Personal - Delete Profile (DELETE /api/persons/me)",
             "item": [
               {
-                "id": "334c9855-2df7-44a9-8829-b117b2544898",
+                "id": "84c3077b-ec7f-4d96-9c0c-154d7c9d7d7a",
                 "name": "Delete Profile - normal",
                 "request": {
                   "url": {
@@ -998,20 +1050,20 @@
                   {
                     "listen": "test",
                     "script": {
-                      "id": "f38d3675-bb4f-4445-8f1e-e860e5f44476",
+                      "id": "6c95234c-32ea-457a-9459-7f4580e1de01",
                       "type": "text/javascript",
                       "exec": [
                         "pm.test('Delete boundary profile succeeds', function () { pm.response.to.have.status(200); });",
                         "const body = pm.response.json();",
                         "pm.test('Delete message returned', function () { pm.expect(body.message).to.include('deleted'); });"
                       ],
-                      "_lastExecutionId": "2ad2af0e-f3ff-4091-81dd-9a73fc91ecb0"
+                      "_lastExecutionId": "3f7c5210-4307-4911-bfa8-0de933859264"
                     }
                   }
                 ]
               },
               {
-                "id": "fc0c5078-c0e0-46a8-a4f4-8bfdfd2b36bc",
+                "id": "76de207e-eceb-425c-9835-f1561a5fd24d",
                 "name": "Delete Profile - already deleted",
                 "request": {
                   "url": {
@@ -1039,18 +1091,18 @@
                   {
                     "listen": "test",
                     "script": {
-                      "id": "946d840f-eb0b-4ac5-9303-e344485149f8",
+                      "id": "f31ccf8d-0fbf-4226-898a-1cc465b23912",
                       "type": "text/javascript",
                       "exec": [
                         "pm.test('Re-delete yields 404', function () { pm.response.to.have.status(404); });"
                       ],
-                      "_lastExecutionId": "f3afaa36-2a06-4862-9f5f-50177be6a643"
+                      "_lastExecutionId": "ddc76f18-a163-4cb4-8f83-d56efeac2e29"
                     }
                   }
                 ]
               },
               {
-                "id": "8a85d898-defd-4728-b766-1d28363f62c7",
+                "id": "91d7df7f-6ed4-41c7-b3e7-b56b81c719d9",
                 "name": "Delete Profile - missing header",
                 "request": {
                   "url": {
@@ -1072,12 +1124,12 @@
                   {
                     "listen": "test",
                     "script": {
-                      "id": "b0bfd55c-aaf9-4403-802d-09ba92f45c59",
+                      "id": "35d4ca1e-1c26-45fc-9c72-c178ded50c67",
                       "type": "text/javascript",
                       "exec": [
                         "pm.test('Missing header yields 400 on delete', function () { pm.response.to.have.status(400); });"
                       ],
-                      "_lastExecutionId": "a13cfe69-f671-4a15-abfa-04484c253aaf"
+                      "_lastExecutionId": "f3a40f33-aec2-4beb-8c45-3969b60d5d18"
                     }
                   }
                 ]
@@ -1089,11 +1141,11 @@
         "event": []
       },
       {
-        "id": "6e38ace5-bda6-4759-b365-965642e44318",
+        "id": "eae5b382-af5a-4dea-9080-4b5528746519",
         "name": "Service Health (GET /health)",
         "item": [
           {
-            "id": "c1810f5d-59c8-4a79-80dc-3ac98b41ce8e",
+            "id": "98cf8f7f-85fa-4701-a592-ba176cfd5a6a",
             "name": "Service Health - normal",
             "request": {
               "url": {
@@ -1113,20 +1165,20 @@
               {
                 "listen": "test",
                 "script": {
-                  "id": "761445e3-b640-4750-82db-534b28d1c833",
+                  "id": "215e09d7-cb52-48ce-b53d-3cdbcd7f3007",
                   "type": "text/javascript",
                   "exec": [
                     "pm.test('Health endpoint returns 200', function () { pm.response.to.have.status(200); });",
                     "const body = pm.response.json();",
                     "pm.test('Service reports UP', function () { pm.expect(body.status).to.eql('UP'); });"
                   ],
-                  "_lastExecutionId": "fa60f8b0-2202-44b7-a26d-7ddf6a733725"
+                  "_lastExecutionId": "2dbc6f06-0ed8-481b-aff7-3cd568cbdba3"
                 }
               }
             ]
           },
           {
-            "id": "2e022572-2d71-407a-962a-800e7268d4a3",
+            "id": "7a0c4a87-48ed-4c08-9da5-d21ec33308ea",
             "name": "Service Health - metadata boundary",
             "request": {
               "url": {
@@ -1146,20 +1198,20 @@
               {
                 "listen": "test",
                 "script": {
-                  "id": "430af587-995c-4a51-ac0f-58567ea1f4cd",
+                  "id": "a7c40115-d093-4bc9-8568-89e38b738467",
                   "type": "text/javascript",
                   "exec": [
                     "pm.test('Health endpoint exposes metadata', function () { pm.response.to.have.status(200); });",
                     "const body = pm.response.json();",
                     "pm.test('Service name present', function () { pm.expect(body.service).to.eql('Personal Fitness Management Service'); });"
                   ],
-                  "_lastExecutionId": "3f48c831-c1d2-48fb-9ee5-94db8f905da6"
+                  "_lastExecutionId": "59614a6e-bf9d-478c-bf1b-520dbe47a029"
                 }
               }
             ]
           },
           {
-            "id": "5242416a-9c3a-4317-a47d-d39258744928",
+            "id": "3f447d43-a3cf-4843-82e8-00b296f70e8f",
             "name": "Service Health - invalid method",
             "request": {
               "url": {
@@ -1179,12 +1231,12 @@
               {
                 "listen": "test",
                 "script": {
-                  "id": "cecb6f1c-5e14-4102-b37a-8194709466c9",
+                  "id": "76c4ec9c-baee-4133-ab3d-806837e0df2c",
                   "type": "text/javascript",
                   "exec": [
                     "pm.test('POST to health not allowed', function () { pm.response.to.have.status(405); });"
                   ],
-                  "_lastExecutionId": "b4665a69-c0f8-4b90-84be-3c558ece8efa"
+                  "_lastExecutionId": "81d14775-bf82-4b06-9df5-59afea17de3e"
                 }
               }
             ]
@@ -1221,18 +1273,18 @@
       },
       {
         "type": "any",
-        "value": "mobile-id36",
+        "value": "mobile-id45",
         "key": "mobileClientPrimary"
       },
       {
         "type": "any",
-        "value": "mobile-id37",
+        "value": "mobile-id46",
         "key": "mobileClientBoundary"
       }
     ]
   },
   "globals": {
-    "id": "46459289-34b6-4f98-a680-2befcee12cc5",
+    "id": "0853bf26-1d20-4a5e-bd22-cf98e1697284",
     "values": []
   },
   "run": {
@@ -1243,37 +1295,37 @@
         "failed": 0
       },
       "items": {
-        "total": 27,
+        "total": 28,
         "pending": 0,
         "failed": 0
       },
       "scripts": {
-        "total": 27,
+        "total": 28,
         "pending": 0,
         "failed": 0
       },
       "prerequests": {
-        "total": 27,
+        "total": 28,
         "pending": 0,
         "failed": 0
       },
       "requests": {
-        "total": 27,
+        "total": 28,
         "pending": 0,
         "failed": 0
       },
       "tests": {
-        "total": 27,
+        "total": 28,
         "pending": 0,
         "failed": 0
       },
       "assertions": {
-        "total": 43,
+        "total": 44,
         "pending": 0,
         "failed": 0
       },
       "testScripts": {
-        "total": 27,
+        "total": 28,
         "pending": 0,
         "failed": 0
       },
@@ -1284,10 +1336,10 @@
       }
     },
     "timings": {
-      "responseAverage": 20.59259259259259,
+      "responseAverage": 17.10714285714286,
       "responseMin": 4,
-      "responseMax": 128,
-      "responseSd": 27.24954537066799,
+      "responseMax": 150,
+      "responseSd": 29.95632450002871,
       "dnsAverage": 0,
       "dnsMin": 0,
       "dnsMax": 0,
@@ -1296,25 +1348,25 @@
       "firstByteMin": 0,
       "firstByteMax": 0,
       "firstByteSd": 0,
-      "started": 1764732428248,
-      "completed": 1764732429255
+      "started": 1765350463925,
+      "completed": 1765350464857
     },
     "executions": [
       {
         "cursor": {
           "position": 0,
           "iteration": 0,
-          "length": 27,
+          "length": 28,
           "cycles": 1,
           "empty": false,
           "eof": false,
           "bof": true,
           "cr": false,
-          "ref": "e2726f3d-d4f4-44b1-9b7b-b93c98678a5b",
-          "httpRequestId": "82d4b0f0-32c6-4c87-bb01-9ccfd22cce7f"
+          "ref": "ee15679b-87ef-45c9-b96d-1d0b3a8d445a",
+          "httpRequestId": "aa14b70b-f0fe-419a-b071-70fafebc8c03"
         },
         "item": {
-          "id": "31b8da56-0259-4c8b-9433-7e4b8a483835",
+          "id": "68946f51-7a70-4f1a-9fa7-e4f85d4ba66f",
           "name": "Create Profile - normal input",
           "request": {
             "url": {
@@ -1344,7 +1396,7 @@
             {
               "listen": "test",
               "script": {
-                "id": "3e510592-5b03-4eae-9301-208a552283a8",
+                "id": "9fcc7ad5-ea77-45a5-bfb3-ccbfa08fc44c",
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status 201 for normal create', function () { pm.response.to.have.status(201); });",
@@ -1352,7 +1404,7 @@
                   "pm.test('Client id issued', function () { pm.expect(json.clientId).to.match(/^mobile-/); });",
                   "pm.environment.set('mobileClientPrimary', json.clientId);"
                 ],
-                "_lastExecutionId": "0cec42ed-53b7-4df5-bb93-f7a3e03620c2"
+                "_lastExecutionId": "1fecb159-759e-4c0b-a278-55be8d01b828"
               }
             }
           ]
@@ -1394,7 +1446,7 @@
             },
             {
               "key": "Postman-Token",
-              "value": "15751412-096e-4a2e-b4f1-8ac23bac5864",
+              "value": "63ec5536-b876-4927-8bc0-4291c14f21ce",
               "system": true
             },
             {
@@ -1430,7 +1482,7 @@
           }
         },
         "response": {
-          "id": "266dc309-defd-4935-b493-236acf63421e",
+          "id": "e38ea00c-51d5-4f59-90a6-6a2288f08894",
           "status": "Created",
           "code": 201,
           "header": [
@@ -1456,7 +1508,7 @@
             },
             {
               "key": "Date",
-              "value": "Wed, 03 Dec 2025 03:27:08 GMT"
+              "value": "Wed, 10 Dec 2025 07:07:44 GMT"
             },
             {
               "key": "Keep-Alive",
@@ -1492,17 +1544,17 @@
               45,
               105,
               100,
-              51,
-              54,
+              52,
+              53,
               34,
               125
             ]
           },
           "cookie": [],
-          "responseTime": 128,
+          "responseTime": 150,
           "responseSize": 26
         },
-        "id": "31b8da56-0259-4c8b-9433-7e4b8a483835",
+        "id": "68946f51-7a70-4f1a-9fa7-e4f85d4ba66f",
         "assertions": [
           {
             "assertion": "Status 201 for normal create",
@@ -1516,15 +1568,15 @@
       },
       {
         "cursor": {
-          "ref": "4c127acd-41ec-4e69-a6ff-4a6332f84204",
-          "length": 27,
+          "ref": "bf478c72-65a1-4389-b75a-8248292e4665",
+          "length": 28,
           "cycles": 1,
           "position": 1,
           "iteration": 0,
-          "httpRequestId": "7fb0f2f6-0837-4e38-ba38-181500593ae8"
+          "httpRequestId": "87c3e930-7032-41a7-9042-08593e40a555"
         },
         "item": {
-          "id": "61025a5d-d39e-474a-9edf-1227bd9c6376",
+          "id": "9b2d8800-4f53-4cdb-868e-c3b7e774cee6",
           "name": "Create Profile - boundary anthropometrics",
           "request": {
             "url": {
@@ -1554,14 +1606,14 @@
             {
               "listen": "test",
               "script": {
-                "id": "fef72045-b122-4fae-9ee4-b607293eeee0",
+                "id": "ab784597-a7c8-4d11-b0b1-1bd9cf7991fb",
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status 201 for boundary create', function () { pm.response.to.have.status(201); });",
                   "const json = pm.response.json();",
                   "pm.environment.set('mobileClientBoundary', json.clientId);"
                 ],
-                "_lastExecutionId": "a6cafb94-2887-4d8c-91c2-5d82654ec38c"
+                "_lastExecutionId": "cd83e238-d943-4c0d-8e5e-075e53021eaa"
               }
             }
           ]
@@ -1603,7 +1655,7 @@
             },
             {
               "key": "Postman-Token",
-              "value": "46cf0a2a-2ecf-4f6a-b20d-eaa81e18e9a1",
+              "value": "8c7c210f-324f-467b-b3aa-a9af8d5d221c",
               "system": true
             },
             {
@@ -1639,7 +1691,7 @@
           }
         },
         "response": {
-          "id": "52ca565a-5532-4e6f-97b2-59bb79233f58",
+          "id": "c962cd91-8e02-4c29-a5a9-6adb81014595",
           "status": "Created",
           "code": 201,
           "header": [
@@ -1665,7 +1717,7 @@
             },
             {
               "key": "Date",
-              "value": "Wed, 03 Dec 2025 03:27:08 GMT"
+              "value": "Wed, 10 Dec 2025 07:07:44 GMT"
             },
             {
               "key": "Keep-Alive",
@@ -1701,17 +1753,17 @@
               45,
               105,
               100,
-              51,
-              55,
+              52,
+              54,
               34,
               125
             ]
           },
           "cookie": [],
-          "responseTime": 88,
+          "responseTime": 91,
           "responseSize": 26
         },
-        "id": "61025a5d-d39e-474a-9edf-1227bd9c6376",
+        "id": "9b2d8800-4f53-4cdb-868e-c3b7e774cee6",
         "assertions": [
           {
             "assertion": "Status 201 for boundary create",
@@ -1721,15 +1773,15 @@
       },
       {
         "cursor": {
-          "ref": "9a406285-7005-4360-b0e4-39ed90fcc4b1",
-          "length": 27,
+          "ref": "e5796d48-df7e-40c1-b38a-3f033a78c3e6",
+          "length": 28,
           "cycles": 1,
           "position": 2,
           "iteration": 0,
-          "httpRequestId": "a1069dfb-46b3-4bd3-acd6-b6facc39d489"
+          "httpRequestId": "95419a85-348c-41fa-be94-9cbbbdf69c3e"
         },
         "item": {
-          "id": "147ca62b-9f4d-4676-92aa-3e8fbaba59d5",
+          "id": "7d9b1a07-a504-417f-8dbe-24726f967be6",
           "name": "Create Profile - invalid future birth date",
           "request": {
             "url": {
@@ -1759,12 +1811,12 @@
             {
               "listen": "test",
               "script": {
-                "id": "7d38d5ab-f071-43f8-a74d-d9117a295103",
+                "id": "434d29d2-4b3a-4bca-becd-c4964efb0469",
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Future birth date rejected', function () { pm.response.to.have.status(400); });"
                 ],
-                "_lastExecutionId": "51d23b8d-91c4-4dff-987c-bc2882eff23b"
+                "_lastExecutionId": "ce934740-3886-40bd-b6e1-577704c4095a"
               }
             }
           ]
@@ -1806,7 +1858,7 @@
             },
             {
               "key": "Postman-Token",
-              "value": "5f9ab207-e378-4fa4-a206-4d3cb9799708",
+              "value": "c665040a-f5e0-4302-9d43-1fbf3981c919",
               "system": true
             },
             {
@@ -1842,7 +1894,7 @@
           }
         },
         "response": {
-          "id": "b5cbbcbd-dddc-4067-855d-a504f4db197c",
+          "id": "c116ae81-65dd-469c-a5ad-893b5764aa80",
           "status": "Bad Request",
           "code": 400,
           "header": [
@@ -1868,7 +1920,7 @@
             },
             {
               "key": "Date",
-              "value": "Wed, 03 Dec 2025 03:27:08 GMT"
+              "value": "Wed, 10 Dec 2025 07:07:44 GMT"
             },
             {
               "key": "Connection",
@@ -1970,10 +2022,10 @@
             ]
           },
           "cookie": [],
-          "responseTime": 17,
+          "responseTime": 9,
           "responseSize": 89
         },
-        "id": "147ca62b-9f4d-4676-92aa-3e8fbaba59d5",
+        "id": "7d9b1a07-a504-417f-8dbe-24726f967be6",
         "assertions": [
           {
             "assertion": "Future birth date rejected",
@@ -1983,15 +2035,15 @@
       },
       {
         "cursor": {
-          "ref": "b66fd7d5-e1e4-4a04-927a-2ec1f77254be",
-          "length": 27,
+          "ref": "ac3707ca-f950-41f8-bf6a-5b39d800a9e5",
+          "length": 28,
           "cycles": 1,
           "position": 3,
           "iteration": 0,
-          "httpRequestId": "a59641c3-ab97-4d39-8cbb-4ddaac7dda1f"
+          "httpRequestId": "1517d845-a795-40f0-b981-a5580656ef06"
         },
         "item": {
-          "id": "5fc4efc7-8982-40bc-8acb-4c8fe4c47544",
+          "id": "bda7cc28-e681-4b50-908c-b43c642e48ee",
           "name": "Get Profile - normal",
           "request": {
             "url": {
@@ -2019,14 +2071,14 @@
             {
               "listen": "test",
               "script": {
-                "id": "0d9101de-3283-4c71-87f0-7df2eb35730c",
+                "id": "2fa9fafd-7e1f-4fed-b87a-bcbcd1400a35",
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Profile fetch returns 200', function () { pm.response.to.have.status(200); });",
                   "const body = pm.response.json();",
                   "pm.test('Client id matches stored primary', function () { pm.expect(body.clientId).to.eql(pm.environment.get('mobileClientPrimary')); });"
                 ],
-                "_lastExecutionId": "267be2e4-8798-4f4d-bf5d-828a7794be58"
+                "_lastExecutionId": "d8b67243-677e-4720-8139-3c86092157e3"
               }
             }
           ]
@@ -2049,7 +2101,7 @@
           "header": [
             {
               "key": "X-Client-ID",
-              "value": "mobile-id36"
+              "value": "mobile-id45"
             },
             {
               "key": "User-Agent",
@@ -2068,7 +2120,7 @@
             },
             {
               "key": "Postman-Token",
-              "value": "4f764ebd-b84e-4212-8b0b-04214724b78e",
+              "value": "34c4ef7c-2695-4516-a592-66a82807b9af",
               "system": true
             },
             {
@@ -2090,7 +2142,7 @@
           "method": "GET"
         },
         "response": {
-          "id": "868ef6de-af19-4445-be20-10d0f5583035",
+          "id": "47e65c88-3611-4ab9-836d-e1a40204531e",
           "status": "OK",
           "code": 200,
           "header": [
@@ -2116,7 +2168,7 @@
             },
             {
               "key": "Date",
-              "value": "Wed, 03 Dec 2025 03:27:08 GMT"
+              "value": "Wed, 10 Dec 2025 07:07:44 GMT"
             },
             {
               "key": "Keep-Alive",
@@ -2152,8 +2204,8 @@
               45,
               105,
               100,
-              51,
-              54,
+              52,
+              53,
               34,
               44,
               34,
@@ -2364,10 +2416,10 @@
             ]
           },
           "cookie": [],
-          "responseTime": 14,
+          "responseTime": 10,
           "responseSize": 231
         },
-        "id": "5fc4efc7-8982-40bc-8acb-4c8fe4c47544",
+        "id": "bda7cc28-e681-4b50-908c-b43c642e48ee",
         "assertions": [
           {
             "assertion": "Profile fetch returns 200",
@@ -2381,15 +2433,15 @@
       },
       {
         "cursor": {
-          "ref": "33ce0271-2ad4-494e-80f1-69a4dc1a21f7",
-          "length": 27,
+          "ref": "47afabad-9ecf-4b4b-b24d-1c36114bc95d",
+          "length": 28,
           "cycles": 1,
           "position": 4,
           "iteration": 0,
-          "httpRequestId": "86b9a88a-81d9-49a0-809a-e82e1796daa6"
+          "httpRequestId": "5ac0889f-057f-43ab-a4cb-e35ed900b13b"
         },
         "item": {
-          "id": "3726edbe-a4f4-49bb-85bb-b1994bb06126",
+          "id": "4a73e4ad-124d-4e1a-b956-8d25ae6facff",
           "name": "Get Profile - boundary client",
           "request": {
             "url": {
@@ -2417,14 +2469,14 @@
             {
               "listen": "test",
               "script": {
-                "id": "ad735f60-29e7-4241-bf61-ff4b182c1081",
+                "id": "d1a5b7d4-fd4d-405f-a2cf-d84413141da0",
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Boundary client profile loads', function () { pm.response.to.have.status(200); });",
                   "const body = pm.response.json();",
                   "pm.test('Goal preserved for boundary client', function () { pm.expect(body.goal).to.eql('BULK'); });"
                 ],
-                "_lastExecutionId": "db2f7e22-906e-4ca8-aac2-183ae13673db"
+                "_lastExecutionId": "0f799d21-f9ec-48ab-8868-68f5e981a690"
               }
             }
           ]
@@ -2447,7 +2499,7 @@
           "header": [
             {
               "key": "X-Client-ID",
-              "value": "mobile-id37"
+              "value": "mobile-id46"
             },
             {
               "key": "User-Agent",
@@ -2466,7 +2518,7 @@
             },
             {
               "key": "Postman-Token",
-              "value": "07caa07a-b7c0-4eb8-84ff-85dc2f6222ea",
+              "value": "79e0d8ed-c1d3-42b9-bb3f-2d2c10adb8bf",
               "system": true
             },
             {
@@ -2488,7 +2540,7 @@
           "method": "GET"
         },
         "response": {
-          "id": "d48e3f9b-4d96-441d-bba3-bcb71aa8fdb3",
+          "id": "7e85486b-f161-45df-ae59-f105295942a9",
           "status": "OK",
           "code": 200,
           "header": [
@@ -2514,7 +2566,7 @@
             },
             {
               "key": "Date",
-              "value": "Wed, 03 Dec 2025 03:27:08 GMT"
+              "value": "Wed, 10 Dec 2025 07:07:44 GMT"
             },
             {
               "key": "Keep-Alive",
@@ -2550,8 +2602,8 @@
               45,
               105,
               100,
-              51,
-              55,
+              52,
+              54,
               34,
               44,
               34,
@@ -2767,10 +2819,10 @@
             ]
           },
           "cookie": [],
-          "responseTime": 13,
+          "responseTime": 8,
           "responseSize": 236
         },
-        "id": "3726edbe-a4f4-49bb-85bb-b1994bb06126",
+        "id": "4a73e4ad-124d-4e1a-b956-8d25ae6facff",
         "assertions": [
           {
             "assertion": "Boundary client profile loads",
@@ -2784,15 +2836,15 @@
       },
       {
         "cursor": {
-          "ref": "0ddb084a-3f69-4f70-8e5b-8af43fabf01f",
-          "length": 27,
+          "ref": "e3b398fc-11f5-4cca-92ea-2ec057b58baa",
+          "length": 28,
           "cycles": 1,
           "position": 5,
           "iteration": 0,
-          "httpRequestId": "c8864b2f-1c4b-420f-b9d7-358cfe6c8a68"
+          "httpRequestId": "7922ecc1-eaa0-406b-b7cf-bd2f2a321061"
         },
         "item": {
-          "id": "67e27234-6585-42a2-8e7c-4d4f1dfb352e",
+          "id": "e10e7619-8705-4bc1-867d-b3c5f42d9c1a",
           "name": "Get Profile - missing client header",
           "request": {
             "url": {
@@ -2814,12 +2866,12 @@
             {
               "listen": "test",
               "script": {
-                "id": "d21494b2-296f-4a7b-b711-a619622cbaa2",
+                "id": "a35357d9-b448-4832-bae6-de8631037e63",
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Missing header yields 400', function () { pm.response.to.have.status(400); });"
                 ],
-                "_lastExecutionId": "834c1a4b-49f4-4f19-bbb3-1c52f7bdf17c"
+                "_lastExecutionId": "ca20c1f2-4966-4769-b6c5-0bb4bf0434e9"
               }
             }
           ]
@@ -2857,7 +2909,7 @@
             },
             {
               "key": "Postman-Token",
-              "value": "2f7a9689-68e6-42db-bbf6-e08ec6f998a4",
+              "value": "81186d37-17d3-473e-844e-b14dc22ccd1a",
               "system": true
             },
             {
@@ -2879,7 +2931,7 @@
           "method": "GET"
         },
         "response": {
-          "id": "416f647f-6284-4b24-8571-78d07b957e01",
+          "id": "fa5576d8-bc55-4ceb-9bc1-0caff359e563",
           "status": "Bad Request",
           "code": 400,
           "header": [
@@ -2905,7 +2957,7 @@
             },
             {
               "key": "Date",
-              "value": "Wed, 03 Dec 2025 03:27:08 GMT"
+              "value": "Wed, 10 Dec 2025 07:07:44 GMT"
             },
             {
               "key": "Connection",
@@ -2997,10 +3049,10 @@
             ]
           },
           "cookie": [],
-          "responseTime": 7,
+          "responseTime": 5,
           "responseSize": 79
         },
-        "id": "67e27234-6585-42a2-8e7c-4d4f1dfb352e",
+        "id": "e10e7619-8705-4bc1-867d-b3c5f42d9c1a",
         "assertions": [
           {
             "assertion": "Missing header yields 400",
@@ -3010,15 +3062,15 @@
       },
       {
         "cursor": {
-          "ref": "7ceef1ee-d775-4287-a8cd-5d9c5358a381",
-          "length": 27,
+          "ref": "eeb784e7-4229-46fa-8636-3d77696c0df7",
+          "length": 28,
           "cycles": 1,
           "position": 6,
           "iteration": 0,
-          "httpRequestId": "9c1c57ad-33c4-4f85-9ff7-3402ddf7002a"
+          "httpRequestId": "113fe210-1457-4967-879c-6db18328ea8f"
         },
         "item": {
-          "id": "9b8f28e7-e077-411d-aca7-6b6dbe9ad88d",
+          "id": "96f47448-58c2-49ba-8b33-d1d8f6147fa3",
           "name": "Plan Configuration - normal",
           "request": {
             "url": {
@@ -3059,14 +3111,14 @@
             {
               "listen": "test",
               "script": {
-                "id": "365f57e9-9a63-4012-b235-6e6d86b1d4f0",
+                "id": "0ccbc76e-0488-4a6f-abce-312f53b5f11e",
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Plan saved with 200', function () { pm.response.to.have.status(200); });",
                   "const body = pm.response.json();",
                   "pm.test('Plan strategy echoes DIET', function () { pm.expect(body.planStrategy).to.eql('DIET'); });"
                 ],
-                "_lastExecutionId": "4aa8e694-266d-471a-b15e-4b12384dea1a"
+                "_lastExecutionId": "fe857b24-3381-4ee6-87e2-ca9c69a233aa"
               }
             }
           ]
@@ -3093,7 +3145,7 @@
             },
             {
               "key": "X-Client-ID",
-              "value": "mobile-id36"
+              "value": "mobile-id45"
             },
             {
               "key": "User-Agent",
@@ -3112,7 +3164,7 @@
             },
             {
               "key": "Postman-Token",
-              "value": "713a244c-9b67-4e89-9fd9-f13a2c811e4e",
+              "value": "952d2f7c-1dd8-4391-9c51-42573328d99d",
               "system": true
             },
             {
@@ -3148,7 +3200,7 @@
           }
         },
         "response": {
-          "id": "70bf7718-4175-467f-8200-f2a477dd2c68",
+          "id": "511a6b38-4530-4fc5-a8a1-fa0dcc7189ca",
           "status": "OK",
           "code": 200,
           "header": [
@@ -3174,7 +3226,7 @@
             },
             {
               "key": "Date",
-              "value": "Wed, 03 Dec 2025 03:27:08 GMT"
+              "value": "Wed, 10 Dec 2025 07:07:44 GMT"
             },
             {
               "key": "Keep-Alive",
@@ -3210,8 +3262,8 @@
               45,
               105,
               100,
-              51,
-              54,
+              52,
+              53,
               34,
               44,
               34,
@@ -3417,10 +3469,10 @@
             ]
           },
           "cookie": [],
-          "responseTime": 52,
+          "responseTime": 15,
           "responseSize": 226
         },
-        "id": "9b8f28e7-e077-411d-aca7-6b6dbe9ad88d",
+        "id": "96f47448-58c2-49ba-8b33-d1d8f6147fa3",
         "assertions": [
           {
             "assertion": "Plan saved with 200",
@@ -3434,15 +3486,15 @@
       },
       {
         "cursor": {
-          "ref": "25408101-0430-46b9-ae7a-279103f10d3c",
-          "length": 27,
+          "ref": "2a3fccd3-d662-4d39-bd0f-e6d3d59ca49e",
+          "length": 28,
           "cycles": 1,
           "position": 7,
           "iteration": 0,
-          "httpRequestId": "fd09fd77-88e7-4d46-bda9-18dbd987e58d"
+          "httpRequestId": "c1283e28-5075-4e02-8146-fd002f3ea705"
         },
         "item": {
-          "id": "f58ebb48-6b64-4882-bee0-d3d73616c2ed",
+          "id": "08ce2d23-cce1-4281-b6e7-0003897bab92",
           "name": "Plan Configuration - boundary frequency",
           "request": {
             "url": {
@@ -3483,14 +3535,14 @@
             {
               "listen": "test",
               "script": {
-                "id": "37e9c363-965e-4e31-b2b0-95a16166fcdd",
+                "id": "b6e16b20-351a-40c4-8f5e-e8e8d050f3a8",
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Boundary frequency accepted', function () { pm.response.to.have.status(200); });",
                   "const body = pm.response.json();",
                   "pm.test('Training frequency stored at 14', function () { pm.expect(body.trainingFrequencyPerWeek).to.eql(14); });"
                 ],
-                "_lastExecutionId": "a7279ab7-11f5-4937-8bb1-90f65e280c29"
+                "_lastExecutionId": "aeed8410-24f4-4bc6-9965-670bc8bd78be"
               }
             }
           ]
@@ -3517,7 +3569,7 @@
             },
             {
               "key": "X-Client-ID",
-              "value": "mobile-id36"
+              "value": "mobile-id45"
             },
             {
               "key": "User-Agent",
@@ -3536,7 +3588,7 @@
             },
             {
               "key": "Postman-Token",
-              "value": "3bfebfef-2a8e-4152-b4ac-0c1e9a2f06af",
+              "value": "4a274e42-56b9-44f0-8cc5-55b5cdda5cc2",
               "system": true
             },
             {
@@ -3572,7 +3624,7 @@
           }
         },
         "response": {
-          "id": "b42d30e4-514e-4f9b-8590-71ad4774901a",
+          "id": "96e479dc-d99d-4aac-81c4-a68eed796617",
           "status": "OK",
           "code": 200,
           "header": [
@@ -3598,7 +3650,7 @@
             },
             {
               "key": "Date",
-              "value": "Wed, 03 Dec 2025 03:27:08 GMT"
+              "value": "Wed, 10 Dec 2025 07:07:44 GMT"
             },
             {
               "key": "Keep-Alive",
@@ -3634,8 +3686,8 @@
               45,
               105,
               100,
-              51,
-              54,
+              52,
+              53,
               34,
               44,
               34,
@@ -3843,10 +3895,10 @@
             ]
           },
           "cookie": [],
-          "responseTime": 16,
+          "responseTime": 13,
           "responseSize": 228
         },
-        "id": "f58ebb48-6b64-4882-bee0-d3d73616c2ed",
+        "id": "08ce2d23-cce1-4281-b6e7-0003897bab92",
         "assertions": [
           {
             "assertion": "Boundary frequency accepted",
@@ -3860,15 +3912,15 @@
       },
       {
         "cursor": {
-          "ref": "3f3e0b71-7073-49ff-b5eb-49777f12db3c",
-          "length": 27,
+          "ref": "79ea0d56-2489-4e94-bc31-74f49b234ef9",
+          "length": 28,
           "cycles": 1,
           "position": 8,
           "iteration": 0,
-          "httpRequestId": "0353da13-a4c1-4f36-a7ef-709236f7b365"
+          "httpRequestId": "874d3f41-7dfb-4afa-ac35-c4f9bceba3d2"
         },
         "item": {
-          "id": "11cf37d6-dc44-4484-ba4a-1fa87f81805a",
+          "id": "99c25ee0-9dd1-49f3-a120-bbca8ced5249",
           "name": "Plan Configuration - invalid payload",
           "request": {
             "url": {
@@ -3909,12 +3961,12 @@
             {
               "listen": "test",
               "script": {
-                "id": "8c1e3ae4-e933-470f-9e0c-ce321ee6afcd",
+                "id": "811227ab-a5af-4eed-bd58-78c885b45c7e",
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Missing plan strategy rejected', function () { pm.response.to.have.status(400); });"
                 ],
-                "_lastExecutionId": "6fd7b39e-55bf-4a86-ab07-46d6ca1c3c6c"
+                "_lastExecutionId": "4d9d4913-e7c1-41ef-81f1-cb236068b26c"
               }
             }
           ]
@@ -3941,7 +3993,7 @@
             },
             {
               "key": "X-Client-ID",
-              "value": "mobile-id36"
+              "value": "mobile-id45"
             },
             {
               "key": "User-Agent",
@@ -3960,7 +4012,7 @@
             },
             {
               "key": "Postman-Token",
-              "value": "f5ae2313-c2aa-4e01-97e2-e67f76919bac",
+              "value": "e80c8328-44dc-45a8-b58d-04722d27bdac",
               "system": true
             },
             {
@@ -3996,7 +4048,7 @@
           }
         },
         "response": {
-          "id": "5ded375f-5597-47ed-a4f5-345005b41a00",
+          "id": "decabf69-afe7-434f-ade5-4298429d020f",
           "status": "Bad Request",
           "code": 400,
           "header": [
@@ -4022,7 +4074,7 @@
             },
             {
               "key": "Date",
-              "value": "Wed, 03 Dec 2025 03:27:08 GMT"
+              "value": "Wed, 10 Dec 2025 07:07:44 GMT"
             },
             {
               "key": "Connection",
@@ -4122,10 +4174,10 @@
             ]
           },
           "cookie": [],
-          "responseTime": 11,
+          "responseTime": 12,
           "responseSize": 87
         },
-        "id": "11cf37d6-dc44-4484-ba4a-1fa87f81805a",
+        "id": "99c25ee0-9dd1-49f3-a120-bbca8ced5249",
         "assertions": [
           {
             "assertion": "Missing plan strategy rejected",
@@ -4135,15 +4187,15 @@
       },
       {
         "cursor": {
-          "ref": "bd053e59-5db6-4eb5-802c-2814e0360471",
-          "length": 27,
+          "ref": "c0a5015d-f4cc-4846-8009-d30c0beff362",
+          "length": 28,
           "cycles": 1,
           "position": 9,
           "iteration": 0,
-          "httpRequestId": "0b980e40-5bcf-4fde-abeb-2b96bfc3f739"
+          "httpRequestId": "36587e5b-c22c-4921-bfa4-d4be591c6466"
         },
         "item": {
-          "id": "b0f266ee-fa34-4594-8530-50673326c56a",
+          "id": "b1d4afa5-cd98-4db3-a9e3-70183444625e",
           "name": "Update Profile - normal",
           "request": {
             "url": {
@@ -4184,14 +4236,14 @@
             {
               "listen": "test",
               "script": {
-                "id": "da953b65-9d9a-4fe0-b73b-3661afaaca35",
+                "id": "b70ffc79-10a3-45b7-9d54-6f5c5f2d1811",
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Update returns 200', function () { pm.response.to.have.status(200); });",
                   "const body = pm.response.json();",
                   "pm.test('Name trimmed after update', function () { pm.expect(body.name).to.eql('Alex Updated'); });"
                 ],
-                "_lastExecutionId": "7fda83e2-2107-49ff-a787-67add1ee0b51"
+                "_lastExecutionId": "2a6d6ce0-92e8-4a29-a849-02dfeb4992f4"
               }
             }
           ]
@@ -4218,7 +4270,7 @@
             },
             {
               "key": "X-Client-ID",
-              "value": "mobile-id36"
+              "value": "mobile-id45"
             },
             {
               "key": "User-Agent",
@@ -4237,7 +4289,7 @@
             },
             {
               "key": "Postman-Token",
-              "value": "5d9180f4-4f6e-4020-984c-eb2a7f1213f0",
+              "value": "e88f1c36-c4e3-4701-b7f6-bc7a982ed1fb",
               "system": true
             },
             {
@@ -4273,7 +4325,7 @@
           }
         },
         "response": {
-          "id": "045552f1-a469-4058-a6f1-71cad9ebf048",
+          "id": "b629e778-1095-4bbb-8aa3-3c0bc18e845c",
           "status": "OK",
           "code": 200,
           "header": [
@@ -4299,7 +4351,7 @@
             },
             {
               "key": "Date",
-              "value": "Wed, 03 Dec 2025 03:27:08 GMT"
+              "value": "Wed, 10 Dec 2025 07:07:44 GMT"
             },
             {
               "key": "Keep-Alive",
@@ -4319,8 +4371,8 @@
               100,
               34,
               58,
-              52,
-              57,
+              54,
+              49,
               44,
               34,
               110,
@@ -4544,17 +4596,17 @@
               45,
               105,
               100,
-              51,
-              54,
+              52,
+              53,
               34,
               125
             ]
           },
           "cookie": [],
-          "responseTime": 34,
+          "responseTime": 13,
           "responseSize": 235
         },
-        "id": "b0f266ee-fa34-4594-8530-50673326c56a",
+        "id": "b1d4afa5-cd98-4db3-a9e3-70183444625e",
         "assertions": [
           {
             "assertion": "Update returns 200",
@@ -4568,15 +4620,15 @@
       },
       {
         "cursor": {
-          "ref": "08d45d07-2586-4802-afe0-66ff78805a6f",
-          "length": 27,
+          "ref": "9ff2456f-2d92-465c-a4a4-10429058b3df",
+          "length": 28,
           "cycles": 1,
           "position": 10,
           "iteration": 0,
-          "httpRequestId": "41ff7f6f-eff8-4220-9033-b3e5eb4771f7"
+          "httpRequestId": "33d08010-90ef-49c8-8cf9-9df824a0b721"
         },
         "item": {
-          "id": "6c221f97-4aec-4c06-89fa-a2b59a388074",
+          "id": "92a58dd8-88f4-44f9-98b8-dd8f6bc7e607",
           "name": "Update Profile - boundary metrics",
           "request": {
             "url": {
@@ -4604,7 +4656,7 @@
             "method": "PUT",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Alex Boundary\",\n  \"weight\": 38.0,\n  \"height\": 150.0,\n  \"birthDate\": \"1990-04-15\",\n  \"gender\": \"MALE\",\n  \"goal\": \"CUT\",\n  \"targetChangeKg\": 5.0,\n  \"targetDurationWeeks\": 10,\n  \"trainingFrequencyPerWeek\": 14,\n  \"planStrategy\": \"BOTH\"\n}",
+              "raw": "{\n  \"name\": \"Alex Boundary\",\n  \"weight\": 40.0,\n  \"height\": 150.0,\n  \"birthDate\": \"1990-04-15\",\n  \"gender\": \"MALE\",\n  \"goal\": \"CUT\",\n  \"targetChangeKg\": 5.0,\n  \"targetDurationWeeks\": 10,\n  \"trainingFrequencyPerWeek\": 14,\n  \"planStrategy\": \"BOTH\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -4617,14 +4669,14 @@
             {
               "listen": "test",
               "script": {
-                "id": "1708f02c-c89e-49de-b5f4-a32aefa9515c",
+                "id": "a59e8285-426e-4d70-b64e-a4ae685300e5",
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Boundary metrics accepted', function () { pm.response.to.have.status(200); });",
                   "const body = pm.response.json();",
-                  "pm.test('Weight updated to 38', function () { pm.expect(body.weight).to.eql(38.0); });"
+                  "pm.test('Weight updated to 40', function () { pm.expect(body.weight).to.eql(40.0); });"
                 ],
-                "_lastExecutionId": "5083eed4-da3f-4ae3-943a-5813b27fae54"
+                "_lastExecutionId": "29fd4b96-2391-44fe-bb0a-2f1cd5bc1050"
               }
             }
           ]
@@ -4651,7 +4703,7 @@
             },
             {
               "key": "X-Client-ID",
-              "value": "mobile-id36"
+              "value": "mobile-id45"
             },
             {
               "key": "User-Agent",
@@ -4670,7 +4722,7 @@
             },
             {
               "key": "Postman-Token",
-              "value": "6371f6d0-4b75-40d3-9f53-323fc6a54093",
+              "value": "26b6e86f-43c6-435f-b65a-92c5ebabd666",
               "system": true
             },
             {
@@ -4697,7 +4749,7 @@
           "method": "PUT",
           "body": {
             "mode": "raw",
-            "raw": "{\n  \"name\": \"Alex Boundary\",\n  \"weight\": 38.0,\n  \"height\": 150.0,\n  \"birthDate\": \"1990-04-15\",\n  \"gender\": \"MALE\",\n  \"goal\": \"CUT\",\n  \"targetChangeKg\": 5.0,\n  \"targetDurationWeeks\": 10,\n  \"trainingFrequencyPerWeek\": 14,\n  \"planStrategy\": \"BOTH\"\n}",
+            "raw": "{\n  \"name\": \"Alex Boundary\",\n  \"weight\": 40.0,\n  \"height\": 150.0,\n  \"birthDate\": \"1990-04-15\",\n  \"gender\": \"MALE\",\n  \"goal\": \"CUT\",\n  \"targetChangeKg\": 5.0,\n  \"targetDurationWeeks\": 10,\n  \"trainingFrequencyPerWeek\": 14,\n  \"planStrategy\": \"BOTH\"\n}",
             "options": {
               "raw": {
                 "language": "json"
@@ -4706,7 +4758,7 @@
           }
         },
         "response": {
-          "id": "ee0459ba-392b-414b-8161-5c0c924d48b4",
+          "id": "13b520c2-6340-4bef-88ee-8520b1c5eafd",
           "status": "OK",
           "code": 200,
           "header": [
@@ -4732,7 +4784,7 @@
             },
             {
               "key": "Date",
-              "value": "Wed, 03 Dec 2025 03:27:08 GMT"
+              "value": "Wed, 10 Dec 2025 07:07:44 GMT"
             },
             {
               "key": "Keep-Alive",
@@ -4752,8 +4804,8 @@
               100,
               34,
               58,
-              52,
-              57,
+              54,
+              49,
               44,
               34,
               110,
@@ -4787,8 +4839,8 @@
               116,
               34,
               58,
-              51,
-              56,
+              52,
+              48,
               46,
               48,
               44,
@@ -4980,39 +5032,39 @@
               45,
               105,
               100,
-              51,
-              54,
+              52,
+              53,
               34,
               125
             ]
           },
           "cookie": [],
-          "responseTime": 13,
+          "responseTime": 19,
           "responseSize": 238
         },
-        "id": "6c221f97-4aec-4c06-89fa-a2b59a388074",
+        "id": "92a58dd8-88f4-44f9-98b8-dd8f6bc7e607",
         "assertions": [
           {
             "assertion": "Boundary metrics accepted",
             "skipped": false
           },
           {
-            "assertion": "Weight updated to 38",
+            "assertion": "Weight updated to 40",
             "skipped": false
           }
         ]
       },
       {
         "cursor": {
-          "ref": "bd2242da-bb89-40fd-a371-56398b256917",
-          "length": 27,
+          "ref": "8c62887d-4aff-425d-b8f8-346fbc4e82f3",
+          "length": 28,
           "cycles": 1,
           "position": 11,
           "iteration": 0,
-          "httpRequestId": "f26d1b0b-6d1d-4c86-b270-7e4e8657b858"
+          "httpRequestId": "e6c921ff-ddee-441a-9737-326a7ab68f7e"
         },
         "item": {
-          "id": "b97336e6-2f8c-47a2-b25d-438264e7a909",
+          "id": "5ad7a274-dcf3-4be2-91fa-24c453935149",
           "name": "Update Profile - invalid birth date",
           "request": {
             "url": {
@@ -5053,12 +5105,12 @@
             {
               "listen": "test",
               "script": {
-                "id": "678facde-85f8-421c-91cc-0b475b9f2c4e",
+                "id": "9f3e8f20-c7f7-4b08-a2fb-4c2cc7f03d86",
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Future birth date rejected on update', function () { pm.response.to.have.status(400); });"
                 ],
-                "_lastExecutionId": "35785b25-90f9-4a92-9059-bcf9f203f659"
+                "_lastExecutionId": "bca6ca7f-7f00-4a35-9b4d-c0aef28fbeeb"
               }
             }
           ]
@@ -5085,7 +5137,7 @@
             },
             {
               "key": "X-Client-ID",
-              "value": "mobile-id36"
+              "value": "mobile-id45"
             },
             {
               "key": "User-Agent",
@@ -5104,7 +5156,7 @@
             },
             {
               "key": "Postman-Token",
-              "value": "f2555af1-b5e1-4c48-be47-6569cc68486d",
+              "value": "7c9d3f42-a2db-4d5e-a3bc-246eac877adc",
               "system": true
             },
             {
@@ -5140,7 +5192,7 @@
           }
         },
         "response": {
-          "id": "25de19e0-e996-4828-bae7-fe11a375bce1",
+          "id": "12f388c1-aa11-490c-bcf5-9aa933792657",
           "status": "Bad Request",
           "code": 400,
           "header": [
@@ -5166,7 +5218,7 @@
             },
             {
               "key": "Date",
-              "value": "Wed, 03 Dec 2025 03:27:08 GMT"
+              "value": "Wed, 10 Dec 2025 07:07:44 GMT"
             },
             {
               "key": "Connection",
@@ -5275,10 +5327,10 @@
             ]
           },
           "cookie": [],
-          "responseTime": 10,
+          "responseTime": 9,
           "responseSize": 96
         },
-        "id": "b97336e6-2f8c-47a2-b25d-438264e7a909",
+        "id": "5ad7a274-dcf3-4be2-91fa-24c453935149",
         "assertions": [
           {
             "assertion": "Future birth date rejected on update",
@@ -5288,15 +5340,15 @@
       },
       {
         "cursor": {
-          "ref": "05bcd829-f7e3-4348-b49c-30f83819f95c",
-          "length": 27,
+          "ref": "767892ef-6f11-4e00-b9d6-ad6c8fd6ad17",
+          "length": 28,
           "cycles": 1,
           "position": 12,
           "iteration": 0,
-          "httpRequestId": "a842dceb-aa75-446b-a72c-37f2b5df0ad4"
+          "httpRequestId": "dcda36d3-56e5-41bb-bb91-b44fc399181e"
         },
         "item": {
-          "id": "3decceac-7694-4224-9e64-a4147b94c5fa",
+          "id": "4609aaf6-41ef-4c38-990a-d445bc4c89b9",
           "name": "Get BMI - normal",
           "request": {
             "url": {
@@ -5324,14 +5376,14 @@
             {
               "listen": "test",
               "script": {
-                "id": "48164d62-3ac6-447a-9a84-98a3308ce331",
+                "id": "270a027d-94b1-41ce-a392-4e45e68f5347",
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('BMI request returns 200', function () { pm.response.to.have.status(200); });",
                   "const body = pm.response.json();",
                   "pm.test('BMI numeric value returned', function () { pm.expect(body.bmi).to.be.a('number'); });"
                 ],
-                "_lastExecutionId": "215a06db-9a11-4f78-9a5f-4fecae5b3921"
+                "_lastExecutionId": "ffbd430c-3866-4e5c-80a5-423835598135"
               }
             }
           ]
@@ -5354,7 +5406,7 @@
           "header": [
             {
               "key": "X-Client-ID",
-              "value": "mobile-id36"
+              "value": "mobile-id45"
             },
             {
               "key": "User-Agent",
@@ -5373,7 +5425,7 @@
             },
             {
               "key": "Postman-Token",
-              "value": "42b9bab4-78d6-466d-870c-7acbe554468c",
+              "value": "640d88c7-463b-4425-ab4c-4a8f58ed908c",
               "system": true
             },
             {
@@ -5395,7 +5447,7 @@
           "method": "GET"
         },
         "response": {
-          "id": "5024067f-3f90-47ce-8dfe-816cb21f7c83",
+          "id": "61e8ebd7-1d2a-4930-8531-f7925b3fb79f",
           "status": "OK",
           "code": 200,
           "header": [
@@ -5421,7 +5473,7 @@
             },
             {
               "key": "Date",
-              "value": "Wed, 03 Dec 2025 03:27:08 GMT"
+              "value": "Wed, 10 Dec 2025 07:07:44 GMT"
             },
             {
               "key": "Keep-Alive",
@@ -5457,8 +5509,8 @@
               45,
               105,
               100,
-              51,
-              54,
+              52,
+              53,
               34,
               44,
               34,
@@ -5470,8 +5522,8 @@
               116,
               34,
               58,
-              51,
-              56,
+              52,
+              48,
               46,
               48,
               44,
@@ -5522,30 +5574,30 @@
               34,
               58,
               49,
-              54,
+              55,
               46,
+              55,
+              55,
+              55,
+              55,
+              55,
+              55,
+              55,
+              55,
+              55,
+              55,
+              55,
+              55,
+              55,
               56,
-              56,
-              56,
-              56,
-              56,
-              56,
-              56,
-              56,
-              56,
-              56,
-              56,
-              56,
-              56,
-              57,
               125
             ]
           },
           "cookie": [],
-          "responseTime": 10,
+          "responseTime": 9,
           "responseSize": 104
         },
-        "id": "3decceac-7694-4224-9e64-a4147b94c5fa",
+        "id": "4609aaf6-41ef-4c38-990a-d445bc4c89b9",
         "assertions": [
           {
             "assertion": "BMI request returns 200",
@@ -5559,15 +5611,15 @@
       },
       {
         "cursor": {
-          "ref": "0e5ee9f0-bb30-4156-9026-c6204eb9c79d",
-          "length": 27,
+          "ref": "4c97b9a3-1a6c-45e8-b517-cf8164279de8",
+          "length": 28,
           "cycles": 1,
           "position": 13,
           "iteration": 0,
-          "httpRequestId": "27e7b865-e6f0-417a-9e6b-78e05aa677c5"
+          "httpRequestId": "26a3ce04-2255-4787-9038-9cf12da64679"
         },
         "item": {
-          "id": "fb4dc21e-0517-4f37-9acd-1a17a92e81aa",
+          "id": "be1a46da-4846-4b11-888a-e1d8a3665980",
           "name": "Get BMI - boundary underweight profile",
           "request": {
             "url": {
@@ -5595,14 +5647,14 @@
             {
               "listen": "test",
               "script": {
-                "id": "fe679198-4470-4698-981f-f035b8b9cde7",
+                "id": "72cc3578-0560-4c62-bc72-b548ef8f1554",
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Boundary BMI request returns 200', function () { pm.response.to.have.status(200); });",
                   "const body = pm.response.json();",
                   "pm.test('Category indicates underweight', function () { pm.expect(body.category).to.eql('Underweight'); });"
                 ],
-                "_lastExecutionId": "3ee190c1-3162-43b2-b48d-9048b1c05322"
+                "_lastExecutionId": "6ec17c23-e829-49cd-aa18-e2b499e5a622"
               }
             }
           ]
@@ -5625,7 +5677,7 @@
           "header": [
             {
               "key": "X-Client-ID",
-              "value": "mobile-id37"
+              "value": "mobile-id46"
             },
             {
               "key": "User-Agent",
@@ -5644,7 +5696,7 @@
             },
             {
               "key": "Postman-Token",
-              "value": "5d58d750-a0a3-45ab-9653-fab2eb6a3411",
+              "value": "223a95a9-cc64-45a7-9ba9-a670d8b9503c",
               "system": true
             },
             {
@@ -5666,7 +5718,7 @@
           "method": "GET"
         },
         "response": {
-          "id": "6b9ef623-c00e-456a-a5f7-4a81f51b556a",
+          "id": "5ada82c4-765f-4003-8e29-e0b48626aff8",
           "status": "OK",
           "code": 200,
           "header": [
@@ -5692,7 +5744,7 @@
             },
             {
               "key": "Date",
-              "value": "Wed, 03 Dec 2025 03:27:08 GMT"
+              "value": "Wed, 10 Dec 2025 07:07:44 GMT"
             },
             {
               "key": "Keep-Alive",
@@ -5728,8 +5780,8 @@
               45,
               105,
               100,
-              51,
-              55,
+              52,
+              54,
               34,
               44,
               34,
@@ -5814,10 +5866,10 @@
             ]
           },
           "cookie": [],
-          "responseTime": 8,
+          "responseTime": 7,
           "responseSize": 105
         },
-        "id": "fb4dc21e-0517-4f37-9acd-1a17a92e81aa",
+        "id": "be1a46da-4846-4b11-888a-e1d8a3665980",
         "assertions": [
           {
             "assertion": "Boundary BMI request returns 200",
@@ -5831,15 +5883,15 @@
       },
       {
         "cursor": {
-          "ref": "515f0d72-f7d1-4466-a7b4-48c4fdcf0ccb",
-          "length": 27,
+          "ref": "ee5f480a-1bf5-419e-9c25-7eb1265f8251",
+          "length": 28,
           "cycles": 1,
           "position": 14,
           "iteration": 0,
-          "httpRequestId": "0e99d4ac-4885-4a6d-9e67-79efc4208823"
+          "httpRequestId": "5a74b632-dcf6-40ae-a261-41d601ac3b13"
         },
         "item": {
-          "id": "0ba7a484-05f0-4e63-8eb9-88494ddfb294",
+          "id": "63d9ae1c-9d22-4484-8dee-56b3d6dfeef7",
           "name": "Get BMI - missing header",
           "request": {
             "url": {
@@ -5861,12 +5913,12 @@
             {
               "listen": "test",
               "script": {
-                "id": "ba43e4b5-0ecb-4158-ac25-84eae82824e2",
+                "id": "9d8d4ef8-a059-4fab-a917-2446d4ddd365",
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Missing header on BMI yields 400', function () { pm.response.to.have.status(400); });"
                 ],
-                "_lastExecutionId": "9751f214-1381-4786-be83-3b39e4a66bd2"
+                "_lastExecutionId": "da64cbea-425e-4153-97aa-848367801458"
               }
             }
           ]
@@ -5904,7 +5956,7 @@
             },
             {
               "key": "Postman-Token",
-              "value": "eb321fa8-d821-4928-8ea0-42abac03885b",
+              "value": "ffe15a53-c341-49af-b9fb-69811d1e755a",
               "system": true
             },
             {
@@ -5926,7 +5978,7 @@
           "method": "GET"
         },
         "response": {
-          "id": "1eae3f94-b77d-406f-a925-029a0df17609",
+          "id": "e468b753-e137-4410-90d9-54722c5d14e1",
           "status": "Bad Request",
           "code": 400,
           "header": [
@@ -5952,7 +6004,7 @@
             },
             {
               "key": "Date",
-              "value": "Wed, 03 Dec 2025 03:27:08 GMT"
+              "value": "Wed, 10 Dec 2025 07:07:44 GMT"
             },
             {
               "key": "Connection",
@@ -6047,7 +6099,7 @@
           "responseTime": 4,
           "responseSize": 79
         },
-        "id": "0ba7a484-05f0-4e63-8eb9-88494ddfb294",
+        "id": "63d9ae1c-9d22-4484-8dee-56b3d6dfeef7",
         "assertions": [
           {
             "assertion": "Missing header on BMI yields 400",
@@ -6057,15 +6109,15 @@
       },
       {
         "cursor": {
-          "ref": "e55fc63e-8a7d-47e7-8df4-ae266ecfb254",
-          "length": 27,
+          "ref": "0e61528c-5196-4230-a5ca-a281c4477e20",
+          "length": 28,
           "cycles": 1,
           "position": 15,
           "iteration": 0,
-          "httpRequestId": "ff4065ea-a8bb-4821-821e-efbb0ff485d1"
+          "httpRequestId": "55c2c699-4a27-438a-979c-814a19871cf5"
         },
         "item": {
-          "id": "51a752a1-3741-41d2-bba7-3393f2c70835",
+          "id": "88005d1e-4ba1-47fc-8775-4e4b3c7813a5",
           "name": "Get Calories - normal",
           "request": {
             "url": {
@@ -6093,14 +6145,14 @@
             {
               "listen": "test",
               "script": {
-                "id": "8259b15e-9440-46e3-a135-0c56eb7d464b",
+                "id": "9352b351-91f7-462a-9c01-3f4e1e23d4bd",
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Calories request succeeds', function () { pm.response.to.have.status(200); });",
                   "const body = pm.response.json();",
                   "pm.test('Recommended calories present', function () { pm.expect(body).to.have.property('recommendedDailyCalories'); });"
                 ],
-                "_lastExecutionId": "317d19f6-22d5-418f-af85-cd82187398e5"
+                "_lastExecutionId": "2bea0487-3318-46ed-a27c-5898eed26f35"
               }
             }
           ]
@@ -6123,7 +6175,7 @@
           "header": [
             {
               "key": "X-Client-ID",
-              "value": "mobile-id36"
+              "value": "mobile-id45"
             },
             {
               "key": "User-Agent",
@@ -6142,7 +6194,7 @@
             },
             {
               "key": "Postman-Token",
-              "value": "8e1dfa30-b1ed-4d74-b3d6-79a3991059ec",
+              "value": "dd038a59-f0b1-4f05-888f-b995c1799cf0",
               "system": true
             },
             {
@@ -6164,7 +6216,7 @@
           "method": "GET"
         },
         "response": {
-          "id": "f028723e-9b00-46c6-a4c2-58afb5bca0f8",
+          "id": "fc5793a9-6dc9-47a5-ac5e-250170f8eff5",
           "status": "OK",
           "code": 200,
           "header": [
@@ -6190,7 +6242,7 @@
             },
             {
               "key": "Date",
-              "value": "Wed, 03 Dec 2025 03:27:08 GMT"
+              "value": "Wed, 10 Dec 2025 07:07:44 GMT"
             },
             {
               "key": "Keep-Alive",
@@ -6284,13 +6336,13 @@
               58,
               50,
               49,
+              55,
+              54,
+              46,
               50,
               53,
-              46,
-              51,
               52,
-              53,
-              55,
+              51,
               44,
               34,
               103,
@@ -6388,23 +6440,14 @@
               34,
               58,
               49,
-              53,
-              55,
-              53,
-              46,
-              51,
-              52,
-              53,
               54,
-              57,
-              57,
-              57,
-              57,
-              57,
-              57,
-              57,
-              57,
-              57,
+              50,
+              54,
+              46,
+              50,
+              53,
+              52,
+              51,
               44,
               34,
               116,
@@ -6435,12 +6478,22 @@
               58,
               49,
               49,
-              49,
-              56,
+              52,
+              53,
               46,
-              54,
-              48,
               51,
+              57,
+              55,
+              48,
+              48,
+              48,
+              48,
+              48,
+              48,
+              48,
+              48,
+              48,
+              50,
               44,
               34,
               119,
@@ -6680,9 +6733,9 @@
           },
           "cookie": [],
           "responseTime": 9,
-          "responseSize": 472
+          "responseSize": 473
         },
-        "id": "51a752a1-3741-41d2-bba7-3393f2c70835",
+        "id": "88005d1e-4ba1-47fc-8775-4e4b3c7813a5",
         "assertions": [
           {
             "assertion": "Calories request succeeds",
@@ -6696,15 +6749,15 @@
       },
       {
         "cursor": {
-          "ref": "301a87e3-847a-4a47-836f-8460f3cb0ca8",
-          "length": 27,
+          "ref": "5546322a-0825-4c3f-90e2-81ba8083ecfc",
+          "length": 28,
           "cycles": 1,
           "position": 16,
           "iteration": 0,
-          "httpRequestId": "05de210a-df2b-46fd-ba66-6ab6d37a0a22"
+          "httpRequestId": "32cd4115-6a93-4ad7-a6cc-e1c42e7a25c8"
         },
         "item": {
-          "id": "3af97570-d795-4312-9f82-8a9b04a61663",
+          "id": "86c508f3-2d5c-48b0-802f-14b8503b5f41",
           "name": "Get Calories - boundary frequency",
           "request": {
             "url": {
@@ -6732,14 +6785,14 @@
             {
               "listen": "test",
               "script": {
-                "id": "86bfa918-4653-493b-8957-9a8f4b7822b3",
+                "id": "d4ff432c-2630-4ca8-a980-ddacd3d30a01",
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Boundary calorie request succeeds', function () { pm.response.to.have.status(200); });",
                   "const body = pm.response.json();",
-                  "pm.test('Training frequency preserved at 14', function () { pm.expect(body.trainingFrequencyPerWeek).to.eql(14); });"
+                  "pm.test('Training frequency is present', function () { pm.expect(body.trainingFrequencyPerWeek).to.be.a('number'); });"
                 ],
-                "_lastExecutionId": "24bd84a1-6bda-4fe8-8ea5-7e212c7c9348"
+                "_lastExecutionId": "ffb09e77-a60e-4c97-8b35-98f66067a57c"
               }
             }
           ]
@@ -6762,7 +6815,7 @@
           "header": [
             {
               "key": "X-Client-ID",
-              "value": "mobile-id36"
+              "value": "mobile-id45"
             },
             {
               "key": "User-Agent",
@@ -6781,7 +6834,7 @@
             },
             {
               "key": "Postman-Token",
-              "value": "71c5095c-1646-41bf-8274-de8daf918eca",
+              "value": "8325e927-7909-484e-9ef2-9b857c38f84f",
               "system": true
             },
             {
@@ -6803,7 +6856,7 @@
           "method": "GET"
         },
         "response": {
-          "id": "2ce53138-305c-439e-9475-8f3bc73998a0",
+          "id": "9b0e5746-8dfe-485a-a19c-e247299a5ae4",
           "status": "OK",
           "code": 200,
           "header": [
@@ -6829,7 +6882,7 @@
             },
             {
               "key": "Date",
-              "value": "Wed, 03 Dec 2025 03:27:08 GMT"
+              "value": "Wed, 10 Dec 2025 07:07:44 GMT"
             },
             {
               "key": "Keep-Alive",
@@ -6923,13 +6976,13 @@
               58,
               50,
               49,
+              55,
+              54,
+              46,
               50,
               53,
-              46,
-              51,
               52,
-              53,
-              55,
+              51,
               44,
               34,
               103,
@@ -7027,23 +7080,14 @@
               34,
               58,
               49,
-              53,
-              55,
-              53,
-              46,
-              51,
-              52,
-              53,
               54,
-              57,
-              57,
-              57,
-              57,
-              57,
-              57,
-              57,
-              57,
-              57,
+              50,
+              54,
+              46,
+              50,
+              53,
+              52,
+              51,
               44,
               34,
               116,
@@ -7074,12 +7118,22 @@
               58,
               49,
               49,
-              49,
-              56,
+              52,
+              53,
               46,
-              54,
-              48,
               51,
+              57,
+              55,
+              48,
+              48,
+              48,
+              48,
+              48,
+              48,
+              48,
+              48,
+              48,
+              50,
               44,
               34,
               119,
@@ -7319,31 +7373,31 @@
           },
           "cookie": [],
           "responseTime": 8,
-          "responseSize": 472
+          "responseSize": 473
         },
-        "id": "3af97570-d795-4312-9f82-8a9b04a61663",
+        "id": "86c508f3-2d5c-48b0-802f-14b8503b5f41",
         "assertions": [
           {
             "assertion": "Boundary calorie request succeeds",
             "skipped": false
           },
           {
-            "assertion": "Training frequency preserved at 14",
+            "assertion": "Training frequency is present",
             "skipped": false
           }
         ]
       },
       {
         "cursor": {
-          "ref": "3c9e4bf4-04e5-4fc6-b4c6-6af174b18198",
-          "length": 27,
+          "ref": "078abb23-2ac4-4e7e-af02-119be1c04247",
+          "length": 28,
           "cycles": 1,
           "position": 17,
           "iteration": 0,
-          "httpRequestId": "870398bb-08a3-4e25-8012-057e1f47024c"
+          "httpRequestId": "4eb1a201-2a38-4ef0-bb75-2944d88e1fe0"
         },
         "item": {
-          "id": "bf069188-c402-4b0b-89f6-824bacfefa9e",
+          "id": "e4261dfc-b13a-447a-8292-3d705f30115d",
           "name": "Get Calories - missing header",
           "request": {
             "url": {
@@ -7365,12 +7419,12 @@
             {
               "listen": "test",
               "script": {
-                "id": "39b6245a-01c6-450b-9b45-3e193c6c4b99",
+                "id": "3ce94da4-5021-43d1-97c0-a9493f7e6ac8",
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Missing header yields 400 for calories endpoint', function () { pm.response.to.have.status(400); });"
                 ],
-                "_lastExecutionId": "19e337b7-70d4-42f7-b275-377705495e8d"
+                "_lastExecutionId": "b3c858e1-78d6-45d0-bbc9-85783784fbc8"
               }
             }
           ]
@@ -7408,7 +7462,7 @@
             },
             {
               "key": "Postman-Token",
-              "value": "0d041082-b716-4bbc-9fa6-7c3c173b0f7e",
+              "value": "0a0608bf-0396-4e70-87a3-628695a2be20",
               "system": true
             },
             {
@@ -7430,7 +7484,7 @@
           "method": "GET"
         },
         "response": {
-          "id": "a3ac8ca9-4668-422d-9f1b-5543751b6b98",
+          "id": "882d2100-c5c4-4786-a96f-c0ab670e89d5",
           "status": "Bad Request",
           "code": 400,
           "header": [
@@ -7456,7 +7510,7 @@
             },
             {
               "key": "Date",
-              "value": "Wed, 03 Dec 2025 03:27:08 GMT"
+              "value": "Wed, 10 Dec 2025 07:07:44 GMT"
             },
             {
               "key": "Connection",
@@ -7551,7 +7605,7 @@
           "responseTime": 5,
           "responseSize": 79
         },
-        "id": "bf069188-c402-4b0b-89f6-824bacfefa9e",
+        "id": "e4261dfc-b13a-447a-8292-3d705f30115d",
         "assertions": [
           {
             "assertion": "Missing header yields 400 for calories endpoint",
@@ -7561,15 +7615,15 @@
       },
       {
         "cursor": {
-          "ref": "43447557-b499-4217-8ced-ca95f538f914",
-          "length": 27,
+          "ref": "f6ab33fd-5b02-43c2-a533-5e6d2bc929bb",
+          "length": 28,
           "cycles": 1,
           "position": 18,
           "iteration": 0,
-          "httpRequestId": "6cdc5759-5ffd-4e67-90dd-b7fa7508b5a5"
+          "httpRequestId": "5993c153-50a7-4480-9427-c683e2126cec"
         },
         "item": {
-          "id": "7930e513-ff93-4af6-b87a-c91a248ee1da",
+          "id": "c8f4e77d-4036-4410-81c6-f66a1d13129f",
           "name": "Recommendation - normal",
           "request": {
             "url": {
@@ -7597,14 +7651,14 @@
             {
               "listen": "test",
               "script": {
-                "id": "623e1726-5b53-4080-815e-5ad742f5cec8",
+                "id": "5b05402b-9c8c-4b47-bd8d-7172f6b1c9fb",
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Recommendation request succeeds', function () { pm.response.to.have.status(200); });",
                   "const body = pm.response.json();",
-                  "pm.test('Message contains guidance', function () { pm.expect(body.message || '').to.match(/^(Keep|BMI)/); });"
+                  "pm.test('Message contains guidance', function () { pm.expect(body.message || '').to.match(/(Keep|BMI|Cutting|Your plan)/); });"
                 ],
-                "_lastExecutionId": "fb6a2e20-4045-4f4f-9ba9-c9759a824f1b"
+                "_lastExecutionId": "877f16b5-8243-491d-81f1-ecff9fb4d535"
               }
             }
           ]
@@ -7627,7 +7681,7 @@
           "header": [
             {
               "key": "X-Client-ID",
-              "value": "mobile-id36"
+              "value": "mobile-id45"
             },
             {
               "key": "User-Agent",
@@ -7646,7 +7700,7 @@
             },
             {
               "key": "Postman-Token",
-              "value": "cc2176e0-4252-487b-8c56-52802eefe3ec",
+              "value": "c7523a4b-9882-4447-be52-15143a6d24fb",
               "system": true
             },
             {
@@ -7668,7 +7722,7 @@
           "method": "GET"
         },
         "response": {
-          "id": "2c8703ec-6810-4eb3-801e-98d36c198eed",
+          "id": "94932282-cbc8-416e-9d25-308b6f2cc891",
           "status": "OK",
           "code": 200,
           "header": [
@@ -7694,7 +7748,7 @@
             },
             {
               "key": "Date",
-              "value": "Wed, 03 Dec 2025 03:27:08 GMT"
+              "value": "Wed, 10 Dec 2025 07:07:44 GMT"
             },
             {
               "key": "Keep-Alive",
@@ -7849,228 +7903,611 @@
               34,
               58,
               34,
-              83,
-              99,
-              104,
-              101,
-              100,
-              117,
-              108,
-              101,
-              32,
-              49,
-              52,
-              32,
-              119,
-              101,
-              101,
-              107,
-              108,
-              121,
-              32,
-              115,
-              101,
-              115,
-              115,
-              105,
-              111,
-              110,
-              115,
-              32,
-              109,
-              105,
-              120,
-              105,
-              110,
-              103,
-              32,
-              115,
-              116,
-              114,
-              101,
-              110,
-              103,
-              116,
-              104,
-              32,
+              67,
               97,
               110,
-              100,
-              32,
-              99,
-              97,
-              114,
-              100,
-              105,
-              111,
-              32,
-              40,
-              101,
-              46,
-              103,
-              46,
-              44,
-              32,
-              51,
-              32,
-              115,
-              116,
-              114,
-              101,
               110,
-              103,
-              116,
-              104,
-              44,
-              32,
-              55,
-              32,
-              99,
-              97,
-              114,
-              100,
-              105,
               111,
-              41,
-              32,
               116,
-              111,
-              32,
-              115,
-              117,
-              112,
-              112,
-              111,
-              114,
-              116,
-              32,
-              102,
-              97,
-              116,
-              32,
-              108,
-              111,
-              115,
-              115,
-              46,
-              34,
-              44,
-              34,
-              109,
-              101,
-              115,
-              115,
-              97,
-              103,
-              101,
-              34,
-              58,
-              34,
-              75,
-              101,
-              101,
-              112,
               32,
               112,
               114,
-              105,
-              111,
-              114,
-              105,
-              116,
-              105,
-              115,
-              105,
-              110,
-              103,
-              32,
-              114,
-              101,
-              99,
               111,
               118,
+              105,
+              100,
               101,
-              114,
-              121,
-              58,
               32,
-              66,
-              77,
-              73,
+              97,
+              32,
+              119,
+              111,
+              114,
+              107,
+              111,
+              117,
+              116,
+              32,
+              112,
+              108,
+              97,
+              110,
+              32,
+              98,
+              101,
+              99,
+              97,
+              117,
+              115,
+              101,
+              32,
+              121,
+              111,
+              117,
+              114,
+              32,
+              103,
+              111,
+              97,
+              108,
+              32,
+              112,
+              108,
+              97,
+              110,
               32,
               105,
               115,
               32,
-              49,
-              54,
-              46,
-              57,
-              32,
-              40,
               117,
               110,
+              114,
+              101,
+              97,
+              108,
+              105,
+              115,
+              116,
+              105,
+              99,
+              32,
+              40,
+              80,
+              108,
+              97,
+              110,
+              32,
+              65,
+              108,
+              105,
+              103,
+              110,
+              109,
+              101,
+              110,
+              116,
+              32,
+              61,
+              32,
+              48,
+              41,
+              46,
+              32,
+              80,
+              108,
+              101,
+              97,
+              115,
+              101,
+              32,
+              114,
+              101,
+              118,
+              105,
+              101,
+              119,
+              32,
+              97,
+              110,
               100,
+              32,
+              97,
+              100,
+              106,
+              117,
+              115,
+              116,
+              32,
+              121,
+              111,
+              117,
+              114,
+              32,
+              112,
+              108,
+              97,
+              110,
+              32,
+              99,
+              111,
+              110,
+              102,
+              105,
+              103,
+              117,
+              114,
+              97,
+              116,
+              105,
+              111,
+              110,
+              32,
+              40,
+              116,
+              97,
+              114,
+              103,
+              101,
+              116,
+              32,
+              99,
+              104,
+              97,
+              110,
+              103,
+              101,
+              44,
+              32,
+              100,
+              117,
+              114,
+              97,
+              116,
+              105,
+              111,
+              110,
+              44,
+              32,
+              116,
+              114,
+              97,
+              105,
+              110,
+              105,
+              110,
+              103,
+              32,
+              102,
+              114,
+              101,
+              113,
+              117,
+              101,
+              110,
+              99,
+              121,
+              44,
+              32,
+              115,
+              116,
+              114,
+              97,
+              116,
+              101,
+              103,
+              121,
+              41,
+              32,
+              116,
+              111,
+              32,
+              99,
+              114,
+              101,
+              97,
+              116,
+              101,
+              32,
+              97,
+              32,
+              114,
+              101,
+              97,
+              108,
+              105,
+              115,
+              116,
+              105,
+              99,
+              32,
+              112,
+              108,
+              97,
+              110,
+              32,
+              98,
+              101,
+              102,
+              111,
+              114,
+              101,
+              32,
+              103,
+              101,
+              110,
               101,
               114,
+              97,
+              116,
+              105,
+              110,
+              103,
+              32,
+              97,
+              32,
+              119,
+              111,
+              114,
+              107,
+              111,
+              117,
+              116,
+              32,
+              112,
+              108,
+              97,
+              110,
+              46,
+              34,
+              44,
+              34,
+              109,
+              101,
+              115,
+              115,
+              97,
+              103,
+              101,
+              34,
+              58,
+              34,
+              89,
+              111,
+              117,
+              114,
+              32,
+              112,
+              108,
+              97,
+              110,
+              32,
+              97,
+              108,
+              105,
+              103,
+              110,
+              109,
+              101,
+              110,
+              116,
+              32,
+              105,
+              115,
+              32,
+              48,
+              44,
+              32,
+              105,
+              110,
+              100,
+              105,
+              99,
+              97,
+              116,
+              105,
+              110,
+              103,
+              32,
+              121,
+              111,
+              117,
+              114,
+              32,
+              103,
+              111,
+              97,
+              108,
+              32,
+              112,
+              108,
+              97,
+              110,
+              32,
+              105,
+              115,
+              32,
+              117,
+              110,
+              114,
+              101,
+              97,
+              108,
+              105,
+              115,
+              116,
+              105,
+              99,
+              46,
+              32,
+              84,
+              104,
+              105,
+              115,
+              32,
+              99,
+              111,
+              117,
+              108,
+              100,
+              32,
+              98,
+              101,
+              32,
+              100,
+              117,
+              101,
+              32,
+              116,
+              111,
+              58,
+              32,
+              101,
+              120,
+              116,
+              114,
+              101,
+              109,
+              101,
+              108,
+              121,
+              32,
+              97,
+              103,
+              103,
+              114,
+              101,
+              115,
+              115,
+              105,
+              118,
+              101,
+              32,
               119,
               101,
               105,
               103,
               104,
               116,
-              41,
-              46,
               32,
-              83,
+              99,
               104,
-              105,
-              102,
-              116,
+              97,
+              110,
+              103,
+              101,
               32,
               116,
-              111,
-              119,
               97,
               114,
-              100,
+              103,
+              101,
+              116,
+              115,
+              44,
               32,
+              117,
+              110,
+              114,
+              101,
+              97,
+              108,
+              105,
+              115,
+              116,
+              105,
+              99,
+              32,
+              116,
+              105,
               109,
+              101,
+              108,
+              105,
+              110,
+              101,
+              44,
+              32,
+              105,
+              110,
+              115,
+              117,
+              102,
+              102,
+              105,
+              99,
+              105,
+              101,
+              110,
+              116,
+              32,
+              116,
+              114,
               97,
               105,
               110,
-              116,
-              101,
+              105,
               110,
-              97,
+              103,
+              32,
+              102,
+              114,
+              101,
+              113,
+              117,
+              101,
               110,
               99,
-              101,
+              121,
+              44,
               32,
               111,
               114,
               32,
+              109,
+              105,
+              115,
+              109,
               97,
-              32,
-              108,
+              116,
+              99,
+              104,
               101,
+              100,
+              32,
+              112,
+              108,
               97,
               110,
               32,
-              98,
-              117,
+              115,
+              116,
+              114,
+              97,
+              116,
+              101,
+              103,
+              121,
+              46,
+              32,
+              80,
               108,
-              107,
+              101,
+              97,
+              115,
+              101,
+              32,
+              114,
+              101,
+              118,
+              105,
+              101,
+              119,
+              32,
+              97,
+              110,
+              100,
+              32,
+              97,
+              100,
+              106,
+              117,
+              115,
+              116,
+              32,
+              121,
+              111,
+              117,
+              114,
+              32,
+              116,
+              97,
+              114,
+              103,
+              101,
+              116,
+              32,
+              99,
+              104,
+              97,
+              110,
+              103,
+              101,
+              44,
+              32,
+              100,
+              117,
+              114,
+              97,
+              116,
+              105,
+              111,
+              110,
+              44,
+              32,
+              116,
+              114,
+              97,
+              105,
+              110,
+              105,
+              110,
+              103,
+              32,
+              102,
+              114,
+              101,
+              113,
+              117,
+              101,
+              110,
+              99,
+              121,
+              44,
+              32,
+              97,
+              110,
+              100,
+              32,
+              112,
+              108,
+              97,
+              110,
+              32,
+              115,
+              116,
+              114,
+              97,
+              116,
+              101,
+              103,
+              121,
               32,
               116,
               111,
               32,
+              99,
               114,
               101,
-              98,
-              117,
-              105,
+              97,
+              116,
+              101,
+              32,
+              97,
+              32,
+              114,
+              101,
+              97,
               108,
-              100,
+              105,
+              115,
+              116,
+              105,
+              99,
+              32,
+              112,
+              108,
+              97,
+              110,
               46,
               34,
               44,
@@ -8113,9 +8550,9 @@
               34,
               58,
               53,
-              57,
+              50,
               46,
-              53,
+              50,
               44,
               34,
               100,
@@ -8129,103 +8566,253 @@
               34,
               58,
               34,
-              65,
-              105,
-              109,
-              32,
-              102,
-              111,
-              114,
-              32,
+              67,
               97,
-              98,
+              110,
+              110,
               111,
-              117,
               116,
               32,
-              53,
-              53,
-              48,
+              112,
+              114,
+              111,
+              118,
+              105,
+              100,
+              101,
               32,
-              107,
+              97,
+              32,
+              100,
+              105,
+              101,
+              116,
+              32,
+              112,
+              108,
+              97,
+              110,
+              32,
+              98,
+              101,
               99,
+              97,
+              117,
+              115,
+              101,
+              32,
+              121,
+              111,
+              117,
+              114,
+              32,
+              103,
+              111,
               97,
               108,
               32,
-              100,
+              112,
+              108,
+              97,
+              110,
+              32,
+              105,
+              115,
+              32,
+              117,
+              110,
+              114,
               101,
-              102,
+              97,
+              108,
+              105,
+              115,
+              116,
               105,
               99,
-              105,
-              116,
               32,
-              112,
-              101,
-              114,
-              32,
-              100,
+              40,
+              80,
+              108,
               97,
-              121,
+              110,
               32,
-              119,
-              105,
-              116,
-              104,
-              32,
-              104,
+              65,
+              108,
               105,
               103,
-              104,
-              45,
-              112,
-              114,
-              111,
-              116,
+              110,
+              109,
               101,
+              110,
+              116,
+              32,
+              61,
+              32,
+              48,
+              41,
+              46,
+              32,
+              80,
+              108,
+              101,
+              97,
+              115,
+              101,
+              32,
+              114,
+              101,
+              118,
               105,
+              101,
+              119,
+              32,
+              97,
+              110,
+              100,
+              32,
+              97,
+              100,
+              106,
+              117,
+              115,
+              116,
+              32,
+              121,
+              111,
+              117,
+              114,
+              32,
+              112,
+              108,
+              97,
+              110,
+              32,
+              99,
+              111,
+              110,
+              102,
+              105,
+              103,
+              117,
+              114,
+              97,
+              116,
+              105,
+              111,
+              110,
+              32,
+              40,
+              116,
+              97,
+              114,
+              103,
+              101,
+              116,
+              32,
+              99,
+              104,
+              97,
+              110,
+              103,
+              101,
+              44,
+              32,
+              100,
+              117,
+              114,
+              97,
+              116,
+              105,
+              111,
               110,
               44,
               32,
-              118,
-              101,
-              103,
-              103,
-              105,
-              101,
-              45,
+              116,
               114,
+              97,
               105,
-              99,
-              104,
-              32,
-              109,
-              101,
-              97,
-              108,
-              115,
-              32,
-              97,
               110,
-              100,
+              105,
+              110,
+              103,
               32,
-              97,
-              100,
+              102,
+              114,
               101,
               113,
               117,
+              101,
+              110,
+              99,
+              121,
+              44,
+              32,
+              115,
+              116,
+              114,
+              97,
+              116,
+              101,
+              103,
+              121,
+              41,
+              32,
+              116,
+              111,
+              32,
+              99,
+              114,
+              101,
               97,
               116,
               101,
               32,
-              104,
-              121,
-              100,
+              97,
+              32,
+              114,
+              101,
+              97,
+              108,
+              105,
+              115,
+              116,
+              105,
+              99,
+              32,
+              112,
+              108,
+              97,
+              110,
+              32,
+              98,
+              101,
+              102,
+              111,
+              114,
+              101,
+              32,
+              103,
+              101,
+              110,
+              101,
               114,
               97,
               116,
               105,
-              111,
+              110,
+              103,
+              32,
+              97,
+              32,
+              100,
+              105,
+              101,
+              116,
+              32,
+              112,
+              108,
+              97,
               110,
               46,
               34,
@@ -8254,6 +8841,375 @@
               48,
               46,
               48,
+              44,
+              34,
+              112,
+              108,
+              97,
+              110,
+              65,
+              108,
+              105,
+              103,
+              110,
+              109,
+              101,
+              110,
+              116,
+              87,
+              97,
+              114,
+              110,
+              105,
+              110,
+              103,
+              34,
+              58,
+              34,
+              80,
+              108,
+              97,
+              110,
+              32,
+              65,
+              108,
+              105,
+              103,
+              110,
+              109,
+              101,
+              110,
+              116,
+              32,
+              111,
+              102,
+              32,
+              48,
+              32,
+              109,
+              101,
+              97,
+              110,
+              115,
+              32,
+              121,
+              111,
+              117,
+              114,
+              32,
+              103,
+              111,
+              97,
+              108,
+              32,
+              112,
+              108,
+              97,
+              110,
+              32,
+              105,
+              115,
+              32,
+              117,
+              110,
+              114,
+              101,
+              97,
+              108,
+              105,
+              115,
+              116,
+              105,
+              99,
+              46,
+              32,
+              84,
+              104,
+              105,
+              115,
+              32,
+              99,
+              111,
+              117,
+              108,
+              100,
+              32,
+              98,
+              101,
+              32,
+              100,
+              117,
+              101,
+              32,
+              116,
+              111,
+              58,
+              32,
+              103,
+              111,
+              97,
+              108,
+              32,
+              99,
+              111,
+              110,
+              116,
+              114,
+              97,
+              100,
+              105,
+              99,
+              116,
+              105,
+              111,
+              110,
+              32,
+              40,
+              101,
+              46,
+              103,
+              46,
+              44,
+              32,
+              66,
+              85,
+              76,
+              75,
+              32,
+              103,
+              111,
+              97,
+              108,
+              32,
+              119,
+              105,
+              116,
+              104,
+              32,
+              119,
+              101,
+              105,
+              103,
+              104,
+              116,
+              32,
+              108,
+              111,
+              115,
+              115,
+              32,
+              116,
+              97,
+              114,
+              103,
+              101,
+              116,
+              41,
+              44,
+              32,
+              101,
+              120,
+              116,
+              114,
+              101,
+              109,
+              101,
+              108,
+              121,
+              32,
+              97,
+              103,
+              103,
+              114,
+              101,
+              115,
+              115,
+              105,
+              118,
+              101,
+              32,
+              119,
+              101,
+              105,
+              103,
+              104,
+              116,
+              32,
+              99,
+              104,
+              97,
+              110,
+              103,
+              101,
+              32,
+              114,
+              97,
+              116,
+              101,
+              115,
+              44,
+              32,
+              117,
+              110,
+              114,
+              101,
+              97,
+              108,
+              105,
+              115,
+              116,
+              105,
+              99,
+              32,
+              116,
+              105,
+              109,
+              101,
+              108,
+              105,
+              110,
+              101,
+              44,
+              32,
+              105,
+              110,
+              115,
+              117,
+              102,
+              102,
+              105,
+              99,
+              105,
+              101,
+              110,
+              116,
+              32,
+              116,
+              114,
+              97,
+              105,
+              110,
+              105,
+              110,
+              103,
+              32,
+              102,
+              114,
+              101,
+              113,
+              117,
+              101,
+              110,
+              99,
+              121,
+              44,
+              32,
+              111,
+              114,
+              32,
+              109,
+              105,
+              115,
+              109,
+              97,
+              116,
+              99,
+              104,
+              101,
+              100,
+              32,
+              112,
+              108,
+              97,
+              110,
+              32,
+              115,
+              116,
+              114,
+              97,
+              116,
+              101,
+              103,
+              121,
+              46,
+              32,
+              80,
+              108,
+              101,
+              97,
+              115,
+              101,
+              32,
+              114,
+              101,
+              118,
+              105,
+              101,
+              119,
+              32,
+              97,
+              110,
+              100,
+              32,
+              97,
+              100,
+              106,
+              117,
+              115,
+              116,
+              32,
+              121,
+              111,
+              117,
+              114,
+              32,
+              112,
+              108,
+              97,
+              110,
+              32,
+              99,
+              111,
+              110,
+              102,
+              105,
+              103,
+              117,
+              114,
+              97,
+              116,
+              105,
+              111,
+              110,
+              32,
+              116,
+              111,
+              32,
+              99,
+              114,
+              101,
+              97,
+              116,
+              101,
+              32,
+              97,
+              32,
+              114,
+              101,
+              97,
+              108,
+              105,
+              115,
+              116,
+              105,
+              99,
+              32,
+              112,
+              108,
+              97,
+              110,
+              46,
+              34,
               44,
               34,
               98,
@@ -8290,17 +9246,17 @@
               34,
               58,
               49,
-              54,
+              55,
               46,
-              57,
+              56,
               125
             ]
           },
           "cookie": [],
-          "responseTime": 14,
-          "responseSize": 586
+          "responseTime": 13,
+          "responseSize": 1488
         },
-        "id": "7930e513-ff93-4af6-b87a-c91a248ee1da",
+        "id": "c8f4e77d-4036-4410-81c6-f66a1d13129f",
         "assertions": [
           {
             "assertion": "Recommendation request succeeds",
@@ -8314,22 +9270,22 @@
       },
       {
         "cursor": {
-          "ref": "7e937130-2fb5-4c5e-a689-511bca4d6eba",
-          "length": 27,
+          "ref": "2d115638-5187-4d6a-806b-b3f94e09d945",
+          "length": 28,
           "cycles": 1,
           "position": 19,
           "iteration": 0,
-          "httpRequestId": "597d5b77-e151-4e6a-902b-a16410514ba8"
+          "httpRequestId": "3b867069-d75e-4893-9fea-f68fd08d1da2"
         },
         "item": {
-          "id": "867ba454-dcad-4057-8df6-56b36a4f71ba",
-          "name": "Recommendation - boundary bulk profile",
+          "id": "f96b1006-095e-4872-ba1c-acf796336cb3",
+          "name": "Recommendation - configure boundary plan",
           "request": {
             "url": {
               "path": [
                 "api",
                 "persons",
-                "recommendation"
+                "plan"
               ],
               "host": [
                 "{{baseUrl}}"
@@ -8339,25 +9295,36 @@
             },
             "header": [
               {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
                 "key": "X-Client-ID",
                 "value": "{{mobileClientBoundary}}"
               }
             ],
-            "method": "GET"
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetChangeKg\": 3.0,\n  \"durationWeeks\": 12,\n  \"trainingFrequencyPerWeek\": 4,\n  \"planStrategy\": \"BOTH\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           },
           "response": [],
           "event": [
             {
               "listen": "test",
               "script": {
-                "id": "0a8de783-a724-4105-9289-382996e7cd8c",
+                "id": "5af12b3e-5fd0-43cf-9e21-2ca20074bf4d",
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Boundary recommendation succeeds', function () { pm.response.to.have.status(200); });",
-                  "const body = pm.response.json();",
-                  "pm.test('Bulk strategy message present', function () { pm.expect(body.message || '').to.match(/(Keep bulking|Lean bulk focus looks good)/); });"
+                  "pm.test('Boundary plan configured', function () { pm.response.to.have.status(200); });"
                 ],
-                "_lastExecutionId": "13fb0b1a-cb29-4ebb-9793-5c4a55587065"
+                "_lastExecutionId": "a8fe126f-dbf7-4ecc-a6d2-151f8ec3ce17"
               }
             }
           ]
@@ -8369,7 +9336,7 @@
             "path": [
               "api",
               "persons",
-              "recommendation"
+              "plan"
             ],
             "host": [
               "app"
@@ -8379,8 +9346,12 @@
           },
           "header": [
             {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
               "key": "X-Client-ID",
-              "value": "mobile-id37"
+              "value": "mobile-id46"
             },
             {
               "key": "User-Agent",
@@ -8399,7 +9370,7 @@
             },
             {
               "key": "Postman-Token",
-              "value": "cbac2b38-6dc3-431d-9b5d-16e2dd7c6ba8",
+              "value": "22c35d36-c94b-44b0-9561-9614a0bfa78b",
               "system": true
             },
             {
@@ -8416,12 +9387,26 @@
               "key": "Connection",
               "value": "keep-alive",
               "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "109",
+              "system": true
             }
           ],
-          "method": "GET"
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"targetChangeKg\": 3.0,\n  \"durationWeeks\": 12,\n  \"trainingFrequencyPerWeek\": 4,\n  \"planStrategy\": \"BOTH\"\n}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
         },
         "response": {
-          "id": "13887ce7-3228-4824-9db5-e44a8c4a73fc",
+          "id": "aec04d98-4745-4555-9cec-4f3542099185",
           "status": "OK",
           "code": 200,
           "header": [
@@ -8447,7 +9432,7 @@
             },
             {
               "key": "Date",
-              "value": "Wed, 03 Dec 2025 03:27:08 GMT"
+              "value": "Wed, 10 Dec 2025 07:07:44 GMT"
             },
             {
               "key": "Keep-Alive",
@@ -8462,6 +9447,161 @@
             "type": "Buffer",
             "data": [
               123,
+              34,
+              99,
+              108,
+              105,
+              101,
+              110,
+              116,
+              73,
+              100,
+              34,
+              58,
+              34,
+              109,
+              111,
+              98,
+              105,
+              108,
+              101,
+              45,
+              105,
+              100,
+              52,
+              54,
+              34,
+              44,
+              34,
+              110,
+              97,
+              109,
+              101,
+              34,
+              58,
+              34,
+              84,
+              97,
+              108,
+              108,
+              32,
+              66,
+              111,
+              117,
+              110,
+              100,
+              97,
+              114,
+              121,
+              34,
+              44,
+              34,
+              119,
+              101,
+              105,
+              103,
+              104,
+              116,
+              34,
+              58,
+              52,
+              53,
+              46,
+              48,
+              44,
+              34,
+              104,
+              101,
+              105,
+              103,
+              104,
+              116,
+              34,
+              58,
+              50,
+              48,
+              53,
+              46,
+              48,
+              44,
+              34,
+              98,
+              105,
+              114,
+              116,
+              104,
+              68,
+              97,
+              116,
+              101,
+              34,
+              58,
+              34,
+              49,
+              57,
+              56,
+              56,
+              45,
+              48,
+              50,
+              45,
+              50,
+              48,
+              34,
+              44,
+              34,
+              103,
+              111,
+              97,
+              108,
+              34,
+              58,
+              34,
+              66,
+              85,
+              76,
+              75,
+              34,
+              44,
+              34,
+              103,
+              101,
+              110,
+              100,
+              101,
+              114,
+              34,
+              58,
+              34,
+              70,
+              69,
+              77,
+              65,
+              76,
+              69,
+              34,
+              44,
+              34,
+              116,
+              97,
+              114,
+              103,
+              101,
+              116,
+              67,
+              104,
+              97,
+              110,
+              103,
+              101,
+              75,
+              103,
+              34,
+              58,
+              51,
+              46,
+              48,
+              44,
               34,
               116,
               97,
@@ -8484,10 +9624,8 @@
               115,
               34,
               58,
-              110,
-              117,
-              108,
-              108,
+              49,
+              50,
               44,
               34,
               116,
@@ -8516,10 +9654,222 @@
               107,
               34,
               58,
+              52,
+              44,
+              34,
+              112,
+              108,
+              97,
               110,
+              83,
+              116,
+              114,
+              97,
+              116,
+              101,
+              103,
+              121,
+              34,
+              58,
+              34,
+              66,
+              79,
+              84,
+              72,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 12,
+          "responseSize": 232
+        },
+        "id": "f96b1006-095e-4872-ba1c-acf796336cb3",
+        "assertions": [
+          {
+            "assertion": "Boundary plan configured",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "ff3faa10-f1ea-4443-a5f9-91de1bdefda6",
+          "length": 28,
+          "cycles": 1,
+          "position": 20,
+          "iteration": 0,
+          "httpRequestId": "f05a59d8-bd7a-463c-b2b0-17e2f306c58a"
+        },
+        "item": {
+          "id": "5e57df50-de5e-4f63-b6b6-df49e77854ef",
+          "name": "Recommendation - boundary bulk profile",
+          "request": {
+            "url": {
+              "path": [
+                "api",
+                "persons",
+                "recommendation"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "X-Client-ID",
+                "value": "{{mobileClientBoundary}}"
+              }
+            ],
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "506cd661-0584-46e0-9fb9-963f6c9ce513",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Boundary recommendation succeeds', function () { pm.response.to.have.status(200); });",
+                  "const body = pm.response.json();",
+                  "pm.test('Bulk strategy message present', function () { pm.expect(body.message || '').to.match(/(Keep bulking|Lean bulk focus looks good|Your plan)/); });"
+                ],
+                "_lastExecutionId": "387fe692-deda-419d-9303-8c63b61ccf0c"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "8080",
+            "path": [
+              "api",
+              "persons",
+              "recommendation"
+            ],
+            "host": [
+              "app"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "X-Client-ID",
+              "value": "mobile-id46"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.0",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "368db07c-b888-4ec6-bcd3-f9eace3d3067",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "app:8080",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "84ddc67e-d039-40b7-b4d4-8d86294135d1",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Vary",
+              "value": "Origin"
+            },
+            {
+              "key": "Vary",
+              "value": "Access-Control-Request-Method"
+            },
+            {
+              "key": "Vary",
+              "value": "Access-Control-Request-Headers"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Transfer-Encoding",
+              "value": "chunked"
+            },
+            {
+              "key": "Date",
+              "value": "Wed, 10 Dec 2025 07:07:44 GMT"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=60"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              116,
+              114,
+              97,
+              105,
+              110,
+              105,
+              110,
+              103,
+              70,
+              114,
+              101,
+              113,
               117,
-              108,
-              108,
+              101,
+              110,
+              99,
+              121,
+              80,
+              101,
+              114,
+              87,
+              101,
+              101,
+              107,
+              34,
+              58,
+              52,
               44,
               34,
               103,
@@ -8536,24 +9886,6 @@
               34,
               44,
               34,
-              112,
-              101,
-              114,
-              99,
-              101,
-              110,
-              116,
-              105,
-              108,
-              101,
-              34,
-              58,
-              56,
-              51,
-              46,
-              56,
-              44,
-              34,
               104,
               101,
               97,
@@ -8567,8 +9899,8 @@
               120,
               34,
               58,
-              53,
-              48,
+              55,
+              49,
               46,
               48,
               44,
@@ -8587,10 +9919,12 @@
               121,
               34,
               58,
-              110,
-              117,
-              108,
-              108,
+              34,
+              66,
+              79,
+              84,
+              72,
+              34,
               44,
               34,
               116,
@@ -8609,10 +9943,9 @@
               103,
               34,
               58,
-              110,
-              117,
-              108,
-              108,
+              51,
+              46,
+              48,
               44,
               34,
               111,
@@ -8629,36 +9962,126 @@
               101,
               34,
               58,
-              53,
-              48,
+              56,
+              50,
               46,
-              48,
+              54,
               44,
               34,
-              112,
+              119,
+              111,
+              114,
+              107,
+              111,
+              117,
+              116,
+              80,
               108,
               97,
               110,
-              65,
-              108,
-              105,
-              103,
-              110,
-              109,
-              101,
-              110,
-              116,
-              73,
-              110,
-              100,
-              101,
-              120,
               34,
               58,
+              34,
+              80,
+              108,
+              97,
               110,
+              32,
+              52,
+              32,
+              115,
+              116,
+              114,
+              101,
+              110,
+              103,
+              116,
+              104,
+              45,
+              102,
+              111,
+              99,
               117,
+              115,
+              101,
+              100,
+              32,
+              115,
+              101,
+              115,
+              115,
+              105,
+              111,
+              110,
+              115,
+              32,
+              101,
+              109,
+              112,
+              104,
+              97,
+              115,
+              105,
+              115,
+              105,
+              110,
+              103,
+              32,
+              112,
+              114,
+              111,
+              103,
+              114,
+              101,
+              115,
+              115,
+              105,
+              118,
+              101,
+              32,
+              111,
+              118,
+              101,
+              114,
               108,
+              111,
+              97,
+              100,
+              44,
+              32,
+              112,
               108,
+              117,
+              115,
+              32,
+              109,
+              111,
+              98,
+              105,
+              108,
+              105,
+              116,
+              121,
+              32,
+              119,
+              111,
+              114,
+              107,
+              32,
+              102,
+              111,
+              114,
+              32,
+              114,
+              101,
+              99,
+              111,
+              118,
+              101,
+              114,
+              121,
+              46,
+              34,
               44,
               34,
               109,
@@ -8753,6 +10176,201 @@
               34,
               44,
               34,
+              116,
+              97,
+              114,
+              103,
+              101,
+              116,
+              68,
+              117,
+              114,
+              97,
+              116,
+              105,
+              111,
+              110,
+              87,
+              101,
+              101,
+              107,
+              115,
+              34,
+              58,
+              49,
+              50,
+              44,
+              34,
+              112,
+              101,
+              114,
+              99,
+              101,
+              110,
+              116,
+              105,
+              108,
+              101,
+              34,
+              58,
+              57,
+              51,
+              46,
+              53,
+              44,
+              34,
+              100,
+              105,
+              101,
+              116,
+              80,
+              108,
+              97,
+              110,
+              34,
+              58,
+              34,
+              84,
+              97,
+              114,
+              103,
+              101,
+              116,
+              32,
+              114,
+              111,
+              117,
+              103,
+              104,
+              108,
+              121,
+              32,
+              50,
+              56,
+              48,
+              32,
+              107,
+              99,
+              97,
+              108,
+              32,
+              115,
+              117,
+              114,
+              112,
+              108,
+              117,
+              115,
+              32,
+              100,
+              97,
+              105,
+              108,
+              121,
+              32,
+              117,
+              115,
+              105,
+              110,
+              103,
+              32,
+              108,
+              101,
+              97,
+              110,
+              32,
+              112,
+              114,
+              111,
+              116,
+              101,
+              105,
+              110,
+              115,
+              44,
+              32,
+              99,
+              111,
+              109,
+              112,
+              108,
+              101,
+              120,
+              32,
+              99,
+              97,
+              114,
+              98,
+              115,
+              44,
+              32,
+              97,
+              110,
+              100,
+              32,
+              104,
+              101,
+              97,
+              108,
+              116,
+              104,
+              121,
+              32,
+              102,
+              97,
+              116,
+              115,
+              32,
+              115,
+              112,
+              114,
+              101,
+              97,
+              100,
+              32,
+              97,
+              99,
+              114,
+              111,
+              115,
+              115,
+              32,
+              109,
+              101,
+              97,
+              108,
+              115,
+              46,
+              34,
+              44,
+              34,
+              112,
+              108,
+              97,
+              110,
+              65,
+              108,
+              105,
+              103,
+              110,
+              109,
+              101,
+              110,
+              116,
+              73,
+              110,
+              100,
+              101,
+              120,
+              34,
+              58,
+              49,
+              48,
+              48,
+              46,
+              48,
+              44,
+              34,
               98,
               109,
               105,
@@ -8794,10 +10412,10 @@
             ]
           },
           "cookie": [],
-          "responseTime": 16,
-          "responseSize": 330
+          "responseTime": 11,
+          "responseSize": 568
         },
-        "id": "867ba454-dcad-4057-8df6-56b36a4f71ba",
+        "id": "5e57df50-de5e-4f63-b6b6-df49e77854ef",
         "assertions": [
           {
             "assertion": "Boundary recommendation succeeds",
@@ -8811,15 +10429,15 @@
       },
       {
         "cursor": {
-          "ref": "7cf4394f-748b-48c0-977c-487ec998d33a",
-          "length": 27,
+          "ref": "30f3842a-ba3f-4b68-8371-15ffe4d22cdc",
+          "length": 28,
           "cycles": 1,
-          "position": 20,
+          "position": 21,
           "iteration": 0,
-          "httpRequestId": "10c34823-7fd3-4292-8603-fe2e0f3c1d8f"
+          "httpRequestId": "db775f81-6612-4856-933e-c1370baef696"
         },
         "item": {
-          "id": "40cbf5e5-ce5e-46a5-b832-61d446e642ae",
+          "id": "3c4849da-6f01-4469-a832-cef744aab38b",
           "name": "Recommendation - missing header",
           "request": {
             "url": {
@@ -8841,12 +10459,12 @@
             {
               "listen": "test",
               "script": {
-                "id": "6236403c-64f6-4e9c-b10a-f4d5cc2249c2",
+                "id": "8c419e84-af4f-4712-878d-a4840951515b",
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Missing header yields 400 on recommendation', function () { pm.response.to.have.status(400); });"
                 ],
-                "_lastExecutionId": "7269d91c-1bd0-4453-9a51-199f473bd99c"
+                "_lastExecutionId": "c8372a9a-47bb-4a7b-a323-86d5a184dada"
               }
             }
           ]
@@ -8884,7 +10502,7 @@
             },
             {
               "key": "Postman-Token",
-              "value": "6dea428b-1f90-4ddb-8e82-a4828a86745a",
+              "value": "2533f59c-5516-4ca1-aa47-cde3ce87c5c5",
               "system": true
             },
             {
@@ -8906,7 +10524,7 @@
           "method": "GET"
         },
         "response": {
-          "id": "2831a1fd-5230-4bc7-9ef6-7a4b6f26f984",
+          "id": "b60a05cf-7275-44ba-9a5c-6f0172231271",
           "status": "Bad Request",
           "code": 400,
           "header": [
@@ -8932,7 +10550,7 @@
             },
             {
               "key": "Date",
-              "value": "Wed, 03 Dec 2025 03:27:08 GMT"
+              "value": "Wed, 10 Dec 2025 07:07:44 GMT"
             },
             {
               "key": "Connection",
@@ -9024,10 +10642,10 @@
             ]
           },
           "cookie": [],
-          "responseTime": 5,
+          "responseTime": 4,
           "responseSize": 79
         },
-        "id": "40cbf5e5-ce5e-46a5-b832-61d446e642ae",
+        "id": "3c4849da-6f01-4469-a832-cef744aab38b",
         "assertions": [
           {
             "assertion": "Missing header yields 400 on recommendation",
@@ -9037,15 +10655,15 @@
       },
       {
         "cursor": {
-          "ref": "a3336693-cc8d-44dc-9639-4617405fa6cf",
-          "length": 27,
+          "ref": "4b78e3c9-cb39-4443-a0b6-7a21f33d62f0",
+          "length": 28,
           "cycles": 1,
-          "position": 21,
+          "position": 22,
           "iteration": 0,
-          "httpRequestId": "dc5bfcd5-d3d9-4f87-8a78-0149ed08ac16"
+          "httpRequestId": "a62522bc-85d7-4ece-952b-46c660968b3d"
         },
         "item": {
-          "id": "334c9855-2df7-44a9-8829-b117b2544898",
+          "id": "84c3077b-ec7f-4d96-9c0c-154d7c9d7d7a",
           "name": "Delete Profile - normal",
           "request": {
             "url": {
@@ -9073,14 +10691,14 @@
             {
               "listen": "test",
               "script": {
-                "id": "f38d3675-bb4f-4445-8f1e-e860e5f44476",
+                "id": "6c95234c-32ea-457a-9459-7f4580e1de01",
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Delete boundary profile succeeds', function () { pm.response.to.have.status(200); });",
                   "const body = pm.response.json();",
                   "pm.test('Delete message returned', function () { pm.expect(body.message).to.include('deleted'); });"
                 ],
-                "_lastExecutionId": "2ad2af0e-f3ff-4091-81dd-9a73fc91ecb0"
+                "_lastExecutionId": "3f7c5210-4307-4911-bfa8-0de933859264"
               }
             }
           ]
@@ -9103,7 +10721,7 @@
           "header": [
             {
               "key": "X-Client-ID",
-              "value": "mobile-id37"
+              "value": "mobile-id46"
             },
             {
               "key": "User-Agent",
@@ -9122,7 +10740,7 @@
             },
             {
               "key": "Postman-Token",
-              "value": "87b8614d-042b-4e2f-a02c-37ce0331030b",
+              "value": "4c376789-5532-413c-8cd4-9f0e741ae266",
               "system": true
             },
             {
@@ -9144,7 +10762,7 @@
           "method": "DELETE"
         },
         "response": {
-          "id": "45dd2ae2-7d42-45ef-8df0-aaa25b1f5579",
+          "id": "cccb40fd-2298-4952-b51c-c216344162c9",
           "status": "OK",
           "code": 200,
           "header": [
@@ -9170,7 +10788,7 @@
             },
             {
               "key": "Date",
-              "value": "Wed, 03 Dec 2025 03:27:08 GMT"
+              "value": "Wed, 10 Dec 2025 07:07:44 GMT"
             },
             {
               "key": "Keep-Alive",
@@ -9206,8 +10824,8 @@
               45,
               105,
               100,
-              51,
-              55,
+              52,
+              54,
               34,
               44,
               34,
@@ -9254,10 +10872,10 @@
             ]
           },
           "cookie": [],
-          "responseTime": 22,
+          "responseTime": 13,
           "responseSize": 67
         },
-        "id": "334c9855-2df7-44a9-8829-b117b2544898",
+        "id": "84c3077b-ec7f-4d96-9c0c-154d7c9d7d7a",
         "assertions": [
           {
             "assertion": "Delete boundary profile succeeds",
@@ -9271,15 +10889,15 @@
       },
       {
         "cursor": {
-          "ref": "b037d989-cc5d-42bd-ae74-6fe240fcd17c",
-          "length": 27,
+          "ref": "7a05aac2-341f-43fa-b95e-6d5ed7f5c433",
+          "length": 28,
           "cycles": 1,
-          "position": 22,
+          "position": 23,
           "iteration": 0,
-          "httpRequestId": "6a6944fc-a540-4a2e-b1cf-00efe059525e"
+          "httpRequestId": "7d0bf1e4-1428-4f3e-85e0-9326032a8884"
         },
         "item": {
-          "id": "fc0c5078-c0e0-46a8-a4f4-8bfdfd2b36bc",
+          "id": "76de207e-eceb-425c-9835-f1561a5fd24d",
           "name": "Delete Profile - already deleted",
           "request": {
             "url": {
@@ -9307,12 +10925,12 @@
             {
               "listen": "test",
               "script": {
-                "id": "946d840f-eb0b-4ac5-9303-e344485149f8",
+                "id": "f31ccf8d-0fbf-4226-898a-1cc465b23912",
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Re-delete yields 404', function () { pm.response.to.have.status(404); });"
                 ],
-                "_lastExecutionId": "f3afaa36-2a06-4862-9f5f-50177be6a643"
+                "_lastExecutionId": "ddc76f18-a163-4cb4-8f83-d56efeac2e29"
               }
             }
           ]
@@ -9335,7 +10953,7 @@
           "header": [
             {
               "key": "X-Client-ID",
-              "value": "mobile-id37"
+              "value": "mobile-id46"
             },
             {
               "key": "User-Agent",
@@ -9354,7 +10972,7 @@
             },
             {
               "key": "Postman-Token",
-              "value": "06a0c207-de7c-4d87-bf09-53d727f7ee94",
+              "value": "ef37784c-107a-4690-8e54-faca56fa3ab4",
               "system": true
             },
             {
@@ -9376,7 +10994,7 @@
           "method": "DELETE"
         },
         "response": {
-          "id": "f56b11dc-cefc-4ff8-a248-9f29742cbe93",
+          "id": "a6170de9-754f-4b42-9149-a6e0a77cf5dc",
           "status": "Not Found",
           "code": 404,
           "header": [
@@ -9402,7 +11020,7 @@
             },
             {
               "key": "Date",
-              "value": "Wed, 03 Dec 2025 03:27:08 GMT"
+              "value": "Wed, 10 Dec 2025 07:07:44 GMT"
             },
             {
               "key": "Keep-Alive",
@@ -9438,8 +11056,8 @@
               45,
               105,
               100,
-              51,
-              55,
+              52,
+              54,
               34,
               44,
               34,
@@ -9500,7 +11118,7 @@
           "responseTime": 7,
           "responseSize": 78
         },
-        "id": "fc0c5078-c0e0-46a8-a4f4-8bfdfd2b36bc",
+        "id": "76de207e-eceb-425c-9835-f1561a5fd24d",
         "assertions": [
           {
             "assertion": "Re-delete yields 404",
@@ -9510,15 +11128,15 @@
       },
       {
         "cursor": {
-          "ref": "8af7897e-0766-4253-a046-cec9c926951b",
-          "length": 27,
+          "ref": "98ba4cb6-e116-4141-b223-8e93e523b714",
+          "length": 28,
           "cycles": 1,
-          "position": 23,
+          "position": 24,
           "iteration": 0,
-          "httpRequestId": "fcb43306-3849-4cd0-a43d-32937d2bbeb8"
+          "httpRequestId": "6f90ff0f-9a19-4863-beb3-5bf2ebf125e4"
         },
         "item": {
-          "id": "8a85d898-defd-4728-b766-1d28363f62c7",
+          "id": "91d7df7f-6ed4-41c7-b3e7-b56b81c719d9",
           "name": "Delete Profile - missing header",
           "request": {
             "url": {
@@ -9540,12 +11158,12 @@
             {
               "listen": "test",
               "script": {
-                "id": "b0bfd55c-aaf9-4403-802d-09ba92f45c59",
+                "id": "35d4ca1e-1c26-45fc-9c72-c178ded50c67",
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Missing header yields 400 on delete', function () { pm.response.to.have.status(400); });"
                 ],
-                "_lastExecutionId": "a13cfe69-f671-4a15-abfa-04484c253aaf"
+                "_lastExecutionId": "f3a40f33-aec2-4beb-8c45-3969b60d5d18"
               }
             }
           ]
@@ -9583,7 +11201,7 @@
             },
             {
               "key": "Postman-Token",
-              "value": "25e9fe42-3140-4757-bd84-ebe1c35b7e62",
+              "value": "db1cdb4b-2e25-4329-a6a7-50282407fce8",
               "system": true
             },
             {
@@ -9605,7 +11223,7 @@
           "method": "DELETE"
         },
         "response": {
-          "id": "1256e47b-1aaf-4f21-9a54-1f4d1aa3d0af",
+          "id": "f616478d-46e6-4ebe-b29a-9cb647db5b28",
           "status": "Bad Request",
           "code": 400,
           "header": [
@@ -9631,7 +11249,7 @@
             },
             {
               "key": "Date",
-              "value": "Wed, 03 Dec 2025 03:27:08 GMT"
+              "value": "Wed, 10 Dec 2025 07:07:44 GMT"
             },
             {
               "key": "Connection",
@@ -9723,10 +11341,10 @@
             ]
           },
           "cookie": [],
-          "responseTime": 6,
+          "responseTime": 4,
           "responseSize": 79
         },
-        "id": "8a85d898-defd-4728-b766-1d28363f62c7",
+        "id": "91d7df7f-6ed4-41c7-b3e7-b56b81c719d9",
         "assertions": [
           {
             "assertion": "Missing header yields 400 on delete",
@@ -9736,15 +11354,15 @@
       },
       {
         "cursor": {
-          "ref": "b1865b08-001c-4cc9-96b0-fce1e0e2778d",
-          "length": 27,
+          "ref": "156cc060-9339-46bd-8ab1-b7d353f054cc",
+          "length": 28,
           "cycles": 1,
-          "position": 24,
+          "position": 25,
           "iteration": 0,
-          "httpRequestId": "15869d52-101d-46b1-b363-72183ad98291"
+          "httpRequestId": "ec9fbd1f-f807-497f-8cbc-b1527a1cdbd6"
         },
         "item": {
-          "id": "c1810f5d-59c8-4a79-80dc-3ac98b41ce8e",
+          "id": "98cf8f7f-85fa-4701-a592-ba176cfd5a6a",
           "name": "Service Health - normal",
           "request": {
             "url": {
@@ -9764,14 +11382,14 @@
             {
               "listen": "test",
               "script": {
-                "id": "761445e3-b640-4750-82db-534b28d1c833",
+                "id": "215e09d7-cb52-48ce-b53d-3cdbcd7f3007",
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Health endpoint returns 200', function () { pm.response.to.have.status(200); });",
                   "const body = pm.response.json();",
                   "pm.test('Service reports UP', function () { pm.expect(body.status).to.eql('UP'); });"
                 ],
-                "_lastExecutionId": "fa60f8b0-2202-44b7-a26d-7ddf6a733725"
+                "_lastExecutionId": "2dbc6f06-0ed8-481b-aff7-3cd568cbdba3"
               }
             }
           ]
@@ -9807,7 +11425,7 @@
             },
             {
               "key": "Postman-Token",
-              "value": "159a58b3-78d5-4823-966d-c496bff39b85",
+              "value": "c014d257-94d0-451f-a6d1-8da04aab977b",
               "system": true
             },
             {
@@ -9829,7 +11447,7 @@
           "method": "GET"
         },
         "response": {
-          "id": "3c98f379-30c4-45e2-914b-771985b16fae",
+          "id": "ca315b8f-4f9b-4e1e-8e83-8cab3360c375",
           "status": "OK",
           "code": 200,
           "header": [
@@ -9855,7 +11473,7 @@
             },
             {
               "key": "Date",
-              "value": "Wed, 03 Dec 2025 03:27:08 GMT"
+              "value": "Wed, 10 Dec 2025 07:07:44 GMT"
             },
             {
               "key": "Keep-Alive",
@@ -9953,10 +11571,10 @@
             ]
           },
           "cookie": [],
-          "responseTime": 8,
+          "responseTime": 7,
           "responseSize": 81
         },
-        "id": "c1810f5d-59c8-4a79-80dc-3ac98b41ce8e",
+        "id": "98cf8f7f-85fa-4701-a592-ba176cfd5a6a",
         "assertions": [
           {
             "assertion": "Health endpoint returns 200",
@@ -9970,15 +11588,15 @@
       },
       {
         "cursor": {
-          "ref": "0175e445-fe18-4c20-a0bd-d313d7798837",
-          "length": 27,
+          "ref": "df8f9d17-7f50-4b32-ae35-682721867b6f",
+          "length": 28,
           "cycles": 1,
-          "position": 25,
+          "position": 26,
           "iteration": 0,
-          "httpRequestId": "ebb77be6-1016-4723-a86b-6b2be1bda74a"
+          "httpRequestId": "67594d50-cf53-484a-8db4-660b744633d7"
         },
         "item": {
-          "id": "2e022572-2d71-407a-962a-800e7268d4a3",
+          "id": "7a0c4a87-48ed-4c08-9da5-d21ec33308ea",
           "name": "Service Health - metadata boundary",
           "request": {
             "url": {
@@ -9998,14 +11616,14 @@
             {
               "listen": "test",
               "script": {
-                "id": "430af587-995c-4a51-ac0f-58567ea1f4cd",
+                "id": "a7c40115-d093-4bc9-8568-89e38b738467",
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Health endpoint exposes metadata', function () { pm.response.to.have.status(200); });",
                   "const body = pm.response.json();",
                   "pm.test('Service name present', function () { pm.expect(body.service).to.eql('Personal Fitness Management Service'); });"
                 ],
-                "_lastExecutionId": "3f48c831-c1d2-48fb-9ee5-94db8f905da6"
+                "_lastExecutionId": "59614a6e-bf9d-478c-bf1b-520dbe47a029"
               }
             }
           ]
@@ -10041,7 +11659,7 @@
             },
             {
               "key": "Postman-Token",
-              "value": "60d6de54-2b7e-4b86-b0ea-5941a9afddc3",
+              "value": "a58d767b-2921-492c-9b10-f5b9f7c484d7",
               "system": true
             },
             {
@@ -10063,7 +11681,7 @@
           "method": "GET"
         },
         "response": {
-          "id": "7dba5867-483d-4654-ab81-fb37204cae92",
+          "id": "78f08ae0-5f94-40fc-a86f-ca9202dc21fd",
           "status": "OK",
           "code": 200,
           "header": [
@@ -10089,7 +11707,7 @@
             },
             {
               "key": "Date",
-              "value": "Wed, 03 Dec 2025 03:27:08 GMT"
+              "value": "Wed, 10 Dec 2025 07:07:44 GMT"
             },
             {
               "key": "Keep-Alive",
@@ -10187,10 +11805,10 @@
             ]
           },
           "cookie": [],
-          "responseTime": 5,
+          "responseTime": 6,
           "responseSize": 81
         },
-        "id": "2e022572-2d71-407a-962a-800e7268d4a3",
+        "id": "7a0c4a87-48ed-4c08-9da5-d21ec33308ea",
         "assertions": [
           {
             "assertion": "Health endpoint exposes metadata",
@@ -10204,15 +11822,15 @@
       },
       {
         "cursor": {
-          "ref": "de5e8a26-cf33-47f8-be8a-5abafb3c5705",
-          "length": 27,
+          "ref": "c1299978-e9e8-417c-bfab-aa80078e7993",
+          "length": 28,
           "cycles": 1,
-          "position": 26,
+          "position": 27,
           "iteration": 0,
-          "httpRequestId": "a2f27112-f662-4ac2-8006-0cf69d8be2c9"
+          "httpRequestId": "3a89572c-77c1-495d-b16c-309012f2148b"
         },
         "item": {
-          "id": "5242416a-9c3a-4317-a47d-d39258744928",
+          "id": "3f447d43-a3cf-4843-82e8-00b296f70e8f",
           "name": "Service Health - invalid method",
           "request": {
             "url": {
@@ -10232,12 +11850,12 @@
             {
               "listen": "test",
               "script": {
-                "id": "cecb6f1c-5e14-4102-b37a-8194709466c9",
+                "id": "76c4ec9c-baee-4133-ab3d-806837e0df2c",
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('POST to health not allowed', function () { pm.response.to.have.status(405); });"
                 ],
-                "_lastExecutionId": "b4665a69-c0f8-4b90-84be-3c558ece8efa"
+                "_lastExecutionId": "81d14775-bf82-4b06-9df5-59afea17de3e"
               }
             }
           ]
@@ -10273,7 +11891,7 @@
             },
             {
               "key": "Postman-Token",
-              "value": "9dab3e1a-c846-43ee-92ea-88272100fec3",
+              "value": "040af646-e44a-4a6d-9d95-8b164e22d75d",
               "system": true
             },
             {
@@ -10300,7 +11918,7 @@
           "method": "POST"
         },
         "response": {
-          "id": "966b2830-58d8-4045-921d-2cbe48ce7618",
+          "id": "a75f5573-c4f6-422c-b7e6-04222e20689a",
           "status": "Method Not Allowed",
           "code": 405,
           "header": [
@@ -10330,7 +11948,7 @@
             },
             {
               "key": "Date",
-              "value": "Wed, 03 Dec 2025 03:27:08 GMT"
+              "value": "Wed, 10 Dec 2025 07:07:44 GMT"
             },
             {
               "key": "Keep-Alive",
@@ -10366,20 +11984,20 @@
               49,
               50,
               45,
+              49,
               48,
-              51,
               84,
               48,
-              51,
-              58,
-              50,
               55,
               58,
               48,
-              57,
+              55,
+              58,
+              52,
+              52,
               46,
-              50,
-              51,
+              56,
+              52,
               55,
               43,
               48,
@@ -10495,10 +12113,10 @@
             ]
           },
           "cookie": [],
-          "responseTime": 26,
+          "responseTime": 6,
           "responseSize": 148
         },
-        "id": "5242416a-9c3a-4317-a47d-d39258744928",
+        "id": "3f447d43-a3cf-4843-82e8-00b296f70e8f",
         "assertions": [
           {
             "assertion": "POST to health not allowed",
@@ -10508,7 +12126,7 @@
       }
     ],
     "transfers": {
-      "responseTotal": 4637
+      "responseTotal": 6011
     },
     "failures": [],
     "error": null

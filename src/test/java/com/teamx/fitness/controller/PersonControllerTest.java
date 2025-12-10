@@ -674,7 +674,7 @@ class PersonControllerTest {
   }
 
   @Test
-  @DisplayName("provideRecommendation supplies balanced diet plan when goal unknown")
+  @DisplayName("provideRecommendation throws error when plan details are missing even with goal null")
   void provideRecommendationGeneratesDietPlanForUnknownGoal() {
     PersonSimple stored = basePerson("mobile-reco-diet-unknown");
     stored.setGoal(null);
@@ -683,13 +683,12 @@ class PersonControllerTest {
     stored.setTargetDurationWeeks(null);
     ClientContext.setClientId(stored.getClientId());
     when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
-    when(healthInsightService.buildInsights(stored))
-        .thenReturn(sampleInsight("Diet message"));
 
-    ResponseEntity<Map<String, Object>> response = personController.provideRecommendation();
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+        () -> personController.provideRecommendation());
 
-    String dietPlan = (String) response.getBody().get("dietPlan");
-    assertTrue(dietPlan.contains("balanced meal plan"));
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+    assertTrue(exception.getMessage().contains("All goal plan fields must be configured"));
   }
 
   @Test
@@ -746,7 +745,7 @@ class PersonControllerTest {
   }
 
   @Test
-  @DisplayName("provideRecommendation omits plan details when no strategy stored")
+  @DisplayName("provideRecommendation throws error when plan details are missing")
   void provideRecommendationOmitsPlanDetailsWhenMissing() {
     PersonSimple stored = basePerson("mobile-reco-no-plan");
     stored.setPlanStrategy(null);
@@ -755,15 +754,12 @@ class PersonControllerTest {
     stored.setTargetDurationWeeks(null);
     ClientContext.setClientId(stored.getClientId());
     when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
-    when(healthInsightService.buildInsights(stored))
-        .thenReturn(sampleInsight("Plan-free message"));
 
-    ResponseEntity<Map<String, Object>> response = personController.provideRecommendation();
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+        () -> personController.provideRecommendation());
 
-    Map<String, Object> body = response.getBody();
-    assertEquals("Plan-free message", body.get("message"));
-    assertFalse(body.containsKey("dietPlan"));
-    assertFalse(body.containsKey("workoutPlan"));
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+    assertTrue(exception.getMessage().contains("All goal plan fields must be configured"));
   }
 
   @Test
@@ -819,6 +815,801 @@ class PersonControllerTest {
         INSIGHT_PERCENTILE,
         warning,
         message);
+  }
+
+  @Test
+  @DisplayName("configureGoalPlan validates target weight for CUT - below minimum weight")
+  void configureGoalPlanValidatesTargetWeightCutBelowMinimum() {
+    PersonSimple stored = basePerson("mobile-target-weight-cut");
+    stored.setWeight(35.0); // Current weight
+    stored.setGoal(FitnessGoal.CUT);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+
+    GoalPlanRequest request = new GoalPlanRequest();
+    request.setTargetChangeKg(10.0); // Would result in 25kg target weight (< 30kg)
+    request.setDurationWeeks(10);
+    request.setTrainingFrequencyPerWeek(4);
+    request.setPlanStrategy(PlanStrategy.BOTH);
+
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+        () -> personController.configureGoalPlan(request));
+
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+    assertTrue(exception.getMessage().contains("below the minimum healthy weight"));
+  }
+
+  @Test
+  @DisplayName("configureGoalPlan validates target weight for CUT - below minimum BMI")
+  void configureGoalPlanValidatesTargetWeightCutBelowMinimumBMI() {
+    PersonSimple stored = basePerson("mobile-target-weight-cut-bmi");
+    stored.setWeight(50.0);
+    stored.setHeight(200.0); // Tall person
+    stored.setGoal(FitnessGoal.CUT);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+
+    GoalPlanRequest request = new GoalPlanRequest();
+    // Target weight = 50 - 20 = 30kg (passes weight check), BMI = 30/(2.0^2) = 7.5 (< 15, fails BMI check)
+    request.setTargetChangeKg(20.0); // Would result in 30kg (at minimum weight), BMI = 7.5 (< 15)
+    request.setDurationWeeks(10);
+    request.setTrainingFrequencyPerWeek(4);
+    request.setPlanStrategy(PlanStrategy.BOTH);
+
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+        () -> personController.configureGoalPlan(request));
+
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+    assertTrue(exception.getMessage().contains("below the minimum healthy BMI"));
+  }
+
+  @Test
+  @DisplayName("configureGoalPlan validates target weight for CUT - valid weight")
+  void configureGoalPlanValidatesTargetWeightCutValid() {
+    PersonSimple stored = basePerson("mobile-target-weight-cut-valid");
+    stored.setWeight(70.0);
+    stored.setHeight(175.0);
+    stored.setGoal(FitnessGoal.CUT);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(personRepository.save(any(PersonSimple.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    GoalPlanRequest request = new GoalPlanRequest();
+    request.setTargetChangeKg(5.0); // Would result in 65kg target weight (valid)
+    request.setDurationWeeks(10);
+    request.setTrainingFrequencyPerWeek(4);
+    request.setPlanStrategy(PlanStrategy.BOTH);
+
+    ResponseEntity<PersonProfileResponse> response = personController.configureGoalPlan(request);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+  }
+
+  @Test
+  @DisplayName("configureGoalPlan validates target weight for BULK - above maximum weight")
+  void configureGoalPlanValidatesTargetWeightBulkAboveMaximum() {
+    PersonSimple stored = basePerson("mobile-target-weight-bulk");
+    stored.setWeight(195.0); // Current weight
+    stored.setGoal(FitnessGoal.BULK);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+
+    GoalPlanRequest request = new GoalPlanRequest();
+    request.setTargetChangeKg(10.0); // Would result in 205kg target weight (> 200kg)
+    request.setDurationWeeks(10);
+    request.setTrainingFrequencyPerWeek(4);
+    request.setPlanStrategy(PlanStrategy.BOTH);
+
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+        () -> personController.configureGoalPlan(request));
+
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+    assertTrue(exception.getMessage().contains("exceeds the maximum reasonable weight"));
+  }
+
+  @Test
+  @DisplayName("configureGoalPlan validates target weight for BULK - above maximum BMI")
+  void configureGoalPlanValidatesTargetWeightBulkAboveMaximumBMI() {
+    PersonSimple stored = basePerson("mobile-target-weight-bulk-bmi");
+    stored.setWeight(80.0);
+    stored.setHeight(150.0); // Shorter person
+    stored.setGoal(FitnessGoal.BULK);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+
+    GoalPlanRequest request = new GoalPlanRequest();
+    request.setTargetChangeKg(50.0); // Would result in 130kg, BMI = 130/(1.5^2) = 57.8 (> 50)
+    request.setDurationWeeks(10);
+    request.setTrainingFrequencyPerWeek(4);
+    request.setPlanStrategy(PlanStrategy.BOTH);
+
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+        () -> personController.configureGoalPlan(request));
+
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+    assertTrue(exception.getMessage().contains("exceed the maximum reasonable BMI"));
+  }
+
+  @Test
+  @DisplayName("configureGoalPlan validates target weight for BULK - valid weight")
+  void configureGoalPlanValidatesTargetWeightBulkValid() {
+    PersonSimple stored = basePerson("mobile-target-weight-bulk-valid");
+    stored.setWeight(70.0);
+    stored.setHeight(175.0);
+    stored.setGoal(FitnessGoal.BULK);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(personRepository.save(any(PersonSimple.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    GoalPlanRequest request = new GoalPlanRequest();
+    request.setTargetChangeKg(5.0); // Would result in 75kg target weight (valid)
+    request.setDurationWeeks(10);
+    request.setTrainingFrequencyPerWeek(4);
+    request.setPlanStrategy(PlanStrategy.BOTH);
+
+    ResponseEntity<PersonProfileResponse> response = personController.configureGoalPlan(request);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+  }
+
+  @Test
+  @DisplayName("configureGoalPlan skips target weight validation when weight is null")
+  void configureGoalPlanSkipsValidationWhenWeightNull() {
+    PersonSimple stored = basePerson("mobile-target-weight-null");
+    stored.setWeight(null);
+    stored.setGoal(FitnessGoal.CUT);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(personRepository.save(any(PersonSimple.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    GoalPlanRequest request = new GoalPlanRequest();
+    request.setTargetChangeKg(5.0);
+    request.setDurationWeeks(10);
+    request.setTrainingFrequencyPerWeek(4);
+    request.setPlanStrategy(PlanStrategy.BOTH);
+
+    // Should not throw exception for weight validation, but weight is null so BMI check is skipped
+    ResponseEntity<PersonProfileResponse> response = personController.configureGoalPlan(request);
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+  }
+
+  @Test
+  @DisplayName("provideRecommendation returns diet plan with plan alignment 0")
+  void provideRecommendationReturnsDietPlanWithAlignmentZero() {
+    PersonSimple stored = basePerson("mobile-reco-alignment-zero");
+    stored.setPlanStrategy(PlanStrategy.DIET);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(healthInsightService.buildInsights(stored))
+        .thenReturn(new HealthInsightResult(
+            INSIGHT_BMI_VALUE,
+            INSIGHT_BMI_CATEGORY,
+            INSIGHT_HEALTH_INDEX,
+            0.0, // planAlignmentIndex = 0
+            INSIGHT_OVERALL_SCORE,
+            INSIGHT_PERCENTILE,
+            null,
+            "Test message"));
+
+    ResponseEntity<Map<String, Object>> response = personController.provideRecommendation();
+
+    Map<String, Object> body = response.getBody();
+    String dietPlan = (String) body.get("dietPlan");
+    assertTrue(dietPlan.contains("Cannot provide a diet plan") || dietPlan.contains("Plan Alignment = 0"));
+  }
+
+  @Test
+  @DisplayName("provideRecommendation returns diet plan with goal null")
+  void provideRecommendationReturnsDietPlanWithGoalNull() {
+    PersonSimple stored = basePerson("mobile-reco-goal-null");
+    stored.setGoal(null);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(healthInsightService.buildInsights(stored))
+        .thenReturn(sampleInsight("Test message", null));
+
+    ResponseEntity<Map<String, Object>> response = personController.provideRecommendation();
+
+    Map<String, Object> body = response.getBody();
+    String dietPlan = (String) body.get("dietPlan");
+    assertTrue(dietPlan.contains("balanced meal plan"));
+  }
+
+  @Test
+  @DisplayName("provideRecommendation returns diet plan for CUT with capped deficit")
+  void provideRecommendationReturnsDietPlanCutWithCappedDeficit() {
+    PersonSimple stored = basePerson("mobile-reco-cut-capped");
+    stored.setGoal(FitnessGoal.CUT);
+    stored.setTargetChangeKg(20.0); // Large target change
+    stored.setTargetDurationWeeks(2); // Short duration -> high daily deficit
+    stored.setPlanStrategy(PlanStrategy.DIET);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(healthInsightService.buildInsights(stored))
+        .thenReturn(sampleInsight("Test message", null));
+
+    ResponseEntity<Map<String, Object>> response = personController.provideRecommendation();
+
+    Map<String, Object> body = response.getBody();
+    String dietPlan = (String) body.get("dietPlan");
+    assertTrue(dietPlan.contains("capped at maximum safe deficit") || dietPlan.contains("1500"));
+  }
+
+  @Test
+  @DisplayName("provideRecommendation returns diet plan for CUT without capped deficit")
+  void provideRecommendationReturnsDietPlanCutWithoutCappedDeficit() {
+    PersonSimple stored = basePerson("mobile-reco-cut-normal");
+    stored.setGoal(FitnessGoal.CUT);
+    stored.setTargetChangeKg(2.0);
+    stored.setTargetDurationWeeks(8);
+    stored.setPlanStrategy(PlanStrategy.DIET);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(healthInsightService.buildInsights(stored))
+        .thenReturn(sampleInsight("Test message", null));
+
+    ResponseEntity<Map<String, Object>> response = personController.provideRecommendation();
+
+    Map<String, Object> body = response.getBody();
+    String dietPlan = (String) body.get("dietPlan");
+    assertTrue(dietPlan.contains("kcal deficit per day"));
+    assertFalse(dietPlan.contains("capped"));
+  }
+
+  @Test
+  @DisplayName("provideRecommendation returns diet plan for BULK with capped surplus")
+  void provideRecommendationReturnsDietPlanBulkWithCappedSurplus() {
+    PersonSimple stored = basePerson("mobile-reco-bulk-capped");
+    stored.setGoal(FitnessGoal.BULK);
+    stored.setTargetChangeKg(15.0); // Large target change
+    stored.setTargetDurationWeeks(2); // Short duration -> high daily surplus
+    stored.setPlanStrategy(PlanStrategy.DIET);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(healthInsightService.buildInsights(stored))
+        .thenReturn(sampleInsight("Test message", null));
+
+    ResponseEntity<Map<String, Object>> response = personController.provideRecommendation();
+
+    Map<String, Object> body = response.getBody();
+    String dietPlan = (String) body.get("dietPlan");
+    assertTrue(dietPlan.contains("capped at maximum safe surplus") || dietPlan.contains("1000"));
+  }
+
+  @Test
+  @DisplayName("provideRecommendation returns diet plan for BULK without capped surplus")
+  void provideRecommendationReturnsDietPlanBulkWithoutCappedSurplus() {
+    PersonSimple stored = basePerson("mobile-reco-bulk-normal");
+    stored.setGoal(FitnessGoal.BULK);
+    stored.setTargetChangeKg(3.0);
+    stored.setTargetDurationWeeks(12);
+    stored.setPlanStrategy(PlanStrategy.DIET);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(healthInsightService.buildInsights(stored))
+        .thenReturn(sampleInsight("Test message", null));
+
+    ResponseEntity<Map<String, Object>> response = personController.provideRecommendation();
+
+    Map<String, Object> body = response.getBody();
+    String dietPlan = (String) body.get("dietPlan");
+    assertTrue(dietPlan.contains("kcal surplus daily"));
+    assertFalse(dietPlan.contains("capped"));
+  }
+
+  @Test
+  @DisplayName("provideRecommendation requires all goal plan fields to be configured")
+  void provideRecommendationRequiresAllGoalPlanFields() {
+    PersonSimple stored = basePerson("mobile-reco-missing-target");
+    stored.setGoal(FitnessGoal.CUT);
+    stored.setTargetChangeKg(null); // Missing target change
+    stored.setTargetDurationWeeks(8);
+    stored.setTrainingFrequencyPerWeek(4);
+    stored.setPlanStrategy(PlanStrategy.DIET);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+        () -> personController.provideRecommendation());
+
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+    assertTrue(exception.getMessage().contains("All goal plan fields must be configured"));
+  }
+
+  @Test
+  @DisplayName("updatePerson validates target weight for CUT")
+  void updatePersonValidatesTargetWeightCut() {
+    PersonSimple stored = basePerson("mobile-update-cut-validation");
+    stored.setWeight(35.0);
+    stored.setGoal(FitnessGoal.CUT);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(personService.calculateBMI(anyDouble(), anyDouble())).thenReturn(20.0);
+
+    PersonSimple updatedPerson = new PersonSimple();
+    updatedPerson.setWeight(35.0);
+    updatedPerson.setHeight(175.0);
+    updatedPerson.setGoal(FitnessGoal.CUT);
+    updatedPerson.setTargetChangeKg(10.0); // Would result in 25kg (< 30kg)
+    updatedPerson.setTargetDurationWeeks(10);
+    updatedPerson.setTrainingFrequencyPerWeek(4);
+    updatedPerson.setPlanStrategy(PlanStrategy.BOTH);
+    updatedPerson.setName("Updated");
+    updatedPerson.setGender(Gender.MALE);
+    updatedPerson.setBirthDate(DOB_1990_JAN);
+
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+        () -> personController.updatePerson(updatedPerson));
+
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+    assertTrue(exception.getMessage().contains("below the minimum healthy weight"));
+  }
+
+  @Test
+  @DisplayName("updatePerson validates target weight for BULK")
+  void updatePersonValidatesTargetWeightBulk() {
+    PersonSimple stored = basePerson("mobile-update-bulk-validation");
+    stored.setWeight(195.0);
+    stored.setGoal(FitnessGoal.BULK);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(personService.calculateBMI(anyDouble(), anyDouble())).thenReturn(30.0);
+
+    PersonSimple updatedPerson = new PersonSimple();
+    updatedPerson.setWeight(195.0);
+    updatedPerson.setHeight(175.0);
+    updatedPerson.setGoal(FitnessGoal.BULK);
+    updatedPerson.setTargetChangeKg(10.0); // Would result in 205kg (> 200kg)
+    updatedPerson.setTargetDurationWeeks(10);
+    updatedPerson.setTrainingFrequencyPerWeek(4);
+    updatedPerson.setPlanStrategy(PlanStrategy.BOTH);
+    updatedPerson.setName("Updated");
+    updatedPerson.setGender(Gender.MALE);
+    updatedPerson.setBirthDate(DOB_1990_JAN);
+
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+        () -> personController.updatePerson(updatedPerson));
+
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+    assertTrue(exception.getMessage().contains("exceeds the maximum reasonable weight"));
+  }
+
+  @Test
+  @DisplayName("updatePerson skips target weight validation when target change is null")
+  void updatePersonSkipsTargetWeightValidationWhenTargetChangeNull() {
+    PersonSimple stored = basePerson("mobile-update-null-target");
+    stored.setWeight(70.0);
+    stored.setGoal(FitnessGoal.CUT);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(personService.calculateBMI(anyDouble(), anyDouble())).thenReturn(22.0);
+    when(personRepository.save(any(PersonSimple.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    PersonSimple updatedPerson = new PersonSimple();
+    updatedPerson.setWeight(70.0);
+    updatedPerson.setHeight(175.0);
+    updatedPerson.setGoal(FitnessGoal.CUT);
+    updatedPerson.setTargetChangeKg(null); // No target change
+    updatedPerson.setName("Updated");
+    updatedPerson.setGender(Gender.MALE);
+    updatedPerson.setBirthDate(DOB_1990_JAN);
+
+    ResponseEntity<PersonSimple> response = personController.updatePerson(updatedPerson);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+  }
+
+  @Test
+  @DisplayName("configureGoalPlan validates target weight for CUT - skips BMI check when height is null")
+  void configureGoalPlanValidatesTargetWeightCutSkipsBMIWhenHeightNull() {
+    PersonSimple stored = basePerson("mobile-target-weight-cut-no-height");
+    stored.setWeight(35.0);
+    stored.setHeight(null); // No height
+    stored.setGoal(FitnessGoal.CUT);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(personRepository.save(any(PersonSimple.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    GoalPlanRequest request = new GoalPlanRequest();
+    request.setTargetChangeKg(5.0); // Would result in 30kg (exactly at minimum)
+    request.setDurationWeeks(10);
+    request.setTrainingFrequencyPerWeek(4);
+    request.setPlanStrategy(PlanStrategy.BOTH);
+
+    ResponseEntity<PersonProfileResponse> response = personController.configureGoalPlan(request);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+  }
+
+  @Test
+  @DisplayName("configureGoalPlan validates target weight for CUT - skips BMI check when height is zero")
+  void configureGoalPlanValidatesTargetWeightCutSkipsBMIWhenHeightZero() {
+    PersonSimple stored = basePerson("mobile-target-weight-cut-height-zero");
+    stored.setWeight(35.0);
+    stored.setHeight(0.0); // Zero height
+    stored.setGoal(FitnessGoal.CUT);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(personRepository.save(any(PersonSimple.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    GoalPlanRequest request = new GoalPlanRequest();
+    request.setTargetChangeKg(5.0); // Would result in 30kg (exactly at minimum)
+    request.setDurationWeeks(10);
+    request.setTrainingFrequencyPerWeek(4);
+    request.setPlanStrategy(PlanStrategy.BOTH);
+
+    ResponseEntity<PersonProfileResponse> response = personController.configureGoalPlan(request);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+  }
+
+  @Test
+  @DisplayName("configureGoalPlan validates target weight for BULK - skips BMI check when height is null")
+  void configureGoalPlanValidatesTargetWeightBulkSkipsBMIWhenHeightNull() {
+    PersonSimple stored = basePerson("mobile-target-weight-bulk-no-height");
+    stored.setWeight(190.0);
+    stored.setHeight(null); // No height
+    stored.setGoal(FitnessGoal.BULK);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(personRepository.save(any(PersonSimple.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    GoalPlanRequest request = new GoalPlanRequest();
+    request.setTargetChangeKg(5.0); // Would result in 195kg (below maximum)
+    request.setDurationWeeks(10);
+    request.setTrainingFrequencyPerWeek(4);
+    request.setPlanStrategy(PlanStrategy.BOTH);
+
+    ResponseEntity<PersonProfileResponse> response = personController.configureGoalPlan(request);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+  }
+
+  @Test
+  @DisplayName("configureGoalPlan validates target weight for BULK - skips BMI check when height is zero")
+  void configureGoalPlanValidatesTargetWeightBulkSkipsBMIWhenHeightZero() {
+    PersonSimple stored = basePerson("mobile-target-weight-bulk-height-zero");
+    stored.setWeight(190.0);
+    stored.setHeight(0.0); // Zero height
+    stored.setGoal(FitnessGoal.BULK);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(personRepository.save(any(PersonSimple.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    GoalPlanRequest request = new GoalPlanRequest();
+    request.setTargetChangeKg(5.0); // Would result in 195kg (below maximum)
+    request.setDurationWeeks(10);
+    request.setTrainingFrequencyPerWeek(4);
+    request.setPlanStrategy(PlanStrategy.BOTH);
+
+    ResponseEntity<PersonProfileResponse> response = personController.configureGoalPlan(request);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+  }
+
+  @Test
+  @DisplayName("configureGoalPlan requires goal to be set before configuring plan")
+  void configureGoalPlanRequiresGoalBeforeConfiguringPlan() {
+    PersonSimple stored = basePerson("mobile-target-weight-goal-null");
+    stored.setWeight(35.0);
+    stored.setGoal(null); // No goal
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+
+    GoalPlanRequest request = new GoalPlanRequest();
+    request.setTargetChangeKg(10.0);
+    request.setDurationWeeks(10);
+    request.setTrainingFrequencyPerWeek(4);
+    request.setPlanStrategy(PlanStrategy.BOTH);
+
+    // Should throw exception because goal is required
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+        () -> personController.configureGoalPlan(request));
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+    assertTrue(exception.getMessage().contains("A goal must be selected"));
+  }
+
+  @Test
+  @DisplayName("provideRecommendation requires duration weeks to be configured")
+  void provideRecommendationRequiresDurationWeeks() {
+    PersonSimple stored = basePerson("mobile-reco-missing-duration");
+    stored.setGoal(FitnessGoal.CUT);
+    stored.setTargetChangeKg(2.0);
+    stored.setTargetDurationWeeks(null); // Missing duration
+    stored.setTrainingFrequencyPerWeek(4);
+    stored.setPlanStrategy(PlanStrategy.DIET);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+        () -> personController.provideRecommendation());
+
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+    assertTrue(exception.getMessage().contains("All goal plan fields must be configured"));
+  }
+
+  @Test
+  @DisplayName("provideRecommendation returns diet plan with zero duration weeks")
+  void provideRecommendationReturnsDietPlanWithZeroDurationWeeks() {
+    PersonSimple stored = basePerson("mobile-reco-zero-duration");
+    stored.setGoal(FitnessGoal.CUT);
+    stored.setTargetChangeKg(2.0);
+    stored.setTargetDurationWeeks(0); // Zero duration (allowed, will use default adjustment)
+    stored.setTrainingFrequencyPerWeek(4);
+    stored.setPlanStrategy(PlanStrategy.DIET);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(healthInsightService.buildInsights(stored))
+        .thenReturn(sampleInsight("Test message", null));
+
+    ResponseEntity<Map<String, Object>> response = personController.provideRecommendation();
+
+    Map<String, Object> body = response.getBody();
+    String dietPlan = (String) body.get("dietPlan");
+    // Should use default adjustment when duration is 0
+    assertNotNull(dietPlan);
+  }
+
+  @Test
+  @DisplayName("provideRecommendation returns workout plan with plan alignment 0")
+  void provideRecommendationReturnsWorkoutPlanWithAlignmentZero() {
+    PersonSimple stored = basePerson("mobile-reco-workout-alignment-zero");
+    stored.setPlanStrategy(PlanStrategy.WORKOUT);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(healthInsightService.buildInsights(stored))
+        .thenReturn(new HealthInsightResult(
+            INSIGHT_BMI_VALUE,
+            INSIGHT_BMI_CATEGORY,
+            INSIGHT_HEALTH_INDEX,
+            0.0, // planAlignmentIndex = 0
+            INSIGHT_OVERALL_SCORE,
+            INSIGHT_PERCENTILE,
+            null,
+            "Test message"));
+
+    ResponseEntity<Map<String, Object>> response = personController.provideRecommendation();
+
+    Map<String, Object> body = response.getBody();
+    String workoutPlan = (String) body.get("workoutPlan");
+    assertTrue(workoutPlan.contains("Cannot provide a workout plan") || workoutPlan.contains("Plan Alignment = 0"));
+  }
+
+  @Test
+  @DisplayName("provideRecommendation requires training frequency to be configured")
+  void provideRecommendationRequiresTrainingFrequency() {
+    PersonSimple stored = basePerson("mobile-reco-workout-goal-null");
+    stored.setGoal(FitnessGoal.CUT);
+    stored.setPlanStrategy(PlanStrategy.WORKOUT);
+    stored.setTrainingFrequencyPerWeek(null); // Missing training frequency
+    stored.setTargetChangeKg(2.0);
+    stored.setTargetDurationWeeks(8);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+        () -> personController.provideRecommendation());
+
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+    assertTrue(exception.getMessage().contains("All goal plan fields must be configured"));
+  }
+
+  @Test
+  @DisplayName("provideRecommendation returns workout plan for CUT")
+  void provideRecommendationReturnsWorkoutPlanCut() {
+    PersonSimple stored = basePerson("mobile-reco-workout-cut");
+    stored.setGoal(FitnessGoal.CUT);
+    stored.setPlanStrategy(PlanStrategy.WORKOUT);
+    stored.setTrainingFrequencyPerWeek(4);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(healthInsightService.buildInsights(stored))
+        .thenReturn(sampleInsight("Test message", null));
+
+    ResponseEntity<Map<String, Object>> response = personController.provideRecommendation();
+
+    Map<String, Object> body = response.getBody();
+    String workoutPlan = (String) body.get("workoutPlan");
+    assertTrue(workoutPlan.contains("strength and cardio") || workoutPlan.contains("fat loss"));
+  }
+
+  @Test
+  @DisplayName("provideRecommendation returns workout plan for BULK")
+  void provideRecommendationReturnsWorkoutPlanBulk() {
+    PersonSimple stored = basePerson("mobile-reco-workout-bulk");
+    stored.setGoal(FitnessGoal.BULK);
+    stored.setPlanStrategy(PlanStrategy.WORKOUT);
+    stored.setTrainingFrequencyPerWeek(4);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(healthInsightService.buildInsights(stored))
+        .thenReturn(sampleInsight("Test message", null));
+
+    ResponseEntity<Map<String, Object>> response = personController.provideRecommendation();
+
+    Map<String, Object> body = response.getBody();
+    String workoutPlan = (String) body.get("workoutPlan");
+    assertTrue(workoutPlan.contains("strength-focused") || workoutPlan.contains("progressive overload"));
+  }
+
+  @Test
+  @DisplayName("configureGoalPlan validates target weight for CUT - target weight exactly at minimum")
+  void configureGoalPlanValidatesTargetWeightCutAtMinimum() {
+    PersonSimple stored = basePerson("mobile-target-weight-cut-min");
+    stored.setWeight(35.0);
+    // Use shorter person: for BMI = 15.0, weight = 15 * (height/100)^2
+    // For weight = 30kg, height = sqrt(30/15) * 100 = sqrt(2) * 100 ≈ 141.4cm
+    // Use 140cm to ensure BMI >= 15.0
+    stored.setHeight(140.0); // Shorter person so 30kg gives BMI >= 15.0
+    stored.setGoal(FitnessGoal.CUT);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(personRepository.save(any(PersonSimple.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    GoalPlanRequest request = new GoalPlanRequest();
+    request.setTargetChangeKg(5.0); // Would result in exactly 30kg (at minimum weight)
+    // BMI = 30 / (1.4^2) = 30 / 1.96 ≈ 15.3 (>= 15.0, passes BMI check)
+    request.setDurationWeeks(10);
+    request.setTrainingFrequencyPerWeek(4);
+    request.setPlanStrategy(PlanStrategy.BOTH);
+
+    ResponseEntity<PersonProfileResponse> response = personController.configureGoalPlan(request);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+  }
+
+  @Test
+  @DisplayName("configureGoalPlan validates target weight for CUT - target BMI exactly at minimum")
+  void configureGoalPlanValidatesTargetWeightCutAtMinimumBMI() {
+    PersonSimple stored = basePerson("mobile-target-weight-cut-min-bmi");
+    stored.setWeight(70.0);
+    stored.setHeight(200.0); // Tall person
+    stored.setGoal(FitnessGoal.CUT);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(personRepository.save(any(PersonSimple.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    GoalPlanRequest request = new GoalPlanRequest();
+    // For BMI = 15: weight = 15 * (2.0^2) = 15 * 4 = 60kg
+    // Current weight = 70kg, so target change = 10kg -> target weight = 60kg, BMI = 60/4 = 15 (exactly at minimum)
+    request.setTargetChangeKg(10.0); // Would result in 60kg, BMI = 15.0 (exactly at minimum)
+    request.setDurationWeeks(10);
+    request.setTrainingFrequencyPerWeek(4);
+    request.setPlanStrategy(PlanStrategy.BOTH);
+
+    ResponseEntity<PersonProfileResponse> response = personController.configureGoalPlan(request);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+  }
+
+  @Test
+  @DisplayName("configureGoalPlan validates target weight for BULK - target weight exactly at maximum")
+  void configureGoalPlanValidatesTargetWeightBulkAtMaximum() {
+    PersonSimple stored = basePerson("mobile-target-weight-bulk-max");
+    stored.setWeight(195.0);
+    stored.setHeight(200.0); // Tall person to avoid BMI issues
+    stored.setGoal(FitnessGoal.BULK);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(personRepository.save(any(PersonSimple.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    GoalPlanRequest request = new GoalPlanRequest();
+    request.setTargetChangeKg(5.0); // Would result in exactly 200kg (at maximum)
+    request.setDurationWeeks(10);
+    request.setTrainingFrequencyPerWeek(4);
+    request.setPlanStrategy(PlanStrategy.BOTH);
+
+    ResponseEntity<PersonProfileResponse> response = personController.configureGoalPlan(request);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+  }
+
+  @Test
+  @DisplayName("configureGoalPlan validates target weight for BULK - target BMI exactly at maximum")
+  void configureGoalPlanValidatesTargetWeightBulkAtMaximumBMI() {
+    PersonSimple stored = basePerson("mobile-target-weight-bulk-max-bmi");
+    stored.setWeight(100.0);
+    stored.setHeight(150.0); // Shorter person
+    stored.setGoal(FitnessGoal.BULK);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(personRepository.save(any(PersonSimple.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    GoalPlanRequest request = new GoalPlanRequest();
+    // For BMI = 50: weight = 50 * (1.5^2) = 50 * 2.25 = 112.5kg
+    // Current weight = 100kg, so target change = 12.5kg to reach BMI = 50
+    request.setTargetChangeKg(12.5); // Would result in 112.5kg, BMI = 50.0 (exactly at maximum)
+    request.setDurationWeeks(10);
+    request.setTrainingFrequencyPerWeek(4);
+    request.setPlanStrategy(PlanStrategy.BOTH);
+
+    ResponseEntity<PersonProfileResponse> response = personController.configureGoalPlan(request);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+  }
+
+  @Test
+  @DisplayName("provideRecommendation returns diet plan for CUT with exactly at max deficit")
+  void provideRecommendationReturnsDietPlanCutAtMaxDeficit() {
+    PersonSimple stored = basePerson("mobile-reco-cut-max-deficit");
+    stored.setGoal(FitnessGoal.CUT);
+    // Calculate: targetChangeKg * CALORIES_PER_KG / durationWeeks / DAYS_PER_WEEK = 1500
+    // 1500 = targetChangeKg * 7700 / durationWeeks / 7
+    // targetChangeKg * 7700 = 1500 * durationWeeks * 7 = 10500 * durationWeeks
+    // For durationWeeks = 10: targetChangeKg = 10500 * 10 / 7700 = 13.64kg
+    stored.setTargetChangeKg(13.64);
+    stored.setTargetDurationWeeks(10);
+    stored.setPlanStrategy(PlanStrategy.DIET);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(healthInsightService.buildInsights(stored))
+        .thenReturn(sampleInsight("Test message", null));
+
+    ResponseEntity<Map<String, Object>> response = personController.provideRecommendation();
+
+    Map<String, Object> body = response.getBody();
+    String dietPlan = (String) body.get("dietPlan");
+    assertTrue(dietPlan.contains("kcal deficit per day"));
+  }
+
+  @Test
+  @DisplayName("provideRecommendation returns diet plan for BULK with exactly at max surplus")
+  void provideRecommendationReturnsDietPlanBulkAtMaxSurplus() {
+    PersonSimple stored = basePerson("mobile-reco-bulk-max-surplus");
+    stored.setGoal(FitnessGoal.BULK);
+    // Calculate: targetChangeKg * CALORIES_PER_KG / durationWeeks / DAYS_PER_WEEK = 1000
+    // 1000 = targetChangeKg * 7700 / durationWeeks / 7
+    // targetChangeKg * 7700 = 1000 * durationWeeks * 7 = 7000 * durationWeeks
+    // For durationWeeks = 10: targetChangeKg = 7000 * 10 / 7700 = 9.09kg
+    stored.setTargetChangeKg(9.09);
+    stored.setTargetDurationWeeks(10);
+    stored.setPlanStrategy(PlanStrategy.DIET);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(healthInsightService.buildInsights(stored))
+        .thenReturn(sampleInsight("Test message", null));
+
+    ResponseEntity<Map<String, Object>> response = personController.provideRecommendation();
+
+    Map<String, Object> body = response.getBody();
+    String dietPlan = (String) body.get("dietPlan");
+    assertTrue(dietPlan.contains("kcal surplus daily"));
+  }
+
+  @Test
+  @DisplayName("provideRecommendation returns diet plan with BOTH strategy")
+  void provideRecommendationReturnsDietPlanWithBothStrategy() {
+    PersonSimple stored = basePerson("mobile-reco-both-strategy");
+    stored.setGoal(FitnessGoal.CUT);
+    stored.setPlanStrategy(PlanStrategy.BOTH);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+    when(healthInsightService.buildInsights(stored))
+        .thenReturn(sampleInsight("Test message", null));
+
+    ResponseEntity<Map<String, Object>> response = personController.provideRecommendation();
+
+    Map<String, Object> body = response.getBody();
+    assertNotNull(body.get("dietPlan"));
+    assertNotNull(body.get("workoutPlan"));
+  }
+
+  @Test
+  @DisplayName("provideRecommendation requires plan strategy to be configured")
+  void provideRecommendationRequiresPlanStrategy() {
+    PersonSimple stored = basePerson("mobile-reco-null-strategy");
+    stored.setPlanStrategy(null); // Missing plan strategy
+    stored.setTargetChangeKg(2.0);
+    stored.setTargetDurationWeeks(8);
+    stored.setTrainingFrequencyPerWeek(4);
+    ClientContext.setClientId(stored.getClientId());
+    when(personRepository.findByClientId(stored.getClientId())).thenReturn(Optional.of(stored));
+
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+        () -> personController.provideRecommendation());
+
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+    assertTrue(exception.getMessage().contains("All goal plan fields must be configured"));
   }
 
   private PersonSimple basePerson(String clientId) {
