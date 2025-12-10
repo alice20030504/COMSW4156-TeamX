@@ -1,6 +1,7 @@
 package com.teamx.fitness.integration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -256,8 +257,13 @@ class ResearchControllerTest {
     ResponseEntity<Map<String, Object>> response = controller.demographics();
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
-    Map<String, Object> summary = (Map<String, Object>) response.getBody().get("cohortSummary");
-    assertEquals(DEFAULT_SAMPLE_SIZE, summary.get("sampleSize"));
+    Map<String, Object> body = response.getBody();
+    assertNotNull(body);
+    // New structure: sampleSize is at top level, not in cohortSummary
+    assertEquals(DEFAULT_SAMPLE_SIZE, body.get("sampleSize"));
+    assertNotNull(body.get("ageDistribution"));
+    assertNotNull(body.get("genderDistribution"));
+    assertNotNull(body.get("physicalCharacteristics"));
   }
 
   @Test

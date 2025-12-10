@@ -228,6 +228,32 @@ async function getCalories() {
 
 async function getRecommendation() {
     try {
+        // First, fetch the profile to check if all goal plan fields are filled
+        const profileResponse = await apiCall('GET', '/api/persons/me', null, true);
+        const profileData = JSON.parse(profileResponse);
+        
+        // Validate that all goal plan fields are present
+        const missingFields = [];
+        if (profileData.targetChangeKg === null || profileData.targetChangeKg === undefined) {
+            missingFields.push('Target Change (kg)');
+        }
+        if (profileData.targetDurationWeeks === null || profileData.targetDurationWeeks === undefined) {
+            missingFields.push('Duration (weeks)');
+        }
+        if (profileData.trainingFrequencyPerWeek === null || profileData.trainingFrequencyPerWeek === undefined) {
+            missingFields.push('Training Frequency (per week)');
+        }
+        if (!profileData.planStrategy) {
+            missingFields.push('Plan Strategy');
+        }
+        
+        if (missingFields.length > 0) {
+            const fieldsList = missingFields.join(', ');
+            showStatus(`Cannot get recommendation. Please fill in all fields in "Configure Goal Plan": ${fieldsList}`, 'error');
+            return;
+        }
+        
+        // All fields are present, proceed with recommendation
         const response = await apiCall('GET', '/api/persons/recommendation', null, true);
         displayResults('Recommendation', response);
     } catch (error) {
@@ -280,6 +306,13 @@ function displayResults(title, response) {
 
     if (title === 'Recommendation' && data && !Array.isArray(data)) {
         html += renderRecommendationSummary(data);
+        // Display warning if plan alignment is 0
+        if (data.planAlignmentWarning) {
+            html += '<div class="plan-alignment-warning" style="background-color: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; padding: 15px; margin: 15px 0; color: #856404;">';
+            html += '<strong style="font-size: 16px;">⚠️ Plan Alignment Warning:</strong><br>';
+            html += '<span style="font-size: 14px;">' + escapeHtml(data.planAlignmentWarning) + '</span>';
+            html += '</div>';
+        }
     }
 
     if (data) {
@@ -316,7 +349,12 @@ function renderRecommendationSummary(data) {
                 && data.planAlignmentIndex !== undefined
                 && !Number.isNaN(data.planAlignmentIndex),
             value: () => formatMetric(data.planAlignmentIndex),
-            description: () => '0-100 gauge for how realistic your goal/pace/training combo is right now.'
+            description: () => {
+                if (data.planAlignmentIndex === 0) {
+                    return '0 means your plan is unrealistic. This could be due to: goal contradiction, extremely aggressive targets, unrealistic timeline, insufficient training frequency, or mismatched strategy. Please review and adjust your plan configuration.';
+                }
+                return '0-100 gauge for how realistic your goal/pace/training combo is right now.';
+            }
         },
         {
             key: 'overallScore',
@@ -330,7 +368,23 @@ function renderRecommendationSummary(data) {
             label: 'Percentile',
             hasValue: () => data.percentile !== null && data.percentile !== undefined,
             value: () => formatMetric(data.percentile, (val) => `${val}%`),
-            description: () => 'Comparison to other users. 70% means you outrank 70% of the group.'
+            description: () => {
+                if (data.percentile !== null && data.percentile !== undefined) {
+                    const percentile = data.percentile;
+                    if (percentile >= 90) {
+                        return 'Excellent health condition! You rank higher than 90% of users, indicating very strong overall health habits and plan alignment.';
+                    } else if (percentile >= 75) {
+                        return 'Very good health condition. You rank higher than 75% of users, showing strong health habits and a well-aligned fitness plan.';
+                    } else if (percentile >= 50) {
+                        return 'Good health condition. You rank higher than 50% of users, indicating above-average health habits and plan effectiveness.';
+                    } else if (percentile >= 25) {
+                        return 'Moderate health condition. You rank higher than 25% of users. Consider reviewing your plan to improve your health trajectory.';
+                    } else {
+                        return 'Health condition needs attention. You rank in the bottom 25% of users. Please review your goals and plan to improve your health trajectory.';
+                    }
+                }
+                return 'Comparison to other users. Higher percentile indicates better overall health condition and plan effectiveness.';
+            }
         }
     ];
 
