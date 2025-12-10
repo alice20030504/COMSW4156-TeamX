@@ -6,7 +6,7 @@ A simple, modern web-based client for the Personal Fitness Management Service AP
 
 - **User Registration**: Register new fitness profiles with personal information
 - **Profile Management**: View and manage your fitness profile
-- **Goal Plan Configuration**: Set up personalized fitness plans with target changes, duration, and training frequency
+- **Goal Plan Configuration**: Set up personalized fitness plans with target weight, duration, and training frequency
 - **Fitness Metrics**:
   - Calculate and view BMI (Body Mass Index)
   - Get daily calorie recommendations
@@ -125,7 +125,7 @@ http://localhost:3000
 ### 2. Configure Your Goal Plan
 
 1. In the "Configure Goal Plan" section, enter:
-   - Target Change (kg): How much weight you want to gain/lose
+   - Target Weight (kg): The final weight you want to reach
    - Duration (weeks): Timeline for your goal
    - Training Frequency: Workouts per week (1-14)
    - Plan Strategy: Diet only, Workout only, or Both

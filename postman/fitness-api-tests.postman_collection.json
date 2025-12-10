@@ -266,7 +266,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"targetChangeKg\": 2.0,\n  \"durationWeeks\": 8,\n  \"trainingFrequencyPerWeek\": 4,\n  \"planStrategy\": \"DIET\"\n}",
+                  "raw": "{\n  \"targetChangeKg\": 70.0,\n  \"durationWeeks\": 8,\n  \"trainingFrequencyPerWeek\": 4,\n  \"planStrategy\": \"DIET\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -315,7 +315,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"targetChangeKg\": 5.0,\n  \"durationWeeks\": 10,\n  \"trainingFrequencyPerWeek\": 14,\n  \"planStrategy\": \"BOTH\"\n}",
+                  "raw": "{\n  \"targetChangeKg\": 67.0,\n  \"durationWeeks\": 10,\n  \"trainingFrequencyPerWeek\": 14,\n  \"planStrategy\": \"BOTH\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -416,7 +416,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"name\": \"  Alex Updated  \",\n  \"weight\": 74.0,\n  \"height\": 179.0,\n  \"birthDate\": \"1990-04-15\",\n  \"gender\": \"MALE\",\n  \"goal\": \"CUT\",\n  \"targetChangeKg\": 2.0,\n  \"targetDurationWeeks\": 8,\n  \"trainingFrequencyPerWeek\": 4,\n  \"planStrategy\": \"DIET\"\n}",
+                  "raw": "{\n  \"name\": \"  Alex Updated  \",\n  \"weight\": 74.0,\n  \"height\": 179.0,\n  \"birthDate\": \"1990-04-15\",\n  \"gender\": \"MALE\",\n  \"goal\": \"CUT\",\n  \"targetChangeKg\": 72.0,\n  \"targetDurationWeeks\": 8,\n  \"trainingFrequencyPerWeek\": 4,\n  \"planStrategy\": \"DIET\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -465,7 +465,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"name\": \"Alex Boundary\",\n  \"weight\": 40.0,\n  \"height\": 150.0,\n  \"birthDate\": \"1990-04-15\",\n  \"gender\": \"MALE\",\n  \"goal\": \"CUT\",\n  \"targetChangeKg\": 5.0,\n  \"targetDurationWeeks\": 10,\n  \"trainingFrequencyPerWeek\": 14,\n  \"planStrategy\": \"BOTH\"\n}",
+                  "raw": "{\n  \"name\": \"Alex Boundary\",\n  \"weight\": 40.0,\n  \"height\": 150.0,\n  \"birthDate\": \"1990-04-15\",\n  \"gender\": \"MALE\",\n  \"goal\": \"CUT\",\n  \"targetChangeKg\": 35.0,\n  \"targetDurationWeeks\": 10,\n  \"trainingFrequencyPerWeek\": 14,\n  \"planStrategy\": \"BOTH\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -646,6 +646,53 @@
           "name": "Personal - Calories (GET /api/persons/calories)",
           "item": [
             {
+              "name": "Get Calories - configure plan first",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Client-ID",
+                    "value": "{{mobileClientPrimary}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/persons/plan",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "persons",
+                    "plan"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"targetChangeKg\": 70.0,\n  \"durationWeeks\": 8,\n  \"trainingFrequencyPerWeek\": 4,\n  \"planStrategy\": \"DIET\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Plan configured for calories test', function () { pm.response.to.have.status(200); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
               "name": "Get Calories - normal",
               "request": {
                 "method": "GET",
@@ -676,6 +723,53 @@
                       "pm.test('Calories request succeeds', function () { pm.response.to.have.status(200); });",
                       "const body = pm.response.json();",
                       "pm.test('Recommended calories present', function () { pm.expect(body).to.have.property('recommendedDailyCalories'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get Calories - configure boundary frequency plan",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Client-ID",
+                    "value": "{{mobileClientPrimary}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/persons/plan",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "persons",
+                    "plan"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"targetChangeKg\": 70.0,\n  \"durationWeeks\": 8,\n  \"trainingFrequencyPerWeek\": 14,\n  \"planStrategy\": \"DIET\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Boundary frequency plan configured', function () { pm.response.to.have.status(200); });"
                     ]
                   }
                 }
@@ -752,6 +846,53 @@
           "name": "Personal - Recommendation (GET /api/persons/recommendation)",
           "item": [
             {
+              "name": "Recommendation - configure plan first",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Client-ID",
+                    "value": "{{mobileClientPrimary}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/persons/plan",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "persons",
+                    "plan"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"targetChangeKg\": 70.0,\n  \"durationWeeks\": 8,\n  \"trainingFrequencyPerWeek\": 4,\n  \"planStrategy\": \"DIET\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Plan configured for recommendation test', function () { pm.response.to.have.status(200); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
               "name": "Recommendation - normal",
               "request": {
                 "method": "GET",
@@ -781,7 +922,7 @@
                     "exec": [
                       "pm.test('Recommendation request succeeds', function () { pm.response.to.have.status(200); });",
                       "const body = pm.response.json();",
-                      "pm.test('Message contains guidance', function () { pm.expect(body.message || '').to.match(/(Keep|BMI|Cutting|Your plan)/); });"
+                      "pm.test('Message contains guidance', function () { pm.expect(body.message || '').to.match(/(Keep|BMI|Cutting|Your plan|Cannot provide recommendation)/); });"
                     ]
                   }
                 }
@@ -814,7 +955,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"targetChangeKg\": 3.0,\n  \"durationWeeks\": 12,\n  \"trainingFrequencyPerWeek\": 4,\n  \"planStrategy\": \"BOTH\"\n}",
+                  "raw": "{\n  \"targetChangeKg\": 48.0,\n  \"durationWeeks\": 12,\n  \"trainingFrequencyPerWeek\": 4,\n  \"planStrategy\": \"BOTH\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"

@@ -182,7 +182,7 @@ public class PersonController {
   @PostMapping("/plan")
   @Operation(
       summary = "Configure goal plan details",
-      description = "Saves the target change, duration, and training frequency for the active goal.",
+      description = "Saves the target weight, duration, and training frequency for the active goal.",
       parameters = {
           @Parameter(
               name = "X-Client-ID",
@@ -369,20 +369,24 @@ public class PersonController {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST, "Unable to compute BMR with the stored profile data");
     }
-    Double dailyCalories = personService.calculateDailyCalorieNeeds(
-        bmr, person.getTrainingFrequencyPerWeek());
+    Double dailyCalories =
+        personService.calculateDailyCalorieNeeds(bmr, person.getTrainingFrequencyPerWeek());
     if (dailyCalories == null) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST, "Unable to compute calorie needs with the stored plan");
     }
 
+    Double targetWeight = person.getTargetChangeKg();
+    if (targetWeight == null || person.getWeight() == null) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "weight and targetChangeKg (target weight) are required");
+    }
+
+    double plannedDeltaKg = targetWeight - person.getWeight();
     double dailyAdjustmentCalories =
-        person.getTargetChangeKg() * CALORIES_PER_KG
+        Math.abs(plannedDeltaKg) * CALORIES_PER_KG
             / person.getTargetDurationWeeks()
             / DAYS_PER_WEEK;
-    if (dailyAdjustmentCalories < 0) {
-      dailyAdjustmentCalories = Math.abs(dailyAdjustmentCalories);
-    }
 
     // Apply boundary checks for calorie adjustments
     boolean isCut = FitnessGoal.CUT.equals(person.getGoal());
@@ -524,24 +528,26 @@ public class PersonController {
   }
 
   /**
-   * Validates that the target weight (current weight +/- target change) is within reasonable bounds.
-   * 
+   * Validates that the target weight is within reasonable bounds.
+   *
+   * <p>The {@code targetChangeKg} field stored on {@link PersonSimple} represents the <em>final
+   * target weight</em> in kilograms (not the delta). This method derives the implied change from
+   * the current weight and ensures the resulting target weight and BMI stay within safe ranges.
+   *
    * @param person The person entity with current weight, height, and goal
-   * @param targetChangeKg The target weight change in kg
+   * @param targetWeightKg The desired final target weight in kg
    * @throws ResponseStatusException if target weight is unreasonable
    */
-  private void validateTargetWeight(PersonSimple person, Double targetChangeKg) {
-    if (person.getWeight() == null || targetChangeKg == null || person.getGoal() == null) {
+  private void validateTargetWeight(PersonSimple person, Double targetWeightKg) {
+    if (person.getWeight() == null || targetWeightKg == null || person.getGoal() == null) {
       return; // Skip validation if required fields are missing
     }
 
     double currentWeight = person.getWeight();
-    double targetWeight;
+    double targetWeight = targetWeightKg;
+    double changeMagnitude = Math.abs(targetWeight - currentWeight);
     
     if (person.getGoal() == FitnessGoal.CUT) {
-      // For CUT, targetChangeKg is positive but represents weight loss
-      targetWeight = currentWeight - Math.abs(targetChangeKg);
-      
       // Check minimum weight
       if (targetWeight < MIN_HEALTHY_WEIGHT_KG) {
         throw new ResponseStatusException(
@@ -549,8 +555,8 @@ public class PersonController {
             String.format(
                 "Target weight (%.1f kg) is below the minimum healthy weight (%.1f kg). "
                     + "Losing %.1f kg from your current weight of %.1f kg would be unsafe. "
-                    + "Please set a more realistic target change.",
-                targetWeight, MIN_HEALTHY_WEIGHT_KG, Math.abs(targetChangeKg), currentWeight));
+                    + "Please set a more realistic target weight.",
+                targetWeight, MIN_HEALTHY_WEIGHT_KG, changeMagnitude, currentWeight));
       }
       
       // Check BMI if height is available
@@ -562,14 +568,11 @@ public class PersonController {
               String.format(
                   "Target BMI (%.1f) would be below the minimum healthy BMI (%.1f). "
                       + "Losing %.1f kg from your current weight of %.1f kg would result in an unsafe BMI. "
-                      + "Please set a more realistic target change.",
-                  targetBmi, MIN_HEALTHY_BMI, Math.abs(targetChangeKg), currentWeight));
+                      + "Please set a more realistic target weight.",
+                  targetBmi, MIN_HEALTHY_BMI, changeMagnitude, currentWeight));
         }
       }
     } else if (person.getGoal() == FitnessGoal.BULK) {
-      // For BULK, targetChangeKg is positive and represents weight gain
-      targetWeight = currentWeight + Math.abs(targetChangeKg);
-      
       // Check maximum weight
       if (targetWeight > MAX_REASONABLE_WEIGHT_KG) {
         throw new ResponseStatusException(
@@ -577,8 +580,8 @@ public class PersonController {
             String.format(
                 "Target weight (%.1f kg) exceeds the maximum reasonable weight (%.1f kg). "
                     + "Gaining %.1f kg from your current weight of %.1f kg would be excessive. "
-                    + "Please set a more realistic target change.",
-                targetWeight, MAX_REASONABLE_WEIGHT_KG, Math.abs(targetChangeKg), currentWeight));
+                    + "Please set a more realistic target weight.",
+                targetWeight, MAX_REASONABLE_WEIGHT_KG, changeMagnitude, currentWeight));
       }
       
       // Check BMI if height is available
@@ -590,8 +593,8 @@ public class PersonController {
               String.format(
                   "Target BMI (%.1f) would exceed the maximum reasonable BMI (%.1f). "
                       + "Gaining %.1f kg from your current weight of %.1f kg would result in an unsafe BMI. "
-                      + "Please set a more realistic target change.",
-                  targetBmi, MAX_REASONABLE_BMI, Math.abs(targetChangeKg), currentWeight));
+                      + "Please set a more realistic target weight.",
+                  targetBmi, MAX_REASONABLE_BMI, changeMagnitude, currentWeight));
         }
       }
     }
@@ -625,12 +628,13 @@ public class PersonController {
 
     FitnessGoal goal = person.getGoal();
     double adjustment = DEFAULT_PLAN_ADJUSTMENT;
-    if (person.getTargetChangeKg() != null && person.getTargetDurationWeeks() != null
-        && person.getTargetDurationWeeks() > 0) {
-      adjustment = Math.abs(
-          person.getTargetChangeKg() * CALORIES_PER_KG
-              / person.getTargetDurationWeeks()
-              / DAYS_PER_WEEK);
+    Double targetWeight = person.getTargetChangeKg();
+    Double currentWeight = person.getWeight();
+    Integer durationWeeks = person.getTargetDurationWeeks();
+    if (targetWeight != null && currentWeight != null && durationWeeks != null && durationWeeks > 0) {
+      double deltaKg = targetWeight - currentWeight;
+      adjustment =
+          Math.abs(deltaKg * CALORIES_PER_KG / durationWeeks / DAYS_PER_WEEK);
     }
     
     // Apply boundary checks for calorie adjustments
@@ -648,10 +652,10 @@ public class PersonController {
 
     if (goal == FitnessGoal.CUT) {
       // Check if the adjustment was capped
-      double uncappedAdjustment = person.getTargetChangeKg() != null && person.getTargetDurationWeeks() != null
-          && person.getTargetDurationWeeks() > 0
-          ? Math.abs(person.getTargetChangeKg() * CALORIES_PER_KG / person.getTargetDurationWeeks() / DAYS_PER_WEEK)
-          : DEFAULT_PLAN_ADJUSTMENT;
+      double uncappedAdjustment =
+          targetWeight != null && currentWeight != null && durationWeeks != null && durationWeeks > 0
+              ? Math.abs((targetWeight - currentWeight) * CALORIES_PER_KG / durationWeeks / DAYS_PER_WEEK)
+              : DEFAULT_PLAN_ADJUSTMENT;
       
       if (uncappedAdjustment > MAX_DAILY_CALORIE_DEFICIT) {
         return String.format(
@@ -667,10 +671,10 @@ public class PersonController {
     }
     
     // Check if surplus was capped
-    double uncappedSurplus = person.getTargetChangeKg() != null && person.getTargetDurationWeeks() != null
-        && person.getTargetDurationWeeks() > 0
-        ? Math.abs(person.getTargetChangeKg() * CALORIES_PER_KG / person.getTargetDurationWeeks() / DAYS_PER_WEEK)
-        : DEFAULT_PLAN_ADJUSTMENT;
+    double uncappedSurplus =
+        targetWeight != null && currentWeight != null && durationWeeks != null && durationWeeks > 0
+            ? Math.abs((targetWeight - currentWeight) * CALORIES_PER_KG / durationWeeks / DAYS_PER_WEEK)
+            : DEFAULT_PLAN_ADJUSTMENT;
     
     if (uncappedSurplus > MAX_DAILY_CALORIE_SURPLUS) {
       return String.format(

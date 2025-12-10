@@ -57,7 +57,7 @@
 - **`PersonSimple.java`** - Entity representing a person profile with:
   - Basic info (name, weight, height, birthDate)
   - Gender and fitness goal (CUT/BULK)
-  - Goal plan details (target change, duration, training frequency, strategy)
+  - Goal plan details (target weight, duration, training frequency, strategy)
 - **`Researcher.java`** - Entity representing a researcher profile
 - **`Gender.java`** - Enum: `MALE`, `FEMALE`
 - **`FitnessGoal.java`** - Enum: `CUT`, `BULK`

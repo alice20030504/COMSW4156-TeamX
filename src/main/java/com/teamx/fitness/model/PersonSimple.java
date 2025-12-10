@@ -67,11 +67,11 @@ public class PersonSimple {
   @Column(name = "goal", nullable = false, length = 16)
   private FitnessGoal goal;
 
-  /** Desired change in weight (kg) associated with the goal. */
+  /** Desired final target weight (kg) associated with the goal. */
   @Column(name = "target_change_kg")
   private Double targetChangeKg;
 
-  /** Number of weeks allotted to achieve the target change. */
+  /** Number of weeks allotted to achieve the target weight. */
   @Column(name = "target_duration_weeks")
   private Integer targetDurationWeeks;
 
