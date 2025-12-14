@@ -37,13 +37,27 @@ services:
       - ./logs:/app/logs
     restart: unless-stopped
 
-  frontend:
+  mobile-frontend:
     image: python:3.12-alpine
-    container_name: fitness-frontend
-    working_dir: /app/frontend
-    command: sh -c "python -m http.server 3000"
+    container_name: fitness-mobile-frontend
+    working_dir: /app/mobile-frontend
+    command: sh -c "python -m http.server 3001"
     ports:
-      - "3000:3000"
+      - "3001:3001"
+    volumes:
+      - .:/app:ro
+    depends_on:
+      app:
+        condition: service_started
+    restart: unless-stopped
+
+  researcher-frontend:
+    image: python:3.12-alpine
+    container_name: fitness-researcher-frontend
+    working_dir: /app/researcher-frontend
+    command: sh -c "python -m http.server 3002"
+    ports:
+      - "3002:3002"
     volumes:
       - .:/app:ro
     depends_on:

@@ -1,6 +1,11 @@
-# Frontend Web Client
+# Frontend Web Clients
 
-A simple, modern web-based client for the Personal Fitness Management Service API. This client provides a user-friendly interface to interact with the fitness service, allowing users to register profiles, configure goal plans, and retrieve fitness metrics.
+The Personal Fitness Management Service includes two separate web-based clients:
+
+1. **Mobile Frontend** (`mobile-frontend/`) - For individual users to manage fitness profiles, configure goal plans, and retrieve personal fitness metrics
+2. **Researcher Frontend** (`researcher-frontend/`) - For research analysts to access population health analytics and cohort data
+
+Both clients provide user-friendly interfaces to interact with the fitness service API.
 
 ## Features
 
@@ -56,14 +61,15 @@ This means you can:
 2. Open `index.html` in your web browser:
    - **Windows**: Double-click `index.html` or right-click → "Open with" → your browser
 
-### Option 2: Run with Docker (Backend + Frontend)
+### Option 2: Run with Docker (Backend + Frontends)
 
 From the project root:
 
 ```bash
 docker-compose up --build
 # Backend: http://localhost:8080
-# Frontend: http://localhost:3000
+# Mobile Frontend: http://localhost:3001
+# Researcher Frontend: http://localhost:3002
 ```
 
 ### Option 3: Test with GCP-Deployed Server
@@ -74,32 +80,43 @@ The frontend can also connect to the service deployed on Google Cloud Platform:
 
 - IP Address: `35.188.26.134`
 - Backend Port: `8080`
-- Frontend Port: `3000`
+- Mobile Frontend Port: `3001`
+- Researcher Frontend Port: `3002`
 
-**Option 3a: Access Frontend Directly on GCP**
+**Option 3a: Access Frontends Directly on GCP**
 
 Open your web browser and navigate to:
 
 ```
-http://35.188.26.134:3000
+Mobile Frontend: http://35.188.26.134:3001
+Researcher Frontend: http://35.188.26.134:3002
 ```
 
 The frontend will automatically connect to the backend service at `http://35.188.26.134:8080`.
 
-**Option 3b: Run Local Frontend Connected to GCP Backend**
+**Option 3b: Run Local Frontends Connected to GCP Backend**
 
-1. Run the local frontend web server:
+1. Run the local frontend web servers:
 
+For Mobile Frontend:
 ```bash
-cd frontend
-python -m http.server 3000
-# Or: http-server -p 3000
+cd mobile-frontend
+python -m http.server 3001
+# Or: http-server -p 3001
+```
+
+For Researcher Frontend:
+```bash
+cd researcher-frontend
+python -m http.server 3002
+# Or: http-server -p 3002
 ```
 
 2. Open your web browser to:
 
 ```
-http://localhost:3000
+Mobile Frontend: http://localhost:3001
+Researcher Frontend: http://localhost:3002
 ```
 
 3. The frontend will automatically detect the GCP backend, or you can manually configure it:
@@ -327,9 +344,13 @@ Response: 200 OK
 ## File Structure
 
 ```
-frontend/
-├── index.html      # Main HTML structure
-├── styles.css      # Styling and layout
-├── app.js          # Application logic and API calls
-└── README.md       # This file
+mobile-frontend/
+├── index.html      # Mobile user HTML structure
+├── styles.css      # Mobile styling and layout
+└── app.js          # Mobile application logic and API calls
+
+researcher-frontend/
+├── index.html      # Researcher HTML structure
+├── styles.css      # Researcher styling and layout
+└── app.js          # Researcher application logic and API calls
 ```

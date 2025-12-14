@@ -3,6 +3,8 @@ const API_CONFIG_KEY = "fitness_api_base_url";
 const CLIENT_ID_KEY = "fitness_research_client_id";
 const DEFAULT_API_BASE_URL = "http://localhost:8080";
 const REMOTE_DEFAULT_PORT = "8080";
+// Common backend ports to try when auto-detecting
+const COMMON_BACKEND_PORTS = [8080, 80, 3000, 5000, 8081, 8443, 443];
 
 // Use sessionStorage for client ID (tab-specific) and localStorage for API URL (shared)
 const getStorage = (key) => {
@@ -475,21 +477,36 @@ async function detectAutoApiBaseUrl() {
       return DEFAULT_API_BASE_URL;
     }
 
-    const sameOrigin = window.location.origin;
-    if (await backendRespondsToHealth(sameOrigin)) {
-      return sameOrigin;
-    }
-
-    const remotePort = getRemotePortHint();
-    if (remotePort) {
-      const candidate = `${window.location.protocol}//${window.location.hostname}:${remotePort}`;
-      if (await backendRespondsToHealth(candidate)) {
-        return candidate;
+    // For remote deployments (e.g., GCP VM), try to detect backend port dynamically
+    const remotePortHint = getRemotePortHint();
+    let portsToTry = COMMON_BACKEND_PORTS;
+    
+    // If a port hint is provided, prioritize it
+    if (remotePortHint) {
+      const hintPort = parseInt(remotePortHint);
+      if (!isNaN(hintPort) && hintPort > 0 && hintPort < 65536) {
+        portsToTry = [hintPort, ...COMMON_BACKEND_PORTS.filter(p => p !== hintPort)];
       }
-      return candidate;
     }
-
-    return DEFAULT_API_BASE_URL;
+    
+    // Try ports in parallel for faster detection
+    const healthChecks = portsToTry.map(async (port) => {
+      const candidateUrl = `${window.location.protocol}//${window.location.hostname}:${port}`;
+      const isHealthy = await backendRespondsToHealth(candidateUrl, 1500);
+      return { port, url: candidateUrl, isHealthy };
+    });
+    
+    const results = await Promise.all(healthChecks);
+    const healthyBackend = results.find(r => r.isHealthy);
+    
+    if (healthyBackend) {
+      return healthyBackend.url;
+    }
+    
+    // If no port responded, use the hint port or default to 8080
+    // This ensures GCP deployments have a fallback even if backend isn't ready yet
+    const fallbackPort = remotePortHint || REMOTE_DEFAULT_PORT;
+    return `${window.location.protocol}//${window.location.hostname}:${fallbackPort}`;
   })();
 
   try {
@@ -558,12 +575,19 @@ function getRemotePortHint() {
   return REMOTE_DEFAULT_PORT;
 }
 
-async function backendRespondsToHealth(baseUrl) {
+async function backendRespondsToHealth(baseUrl, timeoutMs = 2000) {
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    
     const response = await fetch(baseUrl + "/health", {
       method: "GET",
       cache: "no-store",
+      signal: controller.signal,
     });
+    
+    clearTimeout(timeoutId);
+    
     if (!response.ok) {
       return false;
     }

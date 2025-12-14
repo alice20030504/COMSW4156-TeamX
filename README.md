@@ -6,17 +6,18 @@ A comprehensive Spring Boot-based fitness tracking and management service that p
 
 ## Quick Start
 
-This project runs as a fully Dockerized stack—comprising a Spring Boot backend, React frontend, and PostgreSQL database—so you can bring everything up with a single command.
+This project runs as a fully Dockerized stack—comprising a Spring Boot backend, two React frontends (mobile and researcher), and PostgreSQL database—so you can bring everything up with a single command.
 
 1. **Prerequisites** – Install Docker Desktop (or Docker Engine + Docker Compose) and ensure it is running.
 2. **Build & Launch** – From the repo root, run:
    ```bash
    docker compose up -d --build
    ```
-   This builds the backend image, seeds the PostgreSQL container, and serves the frontend from the `frontend/` bundle.
+   This builds the backend image, seeds the PostgreSQL container, and serves the two frontends from the `mobile-frontend/` and `researcher-frontend/` directories.
 3. **Verify** – After the containers report healthy:
    - Backend API: `http://localhost:8080`
-   - Frontend UI: `http://localhost:3000`
+   - Mobile Frontend UI: `http://localhost:3001`
+   - Researcher Frontend UI: `http://localhost:3002`
    - PostgreSQL data volume: `database/data` (persisted between runs)
 4. **Shutdown / Reset** – Use `docker compose down` to stop services. For a clean slate, including DB data, run `docker compose down -v`.
 
@@ -43,9 +44,9 @@ The tagged Iteration 2 version is located at: **`Iteration_2`**
 
 ## 2. Client Program
 
-A modern web-based client is available in the `frontend/` directory, providing user-friendly browser interfaces for both mobile users to manage fitness profiles and research analysts to access population health analytics. It supports simultaneous multi-client sessions with complete data isolation via `X-Client-ID` header authentication.
+Two separate web-based clients are available in the `mobile-frontend/` and `researcher-frontend/` directories, providing user-friendly browser interfaces for mobile users to manage fitness profiles and research analysts to access population health analytics. Both clients support simultaneous multi-client sessions with complete data isolation via `X-Client-ID` header authentication.
 
-**For complete documentation on building, running, testing locally, and connecting to the GCP-deployed backend server, see [`frontend/README.md`](frontend/README.md).**
+**For complete documentation on building, running, testing locally, and connecting to the GCP-deployed backend server, see [`FRONTENDREADME.md`](FRONTENDREADME.md).**
 
 ---
 
@@ -119,7 +120,8 @@ See [`docs/STYLE_CHECK_SUMMARY.md`](docs/STYLE_CHECK_SUMMARY.md#functional-bugs-
 
 **GCP Deployment:**
 - **Backend:** `http://34.30.81.33:8080`
-- **Frontend:** `http://34.30.81.33:3000`
+- **Mobile Frontend:** `http://34.30.81.33:3001`
+- **Researcher Frontend:** `http://34.30.81.33:3002`
 
 **Service Endpoints:**
 - **Health Check:** `http://34.30.81.33:8080/health`
@@ -132,8 +134,9 @@ See [`docs/STYLE_CHECK_SUMMARY.md`](docs/STYLE_CHECK_SUMMARY.md#functional-bugs-
 - Health Check: `http://34.30.81.33:8080/health`
 - Swagger UI: `http://34.30.81.33:8080/swagger-ui.html`
 
-**Frontend:**
-- URL: `http://34.30.81.33:3000`
+**Frontends:**
+- Mobile Frontend: `http://34.30.81.33:3001`
+- Researcher Frontend: `http://34.30.81.33:3002`
 ---
 
 ## 8. Project Management
@@ -261,7 +264,7 @@ These non-essential or high-complexity features were **intentionally cut from sc
 - **[End-to-End Testing](docs/E2E_TESTING.md)**: Manual testing procedures and checklists
 - **[Testing Results](docs/TESTING_RESULTS.md)**: Test execution summaries
 - **[Style Check Summary](docs/STYLE_CHECK_SUMMARY.md)**: Static analysis configuration
-- **[Frontend README](frontend/README.md)**: Client-specific documentation
+- **[Frontend README](FRONTENDREADME.md)**: Mobile and researcher frontend client documentation
 - 
 ---
 ## License

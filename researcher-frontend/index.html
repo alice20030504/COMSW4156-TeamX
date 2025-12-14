@@ -11,12 +11,13 @@
       <header>
         <h1>🔬 Personal Fitness Management</h1>
         <p class="subtitle">Researcher Dashboard</p>
-        <a
-          href="landing.html"
-          style="color: white; text-decoration: underline; font-size: 0.9em"
-          >← Back to Home</a
-        >
       </header>
+
+      <!-- API Endpoint Display -->
+      <div id="apiEndpointBanner" class="api-endpoint-banner" data-state="ok">
+        <span class="endpoint-label">Backend API:</span>
+        <span id="apiEndpointDisplay" class="endpoint-value">Detecting...</span>
+      </div>
 
       <!-- Client ID Display -->
       <div id="clientInfo" class="client-info" style="display: none">
@@ -88,6 +89,6 @@
       ></div>
     </div>
 
-    <script src="research.js"></script>
+    <script src="app.js"></script>
   </body>
 </html>
